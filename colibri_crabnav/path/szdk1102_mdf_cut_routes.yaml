@@ -1,0 +1,39 @@
+path:
+  image: szdk1102_mdf_cut.pgm
+  resolution: 0.050000
+  origin: [-3.4, -1.1, 0.000000]
+  map_size: [152, 65]
+  seg_num: 11
+  seg1_property: [1, 0, 1]
+  seg1_vector: [69, 43, 92, 43]
+  seg1_heading: 0.00
+  seg2_property: [2, 1, 2]
+  seg2_vector: [92, 43, 116, 43]
+  seg2_heading: 0.00
+  seg3_property: [3, 2, 3]
+  seg3_vector: [116, 43, 132, 43]
+  seg3_heading: 90.00
+  seg4_property: [4, 3, 4]
+  seg4_vector: [132, 43, 132, 19]
+  seg4_heading: 180.00
+  seg5_property: [5, 4, 5]
+  seg5_vector: [132, 19, 101, 19]
+  seg5_heading: 180.00
+  seg6_property: [6, 5, 6]
+  seg6_vector: [101, 19, 45, 19]
+  seg6_heading: 180.00
+  seg7_property: [7, 6, 7]
+  seg7_vector: [45, 19, 20, 19]
+  seg7_heading: -90.00
+  seg8_property: [8, 7, 8]
+  seg8_vector: [20, 19, 20, 43]
+  seg8_heading: 0.00
+  seg9_property: [9, 8, 9]
+  seg9_vector: [20, 43, 45, 43]
+  seg9_heading: 0.00
+  seg10_property: [10, 9, 0]
+  seg10_vector: [45, 43, 69, 43]
+  seg10_heading: 0.00
+  seg11_property: [11, 6, 9]
+  seg11_vector: [45, 19, 45, 43]
+  seg11_heading: 0.00
