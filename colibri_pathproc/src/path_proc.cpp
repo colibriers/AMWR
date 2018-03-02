@@ -105,7 +105,7 @@ PathProc::PathProc()
 
 	cur_route_.target_id = 0;
 	cur_route_.target_heading = 0.0;
-	cur_seg_ = 1;
+	cur_seg_ = 48;
 	micro_seg_num_ = 1;
 	task_switch_ = false;
 
@@ -589,14 +589,14 @@ int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, v
 	int path_total_len = straight_path.size();
 	vector<float> delta_dis;
 	delta_dis.reserve(path_total_len);
-	int cur_seg = 1;
-	static int last_cur_seg = 1;
+	static int cur_seg = 48;
+	static int last_cur_seg = 48;
 	float delta_x, delta_y, delta_distance;
 	
 	if(cur_route.seg_list.empty())
 	{
 		cur_seg_ = last_cur_seg;
-		return cur_seg;	
+		return cur_seg_;	
 	}
 	else
 	{
@@ -632,7 +632,7 @@ int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, v
 	cur_seg_ = cur_seg;
 	last_cur_seg = cur_seg_;
 
-	return cur_seg;
+	return cur_seg_;
 }
 
 void PathProc::CalcLengthStairs(vector<int> & path_seg_id, vector<int> &len_stairs)

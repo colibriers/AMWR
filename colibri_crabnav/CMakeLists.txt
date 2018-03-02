@@ -62,17 +62,17 @@ INCLUDE_DIRECTORIES(include/colibri_crabnav/)
  #  ${catkin_LIBRARIES}
  #)
 
- add_executable(crab_nav_node src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp 
-    src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp)
- target_link_libraries(crab_nav_node yaml-cpp
-   ${catkin_LIBRARIES}
- )
-
-#  add_executable(crab_nav src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp 
+# add_executable(crab_nav_node src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp 
 #    src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp)
-# target_link_libraries(crab_nav yaml-cpp
+# target_link_libraries(crab_nav_node yaml-cpp
 #   ${catkin_LIBRARIES}
 # )
+
+  add_executable(crab_nav src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp 
+    src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp)
+ target_link_libraries(crab_nav yaml-cpp
+   ${catkin_LIBRARIES}
+ )
 
  add_executable(crab_aux_node src/crab_aux.cpp)
  target_link_libraries(crab_aux_node yaml-cpp

@@ -117,7 +117,14 @@ int main(int argc, char* argv[])
 				{
 					if(obs_rec_coder == 6 || obs_rec_coder == 7 )
 					{
-						cur_mode = AVOIDENCE;
+						if(cur_nav_state.target_node!=40 && cur_nav_state.target_node!=41 && cur_nav_state.target_node!=42)
+						{
+							cur_mode = AVOIDENCE;
+						}
+						else
+						{
+							cur_mode = SILENCE;
+						}
 					}
 					else
 					{

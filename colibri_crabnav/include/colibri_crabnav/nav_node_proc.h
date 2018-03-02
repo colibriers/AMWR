@@ -31,7 +31,7 @@ extern string taskpath;
 
 #define MAX_SEG_NUM 50
 
-#define MANUAL_PATH
+//#define MANUAL_PATH
 extern string routes_abs_path;
 extern string spnodes_abs_path;
 extern string branchmap_abs_path;

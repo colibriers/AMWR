@@ -196,6 +196,15 @@ void AIV_Driver::WriteToCom(const unsigned char * data)
 void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec, std::size_t bytes_transferred)
 {	
 	static int ctrl_couter = 0;	//ctrl correct cartodom period
+	static bool lock_dec_flag = false;
+	static bool lock_inc_flag = false;
+	static float tmp_cartodom_dr_x = cartodom_x;
+	static float tmp_cartodom_dr_y = cartodom_y;
+	static float compen_y = 0.0;
+	static float inc_edge_y = 0.0;
+	float dec_edge_delta = 0.0;
+	static float lastlast_tmp_cartodom_y = 0.0;
+	static float last_tmp_cartodom_y = 0.0;
 	
 	//cout<<"callback read "<<bytes_transferred<<" bytes:";
 	unsigned char recv_data[CONST_PROTOCOL_LEN];
@@ -484,7 +493,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 				
 				if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_START)
 				{
-
+					
 					ParseWheelRpm(&recv_data[VALID_DATA_START_INDX]);
 
 					//cout<<"left_rot_rate:"<<left_rot_rate<<"   right_rot_rate:"<<right_rot_rate<<endl;
@@ -508,7 +517,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					aiv_dth = (right_avg_distance - left_avg_distance) / WHEEL_TRACK;
 					aiv_vx = (left_avg_vel + right_avg_vel) / 2.0;
 					//aiv_vth = aiv_dth / time_period;
-
+					
+					/* mask the patch
 					ctrl_couter++;
 					if(ctrl_couter > 9)
 					{
@@ -522,7 +532,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						
 						carto.CalcCartodomOriDeltaDis();
 						carto.CalcDeadReckonDeltaDis(correct_delta_time);
-						carto.CorrectCartodom();
+						carto.CalcCurExceptState();
+
 
 						carto.last_cartodom.x = carto.cur_cartodom.x;
 						carto.last_cartodom.y = carto.cur_cartodom.y;
@@ -532,13 +543,59 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						
 						ctrl_couter = 0;
 
+						lastlast_tmp_cartodom_y = last_tmp_cartodom_y;
+						last_tmp_cartodom_y = tmp_cartodom_dr_y;
+
+						ROS_INFO("cur_cartodom.x cur_cartodom.y: %0.3f %0.3f", cartodom_x, cartodom_y);
+						ROS_INFO("tmp_cartodom_dr_x tmp_cartodom_dr_y: %0.3f %0.3f", tmp_cartodom_dr_x, tmp_cartodom_dr_y);
+						ROS_INFO("compen_y carto.except_phase carto.carto_except: %0.3f %d %d", compen_y, carto.except_phase, carto.carto_except);
+
 					}
+				
+					if(carto.except_phase==0)
+					{
+						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_y = cartodom_y + compen_y;
+						lock_dec_flag = false;
+						lock_inc_flag = false;
+					}
+					else if(carto.except_phase==1)
+					{
+						if(lock_inc_flag==false)
+						{
+							inc_edge_y = lastlast_tmp_cartodom_y;
+							lock_inc_flag = true;
+							compen_y = 0.4;
+						}
+						
+						compen_y += aiv_vx * time_period;
+						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_y = inc_edge_y + compen_y;
+						lock_dec_flag = false;
+					}
+					else if(carto.except_phase==2)
+					{
+						compen_y += aiv_vx * time_period;
+						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_y = inc_edge_y + compen_y;
+						lock_dec_flag = false;
+						lock_inc_flag = false;
+					}
+					else
+					{
+						if(lock_dec_flag==false)
+						{
+							dec_edge_delta = tmp_cartodom_dr_y - cartodom_y;
+							compen_y = dec_edge_delta;
+							lock_dec_flag = true;
+						}
 
+						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_y = cartodom_y + compen_y;
+						lock_inc_flag = false;
+					}
+					*/
 					
-					float tmp_cartodom_dr_x = cartodom_x + carto.corrected_odom.x;
-					float tmp_cartodom_dr_y = cartodom_y + carto.corrected_odom.y;
-
-
 					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_yaw);
 					
 					geometry_msgs::TransformStamped odom_trans;
@@ -546,8 +603,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom_trans.header.frame_id = "odom";
 					odom_trans.child_frame_id = "base_footprint";					
 
-					odom_trans.transform.translation.x = tmp_cartodom_dr_x;	// this tf value from the cartodom
-					odom_trans.transform.translation.y = tmp_cartodom_dr_y;
+					odom_trans.transform.translation.x = cartodom_x;	// this tf value from the cartodom
+					odom_trans.transform.translation.y = cartodom_y;
 					odom_trans.transform.translation.z = 0.0;
 					odom_trans.transform.rotation = odom_quat;
 
@@ -560,8 +617,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom.header.frame_id = "odom";
 					
 					//set the position
-					odom.pose.pose.position.x = tmp_cartodom_dr_x;
-					odom.pose.pose.position.y = tmp_cartodom_dr_y;
+					odom.pose.pose.position.x = cartodom_x;
+					odom.pose.pose.position.y = cartodom_y;
 					odom.pose.pose.position.z = 0.0;
 					odom.pose.pose.orientation = odom_quat;
 					
@@ -716,7 +773,7 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 
 	send_twist[VALID_DATA_START_INDX + 8] = cur_music_mode; //add music ctrl
 	twist_seq++;
-	if(send_cnt > 255)
+	if(twist_seq > 255)
 	{
 		twist_seq = 0;
 	}
@@ -808,7 +865,7 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 				case SEND_TWIST:
 					cout<<"TRIO respones the send_twist cmd timeout !"<<endl;
 					lost_twist_res_cnt++;
-					if(lost_twist_res_cnt > 3)
+					if(lost_twist_res_cnt > 30)
 					{
 						system("roslaunch colibri_crabnav kill_aiv.launch");
 						//system("");

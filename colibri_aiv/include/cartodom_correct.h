@@ -45,17 +45,22 @@ class cartodom_correct
 		float delta_odom_error;
 
 		float epsilon;
+		float normal_thd;
+		bool carto_except;
+		int except_phase;
 
 		robot_pos cartodom_dr;
 		robot_pos corrected_odom;
+		
 
 	public:
 		cartodom_correct();
 		~cartodom_correct();
 		void CalcDeadReckonDeltaDis(float delta_time);
 		void CalcCartodomOriDeltaDis();
-		
+		bool IsCartoException();		
 		robot_pos CorrectCartodom();
+		void CalcCurExceptState();
 
 };
 

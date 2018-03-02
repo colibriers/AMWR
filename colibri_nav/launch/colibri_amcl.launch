@@ -6,12 +6,13 @@
     args="0.335 0.0 0.134 0.0 0.0 0.0 /base_link /gmaplaser_frame 40" />
   
   <!-- Map server -->
-  <arg name="map_file" default="$(find colibri_nav)/maps/ygl1023_mdf_cut.yaml"/>
+  <arg name="map_file" default="$(find colibri_nav)/maps/sza1112_mdf_cut.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-
-  <arg name="initial_pose_x" default="-15.34"/>
-  <arg name="initial_pose_y" default="-6.8"/>
-  <arg name="initial_pose_a" default="90.0"/>
+   
+  <!-- sec_b x y a: -15.34 -6.0 90 -->	
+  <arg name="initial_pose_x" default="-14.8"/>
+  <arg name="initial_pose_y" default="5.75"/>
+  <arg name="initial_pose_a" default="-90.0"/>
   <include file="$(find colibri_nav)/launch/aivdbgamcl.launch.xml">
     <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
     <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
