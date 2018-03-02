@@ -1,7 +1,7 @@
 <launch>
 
-  <arg name="routes_file" default="$(find colibri_pathproc)/routes/sza1112_mdf_cut_routes.yaml"/>
-  <arg name="sp_nodes_file" default="$(find colibri_pathproc)/routes/sza1112_mdf_cut_sp_nodes.yaml"/>
+  <arg name="routes_file" default="$(find colibri_pathproc)/routes/ygl1103_mdf_cut_routes.yaml"/>
+  <arg name="sp_nodes_file" default="$(find colibri_pathproc)/routes/ygl1103_mdf_cut_sp_nodes.yaml"/>
   <node pkg="colibri_pathproc" type="path_handle" name="crab_handle_node" output="screen" args="$(arg routes_file) $(arg sp_nodes_file)" >
   </node>
   

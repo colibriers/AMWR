@@ -14,6 +14,10 @@
 #include "colibri_msgs/AuxInfo.h"
 #include "colibri_msgs/MusicMode.h"
 #include "cartodom_correct.h"
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/Quaternion.h>
+#include "colibri_msgs/NavState.h"
+
 
 #ifndef _AIV_DRIVER_H_
 #define _AIV_DRIVER_H_
@@ -67,7 +71,7 @@ using namespace boost::asio;
 
 //The definition of the timeout
 #define TIMEOUT                      1
-#define PI                           3.141593
+#define PI                           3.14159265
 #define WHEEL_TRACK                  0.46
 #define WHEEL_RADIUS                 0.1
 #define WHEEL_GEAR                   25
@@ -76,6 +80,34 @@ using namespace boost::asio;
 #define OFFSET_LASER_X			0.352
 #define RAD2DEG					57.296
 #define DEG2RAD					0.01745
+
+//secb_frame_offset
+#define OFFSET_NX2GX 	-15.8  //nav frame 2 google carto frame
+#define OFFSET_NY2GY    -6.0
+
+#define ODOM_EXCEPT_GAP   1.2
+#define UPDATE_CNT		300
+#define SW_AMCL_YAW_CNT	2
+
+
+typedef struct st_pose{
+	float x;
+	float y;
+	float yaw;
+}pose;
+
+typedef struct st_nav_state{
+	int target_node;
+	int target_heading;
+	int cur_seg;
+	bool at_target_flag;
+	bool achieve_flag;
+	int task_succ_flag;
+	pose target;
+	pose robot;
+	int err_code;
+}nav_state;
+
 
 void *ReadDataThread(void *args);
 
@@ -143,6 +175,34 @@ class AIV_Driver
 
 		cartodom_correct carto;
 		
+		bool correct_cartodom_flag;
+		double carto_odom_x;
+		double carto_odom_y;
+		double carto_odom_th;
+
+		double wheel_odom_x;
+		double wheel_odom_y;
+		double wheel_odom_th;
+
+		double wheel_odom_vx;
+		double wheel_odom_vy;
+		double wheel_odom_vth;
+
+		bool correct_wheelodom_flag;
+		double amcl_pose_x;
+		double amcl_pose_y;
+
+		float opt_odom_x;
+		float opt_odom_y;
+		bool odom_except_flag;
+
+		geometry_msgs::Quaternion amcl_quat;
+		float amcl_yaw_rad;
+
+		float frame_delta_rad;  // nav frame and google carto frame rotation angle offset
+
+		nav_state cur_nav_state;
+		bool recv_nav_flag;
 		//Constructor
 		AIV_Driver();
 		//Destructor
@@ -169,6 +229,12 @@ class AIV_Driver
 		void CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odom);
 
 		void MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_info);
+		void AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr & pose_info);
+		void CalcCartodomByAmcl(float & frame_diff_angle);
+		void OdomException(bool & sys_stable);
+		void NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info);
+
+		
 	private:
 
 		pthread_t thread_id;
@@ -206,9 +272,18 @@ class AIV_Driver
 		ros::Subscriber music_sub;
 		tf::TransformBroadcaster odom_broadcaster;
 
+		ros::Publisher wheel_odom_pub;
+		ros::Subscriber amcl_pose_sub;
+		ros::Subscriber nav_state_sub;
 		void ParseWheelRpm(const unsigned char *valid_data);
+		void CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta);
+
 
 };
+
+void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw);
+void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
+
 
 #endif
 

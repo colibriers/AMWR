@@ -99,6 +99,48 @@ AIV_Driver::AIV_Driver()
 	cartodom_vx = 0.0;
 	cartodom_vth = 0.0;
 	cartodom_interval = 0.02;
+
+	carto_odom_x = -0.352;
+	carto_odom_y = 0.0;
+	carto_odom_th = 0.0;
+
+
+	wheel_odom_x = -0.352;
+	wheel_odom_y = 0.0;
+	wheel_odom_th = 0.0;
+
+	wheel_odom_vx = 0.0;
+	wheel_odom_vy = 0.0;
+	wheel_odom_vth = 0.0;
+
+	correct_wheelodom_flag = false;
+	correct_cartodom_flag = false;
+	
+	amcl_pose_x = OFFSET_NX2GX; //for secb 
+	amcl_pose_y = OFFSET_NY2GY;
+	frame_delta_rad = 0.0;
+	amcl_yaw_rad = 1.57;
+	
+	opt_odom_x = carto_odom_x;
+	opt_odom_y = carto_odom_y;
+	odom_except_flag = false;
+
+	cur_nav_state.target_node = 127;
+	cur_nav_state.target_heading = 0.0;
+	cur_nav_state.cur_seg = 44;
+	cur_nav_state.at_target_flag = false;
+	cur_nav_state.achieve_flag = false;
+	cur_nav_state.task_succ_flag = true;
+	cur_nav_state.target.x = 0.0;
+	cur_nav_state.target.y = 0.0;
+	cur_nav_state.target.yaw = 0.0;
+	cur_nav_state.robot.x = 0.0;
+	cur_nav_state.robot.y = 0.0;
+	cur_nav_state.robot.yaw = 0.0;
+	cur_nav_state.err_code = 127;
+
+	recv_nav_flag = false;
+
 }
 
 AIV_Driver::~AIV_Driver()
@@ -205,6 +247,11 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	float dec_edge_delta = 0.0;
 	static float lastlast_tmp_cartodom_y = 0.0;
 	static float last_tmp_cartodom_y = 0.0;
+
+	static bool sw_amcl_yaw_flag = false;
+	static int rec_amcl_cnt = 0;
+	double delta_x = 0.0;
+	double delta_y = 0.0;
 	
 	//cout<<"callback read "<<bytes_transferred<<" bytes:";
 	unsigned char recv_data[CONST_PROTOCOL_LEN];
@@ -597,7 +644,67 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					*/
 					
 					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_yaw);
+
+					SmoothFrameRotAngle(frame_delta_rad, cartodom_yaw, amcl_yaw_rad);
+					//ROS_INFO("frame_delta_rad / cartodom_yaw / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", frame_delta_rad, cartodom_yaw, amcl_yaw_rad);					
+					frame_delta_rad = 0.0;
+					CalcCartodomByAmcl(frame_delta_rad);
+
+					// calc wheel odom 
+					if(sw_amcl_yaw_flag == false)
+					{
+						delta_x = aiv_vx * cos(cartodom_yaw) * time_period;
+						delta_y = aiv_vx * sin(cartodom_yaw) * time_period;
+					}
+					else
+					{
+						//delta_x = aiv_vx * sin(amcl_yaw_rad) * time_period;
+						//delta_y = -1.0 * aiv_vx * cos(amcl_yaw_rad) * time_period;
+						//ROS_INFO("delta_x / delta_y / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", delta_x, delta_y, amcl_yaw_rad);
+
+						delta_x = aiv_vx * cos(cartodom_yaw) * time_period;
+						delta_y = aiv_vx * sin(cartodom_yaw) * time_period;
+					}
 					
+					wheel_odom_x += delta_x;
+					wheel_odom_y += delta_y;
+					wheel_odom_th = cartodom_yaw;
+
+					if(correct_wheelodom_flag)
+					{
+						correct_wheelodom_flag = false;
+						wheel_odom_x = amcl_pose_y - OFFSET_NY2GY;
+						wheel_odom_y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+						rec_amcl_cnt++;
+						if(rec_amcl_cnt > SW_AMCL_YAW_CNT)
+						{
+							rec_amcl_cnt = SW_AMCL_YAW_CNT+1;
+							sw_amcl_yaw_flag = true;
+						}
+
+					}
+
+					nav_msgs::Odometry odom_wheel;
+					odom_wheel.header.stamp = current_time;
+					odom_wheel.header.frame_id = "odom_virtual";
+
+					odom_wheel.pose.pose.position.x = wheel_odom_x;
+					odom_wheel.pose.pose.position.y = wheel_odom_y;
+					odom_wheel.pose.pose.position.z = 0.0;
+					odom_wheel.pose.pose.orientation = odom_quat;
+
+					odom_wheel.child_frame_id = "base_footprint_virtual";
+					odom_wheel.twist.twist.linear.x = aiv_vx;
+					odom_wheel.twist.twist.linear.y = 0;
+					odom_wheel.twist.twist.angular.z = cartodom_vth;
+
+					wheel_odom_pub.publish(odom_wheel);
+
+					OdomException(sw_amcl_yaw_flag);
+
+					ROS_INFO("carto_odom_x/y / wheel_odom_x/y cartodom_x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_x, carto_odom_y, wheel_odom_x,wheel_odom_y,cartodom_x,cartodom_y);					
+					ROS_INFO("opt_odom_x/y odom_except_flag sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x, opt_odom_y, odom_except_flag,sw_amcl_yaw_flag);
+
 					geometry_msgs::TransformStamped odom_trans;
 					odom_trans.header.stamp = current_time;
 					odom_trans.header.frame_id = "odom";
@@ -630,7 +737,9 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					
 					//publish the message
 					odom_pub.publish(odom);
+
 					
+
 					dbg_info_cnt++;
 					if(dbg_info_cnt>7)
 					{
@@ -736,6 +845,10 @@ bool AIV_Driver::InitSubandPub()
 	
 	ros::NodeHandle nh_odom;
 	odom_pub = nh_odom.advertise<nav_msgs::Odometry>("odom", 10);
+	wheel_odom_pub = nh_odom.advertise<nav_msgs::Odometry>("wheel_odom", 10);
+	//amcl_pose_sub = global_nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 10, boost::bind(&AIV_Driver::AmclPoseCallback, this, _1));
+	//nav_state_sub = global_nh.subscribe<colibri_msgs::NavState>("/nav_state", 10, boost::bind(&AIV_Driver::NavStateCallback, this, _1));
+
 
 	ros::NodeHandle nh_ultrasonic;
 	ultrasonic_pub = nh_ultrasonic.advertise<colibri_aiv::Ultrasonic>("ultrasonic", 10);
@@ -813,6 +926,179 @@ void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_inf
 	
 	send_cnt++;
 	//cout <<"send times: "<<send_cnt<<endl; 
+}
+
+void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr & pose_info)
+{
+	static int recv_amcl_cnt = 0;
+	static bool lock_amcl = false;
+	/*	
+	recv_amcl_cnt++;
+
+	if(recv_amcl_cnt > UPDATE_CNT)
+	{
+		correct_wheelodom_flag = true;
+		correct_cartodom_flag = true;
+		amcl_pose_x = pose_info->pose.pose.position.x;
+		amcl_pose_y = pose_info->pose.pose.position.y;
+		recv_amcl_cnt = 0;	
+	}
+	*/
+
+	bool pose_rec_flag = (pose_info->pose.pose.position.x > -0.35) && (pose_info->pose.pose.position.x < 0.35) 
+						 && (pose_info->pose.pose.position.y < 0.5) && (pose_info->pose.pose.position.y > -0.5);
+	if(pose_rec_flag == true && lock_amcl == false)
+	{
+		correct_wheelodom_flag = true;
+		correct_cartodom_flag = true;
+		amcl_pose_x = pose_info->pose.pose.position.x;
+		amcl_pose_y = pose_info->pose.pose.position.y;
+		lock_amcl = true;	
+	}
+
+	if(pose_info->pose.pose.position.x > 3.5 || pose_info->pose.pose.position.x < 0.0)
+	{
+		lock_amcl = false;
+	}
+
+	amcl_quat.x = pose_info->pose.pose.orientation.x;
+	amcl_quat.y = pose_info->pose.pose.orientation.y;
+	amcl_quat.z = pose_info->pose.pose.orientation.z;
+	amcl_quat.w = pose_info->pose.pose.orientation.w;
+
+	amcl_yaw_rad = tf::getYaw(amcl_quat);
+	ROS_INFO("correct_wheelodom_flag: %d ", correct_wheelodom_flag);
+
+}
+
+void AIV_Driver::CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta)
+{
+	float trans_x = 0.0;
+	float trans_y = 0.0;
+
+	x_ideal = x_real * cos(theta) - y_real * sin(theta) + trans_x;
+	y_ideal = x_real * sin(theta) + y_real * cos(theta) + trans_y;
+}
+
+
+void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info)
+{
+
+	static bool lock_pose = false;
+
+	recv_nav_flag = true;
+	cur_nav_state.target_node = nav_info->target_node;
+	cur_nav_state.target_heading = nav_info->cur_seg;
+	cur_nav_state.cur_seg = nav_info->cur_seg;
+	cur_nav_state.at_target_flag = nav_info->at_target_flag;
+	cur_nav_state.achieve_flag = nav_info->achieve_flag;
+	cur_nav_state.task_succ_flag = nav_info->task_succ_flag;
+	cur_nav_state.target.x = nav_info->target_x;
+	cur_nav_state.target.y = nav_info->target_y;
+	cur_nav_state.target.yaw = nav_info->target_yaw;
+	cur_nav_state.robot.x = nav_info->cur_x;
+	cur_nav_state.robot.y = nav_info->cur_y;
+	cur_nav_state.robot.yaw = nav_info->cur_yaw;
+
+	if(cur_nav_state.cur_seg==0 && cur_nav_state.task_succ_flag==1 && lock_pose==false)
+	{
+		amcl_pose_x = cur_nav_state.robot.x;
+		amcl_pose_y = cur_nav_state.robot.y;
+		correct_wheelodom_flag = true;
+		correct_cartodom_flag = true;		
+		lock_pose = true;
+	}
+
+	if(cur_nav_state.cur_seg!=0)
+	{
+		lock_pose = false;
+
+	}
+	ROS_INFO("correct_cartodom_flag: %d ", correct_cartodom_flag);
+
+
+}
+
+void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
+{
+	// calc carto delta odom 
+	float cur_carto_x = cartodom_x;
+	float cur_carto_y = cartodom_y;
+
+	static float last_carto_x_ideal = 0.0;
+	static float last_carto_y_ideal = 0.0;
+	float cur_carto_x_ideal = 0.0;
+	float cur_carto_y_ideal = 0.0;
+
+	float delta_x = 0.0;
+	float delta_y = 0.0;
+	
+	CartoReal2CartoIdeal(cur_carto_x, cur_carto_y, cur_carto_x_ideal, cur_carto_y_ideal , frame_diff_angle);
+	
+	delta_x = cur_carto_x_ideal - last_carto_x_ideal;
+	delta_y = cur_carto_y_ideal - last_carto_y_ideal;
+
+	ROS_DEBUG("cur_carto_ideal x/y last_carto_ideal x/y: %0.3lf %0.3lf %0.3lf %0.3lf",cur_carto_x_ideal,cur_carto_y_ideal,last_carto_x_ideal,last_carto_y_ideal);
+		
+	carto_odom_x += delta_x;
+	carto_odom_y += delta_y;
+	carto_odom_th = cartodom_yaw;
+
+	if(correct_cartodom_flag)
+	{
+		correct_cartodom_flag = false;
+		carto_odom_x = amcl_pose_y - OFFSET_NY2GY;
+		carto_odom_y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+	}
+
+	last_carto_x_ideal = cur_carto_x_ideal;
+	last_carto_y_ideal = cur_carto_y_ideal;	
+
+}
+
+
+void AIV_Driver::OdomException(bool & sys_stable)
+{
+	float odom_delta_x = carto_odom_x - wheel_odom_x;
+	float odom_delta_y = carto_odom_y - wheel_odom_y;
+
+	static int delay_cnt = 0;
+	static bool start_opt_odom_flag = false;
+
+	if(sys_stable && (start_opt_odom_flag == false))
+	{
+		delay_cnt++;
+		if(delay_cnt > 100)
+		{
+			delay_cnt = 101;
+			start_opt_odom_flag = true;
+		}
+		
+	}
+
+	if(start_opt_odom_flag)
+	{
+		if(abs(odom_delta_y) > ODOM_EXCEPT_GAP) //compare axis pose diff
+		{
+			opt_odom_x = wheel_odom_x;
+			opt_odom_y = wheel_odom_y;
+			odom_except_flag = true;
+		}
+		else
+		{
+			opt_odom_x = carto_odom_x;
+			opt_odom_y = carto_odom_y;
+			odom_except_flag = false;
+		}
+	}
+	else
+	{
+		opt_odom_x = cartodom_x;
+		opt_odom_y = cartodom_y;
+	}
+
+	ROS_INFO("start_opt_odom_flag: %d ", start_opt_odom_flag);
+
 }
 
 
@@ -952,6 +1238,53 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 		return;
 	}
 
+}
+
+void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw)
+{
+	static float rot_diff[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	float tmp_angle_diff = amcl_yaw - carto_yaw ;
+	float angle_offset = 0.0;
+	if(abs(tmp_angle_diff) >= 3.14)
+	{
+		tmp_angle_diff = 6.28 + tmp_angle_diff;
+	}
+
+	if(tmp_angle_diff <= 3.14)
+	{
+
+		if(abs(tmp_angle_diff - 1.57) > 0.785) // angle diff should < 45 degree
+		{
+			rot_diff[6] = correct_yaw;
+		}
+		else
+		{
+			rot_diff[6] = tmp_angle_diff - 1.57;
+		}
+
+
+		angle_offset = 0.05*rot_diff[0] + 0.1*rot_diff[1] + 0.2*rot_diff[2] + 0.3*rot_diff[3] + 0.2*rot_diff[4] + 0.1*rot_diff[5] + 0.05*rot_diff[6];
+		rot_diff[0] = rot_diff[1];
+		rot_diff[1] = rot_diff[2];
+		rot_diff[2] = rot_diff[3];
+		rot_diff[3] = rot_diff[4];
+		rot_diff[4] = rot_diff[5];
+		rot_diff[5] = rot_diff[6];
+	}
+		
+	correct_yaw = angle_offset;
+
+}
+
+void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw) //retrun rad
+{
+	float x = 0.0;
+	float y = 0.0;
+	
+	y = 2*(quat.w * quat.z + quat.x * quat.y);
+	x = 1- 2*(pow(quat.y, 2) + pow(quat.z, 2));
+	yaw = atan2(y,x);
+	
 }
 
 

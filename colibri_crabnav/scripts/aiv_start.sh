@@ -1,6 +1,6 @@
 #!/bin/bash
 source /opt/ros/indigo/setup.bash
-source /home/aiv-2/colibri_ws/devel/setup.bash
+source /home/aiv-8/colibri_ws/devel/setup.bash
 
 echo "*** --------------------------------- ***" 
 echo "*** -  Hello From Colibri AIV Robot - ***" 

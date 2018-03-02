@@ -25,7 +25,7 @@
           -configuration_basename virtual.lua"
           >
     <remap from="scan" to="cartoscan" />
-    <remap from="map" to="map_carto" />  
+    <remap from="map" to="map_carto" />
   </node>
  
  <node pkg="cartodom" type="converter_node" name="cartodom_node">

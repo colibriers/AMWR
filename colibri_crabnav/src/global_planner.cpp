@@ -38,16 +38,18 @@ planner::planner()
 	gravaton.yaw = 0.0;
 	*/
 	// this is for section B
-	/*
+	
 	gravaton.x = -15.85;
 	gravaton.y = -6.8;
 	gravaton.yaw = 0.0;
-	*/
+	
 
 	// this is for section A
+	/*
 	gravaton.x = -14.85;
 	gravaton.y = 5.8;
 	gravaton.yaw = 0.0;	
+	*/
 
 	sub4nav_path = nh_planner.subscribe<nav_msgs::Path>("/nav_path", 1, &planner::SubNavPathCallback, this);
 	get_path_flag = false;
