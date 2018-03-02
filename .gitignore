@@ -3,7 +3,7 @@
 *~
 #*.[oa]
 *.jpg
-*.bmp
+#*.bmp
 *.log
 
 # Prerequisites
