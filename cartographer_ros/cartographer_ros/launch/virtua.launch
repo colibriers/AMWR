@@ -1,0 +1,50 @@
+<!--
+  Copyright 2016 The Cartographer Authors
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<launch>
+  <param name="/use_sim_time" value="false" />
+
+  <arg name="host" default="192.168.10.100" />
+  <node pkg="colibri_laser" name="lms1xx_cartogmap_node" type="LMS1xx_cartogmap" output="screen">
+    <param name="host" value="$(arg host)" />
+  </node>
+
+    <!-- Load the URDF/Xacro model of our robot -->
+    <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find cartographer_ros)/urdf/aiv_virtual_simple/colibribase.xacro'" />
+
+    <param name="robot_description" command="$(arg urdf_file)" />
+
+
+  <node pkg="tf" type="static_transform_publisher" name="laser_to_footprint_broadcaster_carto" args="-0.3445 0 -0.134 0 0 0 /laser_frame /base_footprint_virtual 10" />
+  
+
+  <node name="robot_state_publisher_carto" pkg="robot_state_publisher"
+    type="robot_state_publisher" />
+  <node name="joint_state_publisher_carto" pkg="joint_state_publisher" type="joint_state_publisher" /> 
+  
+  <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find cartographer_ros)/configuration_files               
+          -configuration_basename virtual.lua"
+      output="screen">
+    <remap from="scan" to="cartoscan" />
+    <remap from="map" to="map_carto" />  
+  </node>
+                                                                                  
+  <!--node name="rviz" pkg="rviz" type="rviz" required="true"
+      args="-d $(find cartographer_ros)/configuration_files/colibri_virtual_dbg.rviz" /-->
+
+</launch>

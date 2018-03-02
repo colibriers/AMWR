@@ -1,0 +1,37 @@
+<launch>
+  <param name="/use_sim_time" value="false" />
+
+  <arg name="host" default="192.168.10.100" />
+  <node pkg="colibri_laser" name="lms1xx_cartogmap_node" type="LMS1xx_cartogmap" output="screen">
+    <param name="host" value="$(arg host)" />
+  </node>
+
+    <!-- Load the URDF/Xacro model of our robot -->
+    <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find cartographer_ros)/urdf/aiv_virtual_simple/colibribase.xacro'" />
+
+    <param name="robot_description" command="$(arg urdf_file)" />
+
+
+  <node pkg="tf" type="static_transform_publisher" name="laser_to_footprint_broadcaster_carto" args="-0.3445 0 -0.134 0 0 0 /laser_frame /base_footprint_virtual 10" />
+  
+
+  <node name="robot_state_publisher_carto" pkg="robot_state_publisher"
+    type="robot_state_publisher" />
+  <node name="joint_state_publisher_carto" pkg="joint_state_publisher" type="joint_state_publisher" /> 
+  
+  <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find cartographer_ros)/configuration_files               
+          -configuration_basename virtual.lua"
+          >
+    <remap from="scan" to="cartoscan" />
+    <remap from="map" to="map_carto" />  
+  </node>
+ 
+ <node pkg="cartodom" type="converter_node" name="cartodom_node">
+ </node>                                                                               
+  
+ <node pkg="experiment" type="trio2pc.py" name="py_driver_node" output="screen">
+ </node> 
+
+</launch>

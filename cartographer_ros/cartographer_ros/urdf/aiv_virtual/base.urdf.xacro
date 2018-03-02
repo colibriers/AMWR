@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+
+<robot name="base" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Define a number of dimensions using properties -->
+  <property name="base_box_length" value="0.825" />   <!-- length=0.815(base)+0.01(mechanical CA) -->
+  <property name="base_box_width" value="0.553" />
+  <property name="base_box_height" value="0.126" />
+  <property name="base_equal_radius" value="0.5" />
+  <property name="base_box_elevation" value="0.039" />
+
+  <property name="mid_box_length" value="0.689" />
+  <property name="mid_box_width" value="0.553" />
+  <property name="mid_box_height" value="0.052" />
+  <property name="mid_box_offset_x" value="0.068" />
+
+  <property name="top_box_length" value="0.825" />
+  <property name="top_box_width" value="0.553" />
+  <property name="top_box_height" value="0.1" />
+
+
+  <property name="laser_height" value="0.052" />
+  <property name="laser_radius" value="0.046" />
+  <property name="laser_offset_x" value="0.3445" />
+  <property name="laser_offset_z" value="0.094" />
+  
+  <property name="PI" value="3.1415926" />
+
+  <!-- The base xacro macro -->
+  <macro name="base" params="name color">
+    <link name="${name}_link_virtual">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_box_length} ${base_box_width} ${base_box_height}"/>  
+            </geometry>
+            <material name="TransparentGreen"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder length="0.3" radius="${base_equal_radius}"/>
+            </geometry>
+        </collision>
+    </link>
+  </macro>
+  
+  <link name="base_footprint_virtual">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.05 0.05 0.02" />
+        </geometry>
+        <material name="Red" />
+      </visual>
+  </link>
+  
+  <joint name="base_joint" type="fixed"> 
+    <origin xyz="0 0 ${base_box_height/2 + base_box_elevation}" rpy="0 0 0" />      
+    <parent link="base_footprint_virtual"/>
+    <child link="base_link_virtual" />
+  </joint>
+
+
+  <link name="mid_layer_virtual">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="${mid_box_length} ${mid_box_width} ${mid_box_height}" />
+        </geometry>
+        <material name="TransparentGreen" />
+      </visual>
+  </link>
+  
+  <joint name="mid_layer_joint" type="fixed"> 
+    <origin xyz="-${mid_box_offset_x} 0 ${base_box_height/2 + mid_box_height/2}" rpy="0 0 0" />      
+    <parent link="base_link_virtual"/>
+    <child link="mid_layer_virtual" />
+  </joint>
+
+  <link name="top_layer_virtual">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="${top_box_length} ${top_box_width} ${top_box_height}" />
+        </geometry>
+        <material name="TransparentGreen" />
+      </visual>
+  </link>
+  
+	<joint name="top_layer_joint" type="fixed"> 
+		<origin xyz="0 0 ${base_box_height/2 + mid_box_height + top_box_height/2}" rpy="0 0 0" />      
+		<parent link="base_link_virtual"/>
+		<child link="top_layer_virtual" />
+	</joint> 
+
+	<link name="laser_virtual">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder radius="${laser_radius}" length="${laser_height}"/> 
+	  		</geometry>  
+	  		<material name="yellow">  
+		  		<color rgba="1 1 0 0.4"/>  
+	  		</material>    
+		</visual>  
+	</link>  
+
+	<joint name="laser_joint" type="fixed">  
+		<origin rpy="0  0  0" xyz="${laser_offset_x}  0  ${laser_offset_z}"/>  
+		<parent link="base_link_virtual"/>  
+		<child link="laser_virtual"/>       
+	</joint>  
+
+
+
+</robot>

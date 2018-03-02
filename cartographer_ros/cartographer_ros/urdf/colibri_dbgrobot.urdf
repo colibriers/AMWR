@@ -1,0 +1,188 @@
+<!--
+  Copyright 2016 The Colibri Authors
+  This urdf model is the colibri debug robot car model in rviz
+-->
+<?xml version="1.0"?>  
+<robot name="colibri_dbgrobot">
+	<material name="orange">
+		<color rgba="1.0 0.5 0.2 1" />
+	</material>
+	<material name="gray">
+		<color rgba="0.2 0.2 0.2 1" />
+	</material>
+	<material name="red">
+		<color rgba="1 0 0 0.5"/>
+	</material>
+	<material name="green">
+		<color rgba="0.2 0.4 0.2 1" />
+	</material>
+	<material name="bodycolor">
+		<color rgba="0.5 .8 0.1 0.8"/> 
+	</material>
+	<material name="black">  
+  		<color rgba="0.1 0.1 0.1 0.8"/>  
+	</material>  
+
+	<link name="base_link">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.160" radius="0.22"></cylinder>   
+	  		</geometry>  
+	  		<material name="bodycolor" />  
+			<origin rpy="0 0 0" xyz="0.0 0.0 0.12" />  
+		</visual>  
+	</link>  
+
+	<link name="connector1">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.140" radius="0.01"></cylinder>   
+	  		</geometry>  
+	  		<material name="black" />   
+		</visual>  
+	</link> 
+	<link name="connector2">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.140" radius="0.01"></cylinder>   
+	  		</geometry>  
+	  		<material name="black" />  
+		</visual>  
+	</link>
+	<link name="connector3">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.140" radius="0.01"></cylinder>   
+	  		</geometry>  
+	  		<material name="black" />   
+		</visual>  
+	</link>
+	<link name="connector4">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.140" radius="0.01"></cylinder>   
+	  		</geometry>  
+	  		<material name="black" />  
+		</visual>  
+	</link>
+
+	<joint name="base_to_connector1" type="fixed">  
+		<origin rpy="0  0  0" xyz="0.14 0.14 0.27"/>  
+		<parent link="base_link"/>  
+		<child link="connector1"/>      
+	</joint> 
+	<joint name="base_to_connector2" type="fixed">  
+		<origin rpy="0  0  0" xyz="-0.14 0.14 0.27"/>  
+		<parent link="base_link"/>  
+		<child link="connector2"/>      
+	</joint> 
+	<joint name="base_to_connector3" type="fixed">  
+		<origin rpy="0  0  0" xyz="-0.14 -0.14 0.27"/>  
+		<parent link="base_link"/>  
+		<child link="connector3"/>      
+	</joint> 
+	<joint name="base_to_connector4" type="fixed">  
+		<origin rpy="0  0  0" xyz="0.14 -0.14 0.27"/>  
+		<parent link="base_link"/>  
+		<child link="connector4"/>      
+	</joint> 
+
+	<link name="mid_layer">  
+		<visual>  
+	  		<geometry>  
+	    		<cylinder length="0.02" radius="0.22"></cylinder>   
+	  		</geometry>  
+			<material name="black" />      
+		</visual>  
+	</link> 
+	<joint name="base_to_mid_layer" type="fixed">  
+		<origin rpy="0  0  0" xyz="0  0  0.35"/>  
+		<parent link="base_link"/>  
+		<child link="mid_layer"/>      
+	</joint>  
+   
+	<link name="laser">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder length="0.100" radius="0.04"></cylinder>  
+	  		</geometry>  
+	  		<material name="red" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_laser" type="fixed">  
+		<origin rpy="0  0  0" xyz="0  0  0.4"/>  
+		<parent link="base_link"/>  
+		<child link="laser"/>       
+	</joint>
+
+	<link name="active_tyer_left">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder length="0.02" radius="0.06"></cylinder>  
+	  		</geometry>  
+	  		<material name="black" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_active_tyer_left" type="fixed">  
+		<origin rpy="1.57  0  0" xyz="0.0  -0.19  0.07"/>  
+		<parent link="base_link"/>  
+		<child link="active_tyer_left"/>       
+	</joint>
+	<link name="active_tyer_right">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder length="0.02" radius="0.06"></cylinder>  
+	  		</geometry>  
+	  		<material name="black" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_active_tyer_right" type="fixed">  
+		<origin rpy="1.57  0  0" xyz="0.0  0.19  0.07"/>  
+		<parent link="base_link"/>  
+		<child link="active_tyer_right"/>       
+	</joint>
+
+	<link name="passive_tyer_front">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder length="0.012" radius="0.03"></cylinder>  
+	  		</geometry>  
+	  		<material name="black" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_passive_tyer_front" type="fixed">  
+		<origin rpy="1.57  0  0" xyz="0.18  0.0  0.04"/>  
+		<parent link="base_link"/>  
+		<child link="passive_tyer_front"/>       
+	</joint>
+
+	<link name="passive_tyer_back">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder length="0.012" radius="0.03"></cylinder>  
+	  		</geometry>  
+	  		<material name="black" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_passive_tyer_back" type="fixed">  
+		<origin rpy="1.57  0  0" xyz="-0.18  0.0  0.04"/>  
+		<parent link="base_link"/>  
+		<child link="passive_tyer_back"/>       
+	</joint>      
+
+	<link name="front_flag">  
+		<visual>  
+	  		<geometry>  
+	   			<box size="0.05 0.05 0.02"></box>  
+	  		</geometry>  
+	  		<material name="green" />     
+		</visual>  
+	</link>  
+	<joint name="base_to_front_flag" type="fixed">  
+		<origin rpy="0  0  0" xyz="0.18  0.0  0.36"/>  
+		<parent link="base_link"/>  
+		<child link="front_flag"/>       
+	</joint> 
+
+
+</robot>  
