@@ -1,0 +1,10 @@
+task_create: 6.24
+goal_num: 4
+ref_frame: map
+delta_flag: false
+goal_0: [4.6, 7.8, 90, 5]
+goal_1: [11.0, 6.9, 90, 5]
+goal_2: [10.0, 0.0, 90, 5]
+goal_3: [-0.5., 2.5, 90, 5]
+goal_dict: {gindex_0: goal_0,gindex_1: goal_1,gindex_2: goal_2,gindex_3: goal_3}
+

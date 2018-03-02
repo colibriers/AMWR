@@ -1,0 +1,132 @@
+path:
+  image: sz927_mdf_cut.pgm
+  resolution: 0.050000
+  origin: [-50.95,-19.3,0.000000]
+  map_size: [1266, 617]
+  seg_num: 42
+  seg42_property: [42, 37, 15]
+  seg42_vector: [262, 271, 415, 271]
+  seg42_heading: 0.00
+  seg40_property: [40, 35, 36]
+  seg40_vector: [215, 478, 263, 478]
+  seg40_heading: 90.00
+  seg41_property: [41, 36, 37]
+  seg41_vector: [263, 478, 262, 271]
+  seg41_heading: 0.00
+  seg38_property: [38, 33, 34]
+  seg38_vector: [215, 346, 215, 411]
+  seg38_heading: 0.00
+  seg39_property: [39, 34, 35]
+  seg39_vector: [215, 411, 215, 478]
+  seg39_heading: 0.00
+  seg37_property: [37, 32, 33]
+  seg37_vector: [215, 253, 215, 346]
+  seg37_heading: -90.00
+  seg36_property: [36, 31, 32]
+  seg36_vector: [289, 253, 215, 253]
+  seg36_heading: -90.00
+  seg35_property: [35, 30, 31]
+  seg35_vector: [355, 253, 289, 253]
+  seg35_heading: 180.00
+  seg33_property: [33, 28, 29]
+  seg33_vector: [546, 253, 427, 253]
+  seg33_heading: 180.00
+  seg34_property: [34, 29, 30]
+  seg34_vector: [427, 253, 355, 253]
+  seg34_heading: 180.00
+  seg32_property: [32, 27, 28]
+  seg32_vector: [594, 202, 546, 253]
+  seg32_heading: 180.00
+  seg31_property: [31, 26, 27]
+  seg31_vector: [639, 202, 594, 202]
+  seg31_heading: -145.00
+  seg30_property: [30, 25, 26]
+  seg30_vector: [691, 202, 639, 202]
+  seg30_heading: 180.00
+  seg29_property: [29, 24, 25]
+  seg29_vector: [761, 202, 691, 202]
+  seg29_heading: 180.00
+  seg28_property: [28, 23, 24]
+  seg28_vector: [832, 202, 761, 202]
+  seg28_heading: 180.00
+  seg27_property: [27, 22, 23]
+  seg27_vector: [907, 202, 832, 202]
+  seg27_heading: 180.00
+  seg26_property: [26, 21, 22]
+  seg26_vector: [974, 202, 907, 202]
+  seg26_heading: 180.00
+  seg25_property: [25, 20, 21]
+  seg25_vector: [1048, 202, 974, 202]
+  seg25_heading: 180.00
+  seg24_property: [24, 19, 20]
+  seg24_vector: [1120, 202, 1048, 202]
+  seg24_heading: 180.00
+  seg23_property: [23, 18, 19]
+  seg23_vector: [1183, 202, 1120, 202]
+  seg23_heading: 180.00
+  seg22_property: [22, 4, 18]
+  seg22_vector: [1183, 232, 1183, 202]
+  seg22_heading: 180.00
+  seg21_property: [21, 40, 0]
+  seg21_vector: [970, 232, 1020, 232]
+  seg21_heading: 0.00
+  seg20_property: [20, 17, 40]
+  seg20_vector: [602, 232, 970, 232]
+  seg20_heading: 0.00
+  seg19_property: [19, 16, 17]
+  seg19_vector: [563, 271, 602, 232]
+  seg19_heading: 0.00
+  seg18_property: [18, 15, 16]
+  seg18_vector: [415, 271, 563, 271]
+  seg18_heading: 45.00
+  seg17_property: [17, 14, 15]
+  seg17_vector: [415, 471, 415, 271]
+  seg17_heading: 0.00
+  seg16_property: [16, 13, 14]
+  seg16_vector: [450, 471, 415, 471]
+  seg16_heading: 90.00
+  seg15_property: [15, 12, 13]
+  seg15_vector: [450, 432, 450, 471]
+  seg15_heading: 180.00
+  seg14_property: [14, 11, 12]
+  seg14_vector: [450, 361, 450, 432]
+  seg14_heading: -90.00
+  seg13_property: [13, 10, 11]
+  seg13_vector: [450, 287, 450, 361]
+  seg13_heading: -90.00
+  seg12_property: [12, 38, 10]
+  seg12_vector: [589, 287, 450, 287]
+  seg12_heading: -90.00
+  seg11_property: [11, 39, 38]
+  seg11_vector: [610, 265, 589, 287]
+  seg11_heading: 180.00
+  seg9_property: [9, 8, 9]
+  seg9_vector: [1153, 399, 1153, 265]
+  seg9_heading: 180.00
+  seg10_property: [10, 9, 39]
+  seg10_vector: [1153, 265, 610, 265]
+  seg10_heading: -145.00
+  seg8_property: [8, 7, 8]
+  seg8_vector: [1183, 399, 1153, 399]
+  seg8_heading: 90.00
+  seg4_property: [4, 3, 4]
+  seg4_vector: [1134, 232, 1183, 232]
+  seg4_heading: -90.00
+  seg7_property: [7, 6, 7]
+  seg7_vector: [1183, 365, 1183, 399]
+  seg7_heading: 180.00
+  seg6_property: [6, 5, 6]
+  seg6_vector: [1183, 318, 1183, 365]
+  seg6_heading: -90.00
+  seg5_property: [5, 4, 5]
+  seg5_vector: [1183, 232, 1183, 318]
+  seg5_heading: -90.00
+  seg3_property: [3, 2, 3]
+  seg3_vector: [1099, 232, 1134, 232]
+  seg3_heading: 0.00
+  seg2_property: [2, 1, 2]
+  seg2_vector: [1062, 232, 1099, 232]
+  seg2_heading: 0.00
+  seg1_property: [1, 0, 1]
+  seg1_vector: [1020, 232, 1062, 232]
+  seg1_heading: 0.00

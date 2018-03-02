@@ -1,0 +1,10 @@
+<launch>
+
+  <arg name="routes_file" default="$(find colibri_crabnav)/path/ygl1020_mdf_cut_routes.yaml"/>
+  <arg name="sp_nodes_file" default="$(find colibri_crabnav)/path/ygl1020_mdf_cut_sp_nodes.yaml"/>
+  <arg name="branch_map_file" default="$(find colibri_crabnav)/path/ygl1020_mdf_cut_branch_map.yaml"/>
+  <node pkg="colibri_crabnav" type="crab_nav" name="crab_nav_node" output="screen" args="$(arg routes_file) $(arg sp_nodes_file) $(arg branch_map_file)" >
+  </node>
+  
+</launch>
+

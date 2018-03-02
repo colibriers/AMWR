@@ -1,0 +1,24 @@
+<launch>
+
+ <include file="$(find lms1xx)/launch/LMS1xxinv.launch"/>
+ <include file="$(find colibri_description)/launch/aiv_description.launch"/>
+  
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+    args="0.3445 0.0 0.134 0.0 0.0 0.0 /base_link /laser_frame 40" />
+  
+
+  <!-- Map server -->
+  <arg name="map_file" default="$(find colibri_nav)/maps/310.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <arg name="initial_pose_x" default="2.3"/> <!-- Use 17.0 for willow's map in simulation -->
+  <arg name="initial_pose_y" default="-0.2"/> <!-- Use 17.0 for willow's map in simulation -->
+  <arg name="initial_pose_a" default="0.0"/>
+  <include file="$(find colibri_nav)/launch/aivdbgamcl.launch.xml">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+  <include file="$(find colibri_nav)/launch/move_base_factory.launch"/>
+
+</launch>

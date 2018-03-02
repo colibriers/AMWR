@@ -1,0 +1,5 @@
+<launch>
+   <node name="import_task" pkg="colibri_avoidence" type="task_node" output="screen">
+      <rosparam file="$(find colibri_avoidence)/config/tasklist/task_1.yaml" command="load" />
+   </node>
+</launch>

@@ -1,0 +1,3 @@
+GlobalPlanner:                                  # Also see: http://wiki.ros.org/global_planner
+  allow_unknown: false                           # Allow planner to plan through unknown space, default true
+                                              

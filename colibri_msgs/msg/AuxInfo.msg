@@ -1,0 +1,10 @@
+Header header
+int8 lf_light
+int8 rf_light
+int8 lr_light
+int8 rr_light
+int8 horn
+float32 laser_mindis
+float32 laser_mindir
+int8 ultra_switch
+int8 ros_fault

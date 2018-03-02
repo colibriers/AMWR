@@ -1,0 +1,7 @@
+special_nodes:
+  sp_nodes_num: 18
+  sp_nodes_id: [3,4,11,12,14,15,16,17,20,21,22,23,25,26,28,30,31,33]
+  branch_nodes_num: 2
+  branch_node_id: [3,28]
+  join_nodes_num: 2
+  join_nodes_id: [17,33]

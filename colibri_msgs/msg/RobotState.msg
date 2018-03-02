@@ -1,0 +1,10 @@
+Header header
+uint16 robot_id
+string frame_id
+geometry_msgs/Point robot_pos
+geometry_msgs/Quaternion robot_ori
+float32 robot_yaw
+geometry_msgs/Vector3 ref_cur_linear
+geometry_msgs/Vector3 ref_cur_angular
+geometry_msgs/Vector3 cur_linear
+geometry_msgs/Vector3 cur_angular

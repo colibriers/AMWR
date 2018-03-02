@@ -1,0 +1,12 @@
+Header header
+std_msgs/Bool collision
+float32 collision_prob
+float32 laser_min_dis
+int16 laser_min_angle
+float32 laser_prob
+float32 ultra_min_dis
+uint16 ultra_min_index
+float32 ultra_prob
+float32 bumper_min_dis
+uint16 bumper_min_index
+float32 bumper_prob

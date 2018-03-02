@@ -1,0 +1,13 @@
+<launch>  
+	<arg name="model" />	
+	<arg name="gui" default="false" />  
+	<param name="robot_description" textfile="$(find colibri_description)/urdf/colibri_base.urdf" />  
+	<param name="use_gui" value="$(arg gui)"/> 
+	
+	<node name="vel2odom_publisher" pkg ="colibri_description" type="vel2odom_publisher" output="screen"/> 
+	
+
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />  
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />  
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find colibri_description)/config/colibri_circle_urdf.rviz" required="true" />  
+</launch>  

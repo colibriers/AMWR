@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="colibri_aiv" type="aiv_driver" name="aiv_driver_node" output="screen">
+	</node>
+</launch>

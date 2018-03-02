@@ -1,0 +1,6 @@
+<launch>
+  <node name="battery_node" pkg="colibri_battery" type="battery_pub.py" />
+  <node name="screen_node" pkg="colibri_screen" type="unit_server_node"/>
+
+</launch>
+

@@ -1,0 +1,5 @@
+robot:
+  name: AIV-5
+  id: 15
+  addr: "192.168.11.15"
+  port: 1502

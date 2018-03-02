@@ -1,0 +1,6 @@
+<launch>
+  <arg name="host" default="192.168.10.100" />
+  <node pkg="colibri_laser" name="lms1xxinv" type="LMS1xxinv_node" output="screen">
+    <param name="host" value="$(arg host)" />
+  </node>
+</launch>

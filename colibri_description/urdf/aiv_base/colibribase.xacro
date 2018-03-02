@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<robot name="box_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+   <!-- Include all component files -->
+   <xacro:include filename="$(find colibri_description)/urdf/aiv_base/materials.urdf.xacro" />
+   <xacro:include filename="$(find colibri_description)/urdf/aiv_base/base.urdf.xacro" />
+
+   
+   <!-- Add the base and wheels -->
+   <base name="base" color="whiteTransparent"/>
+ 
+
+
+</robot>
+
+

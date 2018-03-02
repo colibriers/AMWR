@@ -1,0 +1,17 @@
+tasklist_id: 1
+
+goal_num: 4
+ref_frame: map   # /map /base_footprint
+
+#absolute pos flag for xy coordinate to get the new goal
+abs_pos_flag: true
+
+#goal_param: [x(m),y(m),yaw(degree),wait(sec)]
+goal_0: [2.0, 0, 90, 5]
+goal_1: [2.0, -0.5, 60, 3]
+goal_2: [2.0, -1.0, 90, 5]
+goal_3: [1.6, 0, 0, 5]
+
+goal_dict: {gindex_0: goal_0, gindex_1: goal_1, gindex_2: goal_2, gindex_3: goal_3}
+
+

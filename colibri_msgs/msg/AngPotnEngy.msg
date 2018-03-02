@@ -1,0 +1,11 @@
+Header header
+float32 angle_min
+float32 angle_max
+float32 angle_increment
+float32 max_potn_engy 	
+uint16  max_index
+float32 pos_order_max
+uint16  pos_order_index
+float32 neg_order_max
+uint16  neg_order_index
+float32[181] potential_value

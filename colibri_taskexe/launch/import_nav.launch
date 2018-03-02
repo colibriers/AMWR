@@ -1,0 +1,5 @@
+<launch>
+   <node name="import_nav_node" pkg="colibri_taskexe" type="import_nav" output="screen">
+      <rosparam file="$(find colibri_taskexe)/config/tasklist/Task.yaml" command="load" />
+   </node>
+</launch>

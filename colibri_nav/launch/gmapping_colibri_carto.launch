@@ -1,0 +1,13 @@
+<launch>
+
+ <include file="$(find colibri_description)/launch/aiv_description.launch"/>
+
+ <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+    args="0.3445 0.0 0.134 0.0 0.0 0.0 /base_link /gmaplaser_frame 100" />
+
+
+ <include file="$(find colibri_nav)/launch/gmapping_dbg.launch"/>
+ 
+ <include file="$(find colibri_nav)/launch/move_base_factory.launch"/>
+
+</launch>

@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+
+<robot name="base" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Define a number of dimensions using properties -->
+  <property name="base_box_length" value="0.825" />   <!-- length=0.815(base)+0.01(mechanical CA) -->
+  <property name="base_box_width" value="0.553" />
+  <property name="base_box_height" value="0.126" />
+  <property name="base_equal_radius" value="0.5" />
+  <property name="base_box_elevation" value="0.039" />
+
+  <property name="mid_box_length" value="0.689" />
+  <property name="mid_box_width" value="0.553" />
+  <property name="mid_box_height" value="0.052" />
+  <property name="mid_box_offset_x" value="0.068" />
+
+  <property name="top_box_length" value="0.825" />
+  <property name="top_box_width" value="0.553" />
+  <property name="top_box_height" value="0.1" />
+
+  <property name="active_wheel_length" value="0.05" />
+  <property name="active_wheel_radius" value="0.1" />
+  <property name="active_wheel_offset_x" value="0" />
+  <property name="active_wheel_offset_y" value="0.229" />
+  <property name="active_wheel_offset_z" value="0.0" />
+
+  <property name="passive_wheel_length" value="0.05" />
+  <property name="passive_wheel_radius" value="0.0325" />
+  <property name="passive_wheel_offset_x" value="0.31" />
+  <property name="passive_wheel_offset_y" value="0.17" />
+  <property name="passive_wheel_offset_z" value="-0.068" />
+
+  <property name="laser_height" value="0.052" />
+  <property name="laser_radius" value="0.046" />
+  <property name="laser_offset_x" value="0.3445" />
+  <property name="laser_offset_z" value="0.094" />
+  
+  <property name="PI" value="3.1415926" />
+     
+  <!-- define a active/passive wheel -->
+  <macro name="activewheel" params="parent suffix reflect color">
+    <joint name="${parent}_${suffix}_wheel_joint" type="continuous">
+      <axis xyz="0 0 1" />
+      <origin xyz="${active_wheel_offset_x} ${reflect*active_wheel_offset_y} ${active_wheel_offset_z}" rpy="${reflect*PI/2} 0 0" />
+      <parent link="${parent}_link"/>
+      <child link="${parent}_${suffix}_wheel_link"/>
+    </joint>
+
+    <link name="${parent}_${suffix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="${active_wheel_radius}" length="${active_wheel_length}"/>
+        </geometry>
+        <material name="${color}" />
+      </visual>
+    </link>
+  </macro>
+
+  <macro name="passivewheel" params="parent suffix reflectx reflecty  color">
+    <joint name="${parent}_${suffix}_wheel_joint" type="continuous">
+      <axis xyz="0 0 1" />
+      <origin xyz="${reflectx*passive_wheel_offset_x} ${reflecty*passive_wheel_offset_y} ${passive_wheel_offset_z}" rpy="${reflectx*PI/2} 0 0" />
+      <parent link="${parent}_link"/>
+      <child link="${parent}_${suffix}_wheel_link"/>
+    </joint>
+
+    <link name="${parent}_${suffix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="${passive_wheel_radius}" length="${passive_wheel_length}"/>
+        </geometry>
+        <material name="${color}" />
+      </visual>
+    </link>
+  </macro>
+
+  <!-- The base xacro macro -->
+  <macro name="base" params="name color">
+    <link name="${name}_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_box_length} ${base_box_width} ${base_box_height}"/>  
+            </geometry>
+            <material name="whiteTransparent"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder length="0.3" radius="${base_equal_radius}"/>
+            </geometry>
+        </collision>
+    </link>
+  </macro>
+  
+  <link name="base_footprint">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.05 0.05 0.02" />
+        </geometry>
+        <material name="Red" />
+      </visual>
+  </link>
+  
+  <joint name="base_joint" type="fixed"> 
+    <origin xyz="0 0 ${base_box_height/2 + base_box_elevation}" rpy="0 0 0" />      
+    <parent link="base_footprint"/>
+    <child link="base_link" />
+  </joint>
+
+   <!-- Add the wheels instance-->
+   <activewheel parent="base" suffix="l" reflect="1" color="Black"/>
+   <activewheel parent="base" suffix="r" reflect="-1" color="Black"/>
+   <passivewheel parent="base" suffix="lf" reflectx="1" reflecty="1" color="Black"/>
+   <passivewheel parent="base" suffix="rf" reflectx="1" reflecty="-1" color="Black"/>
+   <passivewheel parent="base" suffix="lr" reflectx="-1" reflecty="1" color="Black"/>
+   <passivewheel parent="base" suffix="rr" reflectx="-1" reflecty="-1" color="Black"/>
+
+  <link name="mid_layer">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="${mid_box_length} ${mid_box_width} ${mid_box_height}" />
+        </geometry>
+        <material name="whiteTransparent" />
+      </visual>
+  </link>
+  
+  <joint name="mid_layer_joint" type="fixed"> 
+    <origin xyz="-${mid_box_offset_x} 0 ${base_box_height/2 + mid_box_height/2}" rpy="0 0 0" />      
+    <parent link="base_link"/>
+    <child link="mid_layer" />
+  </joint>
+
+  <link name="top_layer">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="${top_box_length} ${top_box_width} ${top_box_height}" />
+        </geometry>
+        <material name="whiteTransparent" />
+      </visual>
+  </link>
+  
+	<joint name="top_layer_joint" type="fixed"> 
+		<origin xyz="0 0 ${base_box_height/2 + mid_box_height + top_box_height/2}" rpy="0 0 0" />      
+		<parent link="base_link"/>
+		<child link="top_layer" />
+	</joint> 
+
+	<link name="laser">  
+		<visual>  
+	  		<geometry>  
+	   			<cylinder radius="${laser_radius}" length="${laser_height}"/> 
+	  		</geometry>  
+	  		<material name="yellow">  
+		  		<color rgba="1 1 0 0.4"/>  
+	  		</material>    
+		</visual>  
+	</link>  
+
+	<joint name="laser_joint" type="fixed">  
+		<origin rpy="0  0  0" xyz="${laser_offset_x}  0  ${laser_offset_z}"/>  
+		<parent link="base_link"/>  
+		<child link="laser"/>       
+	</joint>  
+
+
+
+</robot>

@@ -1,0 +1,6 @@
+branch_map:
+  map_num: 4 
+  branch1_map: [45, 22, 90.0]
+  branch2_map: [45, 5, -90.0]
+  branch3_map: [11, 12, 180.0]
+  branch4_map: [11, 41, -90.0]
