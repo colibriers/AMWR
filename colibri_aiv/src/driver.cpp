@@ -55,7 +55,7 @@ AIV_Driver::AIV_Driver()
 	memset(cmd_data,0,21);
 		
 	GenerateCmd(send_twist_, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
-	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
+	GenerateCmd(send_aux_info_, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
@@ -691,27 +691,27 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info)
 {
 
-	send_aux_info[VALID_DATA_START_INDX + 0] = aux_info->lf_light;
-	send_aux_info[VALID_DATA_START_INDX + 1] = aux_info->lr_light;
-	send_aux_info[VALID_DATA_START_INDX + 2] = aux_info->rf_light;
-	send_aux_info[VALID_DATA_START_INDX + 3] = aux_info->rr_light;
-	send_aux_info[VALID_DATA_START_INDX + 4] = aux_info->horn;
-	send_aux_info[VALID_DATA_START_INDX + 5] = (int (aux_info->laser_mindis * 100))/256;
-	send_aux_info[VALID_DATA_START_INDX + 6] = (int (aux_info->laser_mindis * 100))%256;
+	send_aux_info_[VALID_DATA_START_INDX + 0] = aux_info->lf_light;
+	send_aux_info_[VALID_DATA_START_INDX + 1] = aux_info->lr_light;
+	send_aux_info_[VALID_DATA_START_INDX + 2] = aux_info->rf_light;
+	send_aux_info_[VALID_DATA_START_INDX + 3] = aux_info->rr_light;
+	send_aux_info_[VALID_DATA_START_INDX + 4] = aux_info->horn;
+	send_aux_info_[VALID_DATA_START_INDX + 5] = (int (aux_info->laser_mindis * 100))/256;
+	send_aux_info_[VALID_DATA_START_INDX + 6] = (int (aux_info->laser_mindis * 100))%256;
 	if(aux_info->laser_mindir < 0)
 	{
-		send_aux_info[VALID_DATA_START_INDX + 7] = NEG_SIGN;
+		send_aux_info_[VALID_DATA_START_INDX + 7] = NEG_SIGN;
 	}
 	else
 	{
-		send_aux_info[VALID_DATA_START_INDX + 7] = POS_SIGN;
+		send_aux_info_[VALID_DATA_START_INDX + 7] = POS_SIGN;
 	}
-	send_aux_info[VALID_DATA_START_INDX + 8] = int (aux_info->laser_mindir);
-	send_aux_info[VALID_DATA_START_INDX + 9] = aux_info->ultra_switch;
-	send_aux_info[VALID_DATA_START_INDX + 10] = aux_info->ros_fault;
+	send_aux_info_[VALID_DATA_START_INDX + 8] = int (aux_info->laser_mindir);
+	send_aux_info_[VALID_DATA_START_INDX + 9] = aux_info->ultra_switch;
+	send_aux_info_[VALID_DATA_START_INDX + 10] = aux_info->ros_fault;
 
-	send_cache = send_aux_info;
-	SendCmd(send_aux_info, send_aux_finish);
+	send_cache = send_aux_info_;
+	SendCmd(send_aux_info_, send_aux_finish);
 	
 	send_cnt_++;
 	//cout <<"send times: "<<send_cnt_<<endl; 
@@ -1034,14 +1034,13 @@ void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_ya
 
 }
 
-void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw) //retrun rad
-{
-	float x = 0.0;
-	float y = 0.0;
+void Quaternion2Yaw(geometry_msgs::Quaternion &quat, double &yaw) {
+	double x = 0.0;
+	double y = 0.0;
 	
-	y = 2*(quat.w * quat.z + quat.x * quat.y);
-	x = 1- 2*(pow(quat.y, 2) + pow(quat.z, 2));
-	yaw = atan2(y,x);
+	y = 2.0 * (quat.w * quat.z + quat.x * quat.y);
+	x = 1.0 - 2.0 * (pow(quat.y, 2) + pow(quat.z, 2));
+	yaw = atan2(y,x);	//return a radium angle
 	
 }
 
