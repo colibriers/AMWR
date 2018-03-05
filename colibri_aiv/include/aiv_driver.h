@@ -25,9 +25,8 @@
 #include "colibri_msgs/MusicMode.h"
 #include "colibri_msgs/NavState.h"
 
-
-#ifndef _AIV_DRIVER_H_
-#define _AIV_DRIVER_H_
+#ifndef AIV_DRIVER_H_
+#define AIV_DRIVER_H_
 
 using namespace std;
 using namespace boost::asio;
@@ -106,7 +105,6 @@ typedef struct st_nav_state{
 	pose robot;
 	int err_code;
 }nav_state;
-
 
 void *ReadDataThread(void *args);
 
@@ -283,6 +281,4 @@ class AIV_Driver
 void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw);
 void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
 
-
-#endif
-
+#endif	// AIV_DRIVER_H_
