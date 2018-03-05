@@ -6,19 +6,9 @@ static io_service AIV_ios;
 static serial_port pserialport(AIV_ios);
 static boost::system::error_code ec;
 
-volatile bool AIV_Driver::enable_motor_finish = false;
-volatile bool AIV_Driver::disable_motor_finish = false;
 volatile bool AIV_Driver::send_twist_finish = false;
 volatile bool AIV_Driver::send_aux_finish = false;
-volatile bool AIV_Driver::req_encoder_start_finish = false;
-volatile bool AIV_Driver::req_imu_start_finish = false;
-volatile bool AIV_Driver::req_ultra_start_finish = false;
-volatile bool AIV_Driver::req_bumper_start_finish = false;
 volatile bool AIV_Driver::req_vel_start_finish = false;
-volatile bool AIV_Driver::req_encoder_stop_finish = false;
-volatile bool AIV_Driver::req_imu_stop_finish = false;
-volatile bool AIV_Driver::req_ultra_stop_finish = false;
-volatile bool AIV_Driver::req_bumper_stop_finish = false;
 volatile bool AIV_Driver::req_vel_stop_finish = false;
 
 unsigned char *AIV_Driver::send_cache = NULL;

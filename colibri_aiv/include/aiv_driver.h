@@ -120,37 +120,15 @@ class AIV_Driver
 		unsigned int recv_cnt;
 
 		//cmd list
-		unsigned char enable_motor[CONST_PROTOCOL_LEN];
-		unsigned char disable_motor[CONST_PROTOCOL_LEN];
 		unsigned char send_twist[CONST_PROTOCOL_LEN];
 		unsigned char send_aux_info[CONST_PROTOCOL_LEN];
-		
-		unsigned char req_encoder_start[CONST_PROTOCOL_LEN];
-		unsigned char req_imu_start[CONST_PROTOCOL_LEN];
-		unsigned char req_ultra_start[CONST_PROTOCOL_LEN];
-		unsigned char req_bumper_start[CONST_PROTOCOL_LEN];
+
 		unsigned char req_vel_start[CONST_PROTOCOL_LEN];
-		
-		unsigned char req_encoder_stop[CONST_PROTOCOL_LEN];
-		unsigned char req_imu_stop[CONST_PROTOCOL_LEN];
-		unsigned char req_ultra_stop[CONST_PROTOCOL_LEN];
-		unsigned char req_bumper_stop[CONST_PROTOCOL_LEN];
 		unsigned char req_vel_stop[CONST_PROTOCOL_LEN];
 		
-		static volatile bool enable_motor_finish;
-		static volatile bool disable_motor_finish;
 		static volatile bool send_twist_finish;
 		static volatile bool send_aux_finish;
-		static volatile bool req_encoder_start_finish;
-		static volatile bool req_imu_start_finish;
-		static volatile bool req_ultra_start_finish;
-		static volatile bool req_bumper_start_finish;
-		static volatile bool req_vel_start_finish;
-		
-		static volatile bool req_encoder_stop_finish;
-		static volatile bool req_imu_stop_finish;
-		static volatile bool req_ultra_stop_finish;
-		static volatile bool req_bumper_stop_finish;
+		static volatile bool req_vel_start_finish;	
 		static volatile bool req_vel_stop_finish;		
 
 		static unsigned char *send_cache;
