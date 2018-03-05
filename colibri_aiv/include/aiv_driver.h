@@ -116,8 +116,8 @@ class AIV_Driver {
 		//cmd list
 		unsigned char send_twist_[CONST_PROTOCOL_LEN];
 		unsigned char send_aux_info_[CONST_PROTOCOL_LEN];
-		unsigned char req_vel_start[CONST_PROTOCOL_LEN];
-		unsigned char req_vel_stop[CONST_PROTOCOL_LEN];
+		unsigned char req_vel_start_[CONST_PROTOCOL_LEN];
+		unsigned char req_vel_stop_[CONST_PROTOCOL_LEN];
 		
 		static volatile bool send_twist_finish;
 		static volatile bool send_aux_finish;

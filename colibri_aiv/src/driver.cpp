@@ -57,8 +57,8 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(send_twist_, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
 	GenerateCmd(send_aux_info_, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
-	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
-	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
+	GenerateCmd(req_vel_start_, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
+	GenerateCmd(req_vel_stop_, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
 	//DisplayFrame(send_twist_);
 	
