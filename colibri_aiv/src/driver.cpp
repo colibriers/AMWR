@@ -24,8 +24,8 @@ void* ReadDataThread(void *args)
 
 AIV_Driver::AIV_Driver()
 {
-	send_cnt = 0;
-	recv_cnt = 0;
+	send_cnt_ = 0;
+	recv_cnt_ = 0;
 
 	last_time = ros::Time::now();
 	current_time = ros::Time::now();
@@ -604,8 +604,8 @@ void AIV_Driver::ReadFromCom(void *args)
 		async_read(pserialport,buffer(recv_cache,CONST_PROTOCOL_LEN),boost::bind(&AIV_Driver::ReadInfoProc,this,recv_cache,_1,_2));
 
 		ComCallHandle();	
-		recv_cnt ++;
-		//cout <<"recv times: "<<recv_cnt<<endl;
+		recv_cnt_ ++;
+		//cout <<"recv times: "<<recv_cnt_<<endl;
 
 	}
 
@@ -684,8 +684,8 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 	send_cache = send_twist;
 	SendCmd(send_twist, send_twist_finish);
 	
-	send_cnt++;
-	//cout <<"send times: "<<send_cnt<<endl;
+	send_cnt_++;
+	//cout <<"send times: "<<send_cnt_<<endl;
 }
 
 void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info)
@@ -713,8 +713,8 @@ void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_inf
 	send_cache = send_aux_info;
 	SendCmd(send_aux_info, send_aux_finish);
 	
-	send_cnt++;
-	//cout <<"send times: "<<send_cnt<<endl; 
+	send_cnt_++;
+	//cout <<"send times: "<<send_cnt_<<endl; 
 }
 
 void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr & pose_info)

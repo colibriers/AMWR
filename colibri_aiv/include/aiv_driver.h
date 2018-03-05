@@ -110,8 +110,8 @@ void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
 
 class AIV_Driver {
 	public:
-		unsigned int send_cnt;
-		unsigned int recv_cnt;
+		unsigned int send_cnt_;
+		unsigned int recv_cnt_;
 
 		//cmd list
 		unsigned char send_twist[CONST_PROTOCOL_LEN];
