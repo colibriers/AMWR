@@ -58,7 +58,6 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
-	
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
 	//DisplayFrame(send_twist);
@@ -648,13 +647,6 @@ bool AIV_Driver::InitSubandPub()
 	//amcl_pose_sub = global_nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 10, boost::bind(&AIV_Driver::AmclPoseCallback, this, _1));
 	//nav_state_sub = global_nh.subscribe<colibri_msgs::NavState>("/nav_state", 10, boost::bind(&AIV_Driver::NavStateCallback, this, _1));
 
-
-	ros::NodeHandle nh_ultrasonic;
-	ultrasonic_pub = nh_ultrasonic.advertise<colibri_aiv::Ultrasonic>("ultrasonic", 10);
-	
-	ros::NodeHandle nh_bumper;
-	bumper_pub = nh_bumper.advertise<colibri_aiv::Bumper>("bumper", 10);
-	
 }
 
 void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
@@ -811,7 +803,6 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 	if(cur_nav_state.cur_seg!=0)
 	{
 		lock_pose = false;
-
 	}
 	ROS_INFO("correct_cartodom_flag: %d ", correct_cartodom_flag);
 

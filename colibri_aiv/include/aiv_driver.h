@@ -19,8 +19,6 @@
 //include the proj  lib
 #include "cartodom/Cartodom.h"
 #include "cartodom_correct.h"
-#include "colibri_aiv/Bumper.h"
-#include "colibri_aiv/Ultrasonic.h"
 #include "colibri_msgs/AuxInfo.h"
 #include "colibri_msgs/MusicMode.h"
 #include "colibri_msgs/NavState.h"
@@ -208,7 +206,6 @@ class AIV_Driver
 		void CalcCartodomByAmcl(float & frame_diff_angle);
 		void OdomException(bool & sys_stable);
 		void NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info);
-
 		
 	private:
 
@@ -240,8 +237,6 @@ class AIV_Driver
 		
 		ros::Subscriber twist_sub;
 		ros::Publisher odom_pub;
-		ros::Publisher ultrasonic_pub;
-		ros::Publisher bumper_pub;
 		ros::Subscriber cartodom_sub;
 		ros::Subscriber aux_sub;
 		ros::Subscriber music_sub;
@@ -252,7 +247,6 @@ class AIV_Driver
 		ros::Subscriber nav_state_sub;
 		void ParseWheelRpm(const unsigned char *valid_data);
 		void CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta);
-
 
 };
 
