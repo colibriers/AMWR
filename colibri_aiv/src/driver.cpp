@@ -73,10 +73,8 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(send_twist, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
-	GenerateCmd(req_ultra_start, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	
-	GenerateCmd(req_ultra_stop, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
 	//DisplayFrame(send_twist);
@@ -379,48 +377,6 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			
 			break;
 				
-			
-		case REQ_ULTRASONIC:
-			//if((AIV_Driver::req_ultra_start_finish == true) || (AIV_Driver::req_ultra_stop_finish == true))
-			//{	
-				if(recv_data[VALID_DATA_LEN_INDX] != 0x10)
-				{
-					cout<<"The data count byte of the respones of the request_ultrasonic cmd shoud be 0x0c,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
-					return;
-				}
-				else
-				{
-					if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_START)
-					{
-						colibri_aiv::Ultrasonic ultra;
-						ultra.header.stamp = ros::Time::now();
-						ultra.header.frame_id = "ultrasonic";
-						ultra.ultrasonic1 = (recv_data[VALID_DATA_START_INDX + 0] * 256 + recv_data[VALID_DATA_START_INDX + 1]) & 0xffff;
-						ultra.ultrasonic2 = (recv_data[VALID_DATA_START_INDX + 2] * 256 + recv_data[VALID_DATA_START_INDX + 3]) & 0xffff;
-						ultra.ultrasonic3 = (recv_data[VALID_DATA_START_INDX + 4] * 256 + recv_data[VALID_DATA_START_INDX + 5]) & 0xffff;
-						ultra.ultrasonic4 = (recv_data[VALID_DATA_START_INDX + 6] * 256 + recv_data[VALID_DATA_START_INDX + 7]) & 0xffff;
-						ultra.ultrasonic5 = (recv_data[VALID_DATA_START_INDX + 8] * 256 + recv_data[VALID_DATA_START_INDX + 9]) & 0xffff;
-						ultra.ultrasonic6 = (recv_data[VALID_DATA_START_INDX + 10] * 256 + recv_data[VALID_DATA_START_INDX + 11]) & 0xffff;
-						ultra.ultrasonic7 = (recv_data[VALID_DATA_START_INDX + 12] * 256 + recv_data[VALID_DATA_START_INDX + 13]) & 0xffff;
-						ultra.ultrasonic8 = (recv_data[VALID_DATA_START_INDX + 14] * 256 + recv_data[VALID_DATA_START_INDX + 15]) & 0xffff;						
-						ultrasonic_pub.publish(ultra);
-						AIV_Driver::req_ultra_start_finish = false;
-						//cout<<"request_ultrasonic cmd is executed successfully !"<<endl;
-					}
-					else if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_STOP)
-					{
-						AIV_Driver::req_ultra_stop_finish = false;
-					}
-				}
-	//		}
-	//		else
-	//		{
-	//			cout<<"ROS does not send request_ultra but recv a response cmd"<<endl;
-	//			return;
-	//		}
-
-			break;
-
 		case REQ_VELOCITY:
 			
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x06)
@@ -1048,10 +1004,6 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 						//system("");
 					}
 					break;	
-
-				case REQ_ULTRASONIC:
-					cout<<"TRIO respones the request_ultrasonic cmd timeout !"<<endl;
-					break;
 
 				case REQ_VELOCITY:
 					cout<<"TRIO respones the request_vel cmd timeout !"<<endl;
