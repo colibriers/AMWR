@@ -54,13 +54,13 @@ AIV_Driver::AIV_Driver()
 	unsigned char cmd_data[21];	//used to store for valid data in defined protocol
 	memset(cmd_data,0,21);
 		
-	GenerateCmd(send_twist, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
+	GenerateCmd(send_twist_, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
-	//DisplayFrame(send_twist);
+	//DisplayFrame(send_twist_);
 	
 	cartodom_x = -OFFSET_LASER_X;
 	cartodom_y = 0.0;
@@ -300,7 +300,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			{
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x04)
 				{
-					cout<<"The data count byte of the respones of the send_twist cmd shoud be 0x04,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
+					cout<<"data count for respones of send_twist_ cmd shoud be 0x04,but is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
 					return;
 				}
 
@@ -316,13 +316,13 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 				{
 					AIV_Driver::send_twist_finish = false;
 
-					//cout<<"send_twist cmd is executed successfully !"<<endl;
+					//cout<<"send_twist_ cmd is executed successfully !"<<endl;
 				}
 			
 			}
 			else
 			{
-				cout<<"ROS does not send send_twist cmd,but recv a response cmd !"<<endl;
+				cout<<"ROS does not send send_twist_ cmd,but recv a response cmd !"<<endl;
 				return;
 			}
 			
@@ -653,36 +653,36 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 	static int twist_seq = 0;
 	if(twist->linear.x < 0 )
 	{
-		send_twist[VALID_DATA_START_INDX + 0] = NEG_SIGN;
-		send_twist[VALID_DATA_START_INDX + 1] = abs(100*twist->linear.x);
+		send_twist_[VALID_DATA_START_INDX + 0] = NEG_SIGN;
+		send_twist_[VALID_DATA_START_INDX + 1] = abs(100*twist->linear.x);
 	}
 	else
 	{
-		send_twist[VALID_DATA_START_INDX + 0] = POS_SIGN;
-		send_twist[VALID_DATA_START_INDX + 1] = 100*twist->linear.x;
+		send_twist_[VALID_DATA_START_INDX + 0] = POS_SIGN;
+		send_twist_[VALID_DATA_START_INDX + 1] = 100*twist->linear.x;
 	}
 
 	if(twist->angular.z < 0 )
 	{
-		send_twist[VALID_DATA_START_INDX + 2] = NEG_SIGN;
-		send_twist[VALID_DATA_START_INDX + 3] = abs(100*twist->angular.z);
+		send_twist_[VALID_DATA_START_INDX + 2] = NEG_SIGN;
+		send_twist_[VALID_DATA_START_INDX + 3] = abs(100*twist->angular.z);
 	}
 	else
 	{
-		send_twist[VALID_DATA_START_INDX + 2] = POS_SIGN;
-		send_twist[VALID_DATA_START_INDX + 3] = 100*twist->angular.z;
+		send_twist_[VALID_DATA_START_INDX + 2] = POS_SIGN;
+		send_twist_[VALID_DATA_START_INDX + 3] = 100*twist->angular.z;
 	}
 
-	send_twist[VALID_DATA_START_INDX + 8] = cur_music_mode; //add music ctrl
+	send_twist_[VALID_DATA_START_INDX + 8] = cur_music_mode; //add music ctrl
 	twist_seq++;
 	if(twist_seq > 255)
 	{
 		twist_seq = 0;
 	}
-	send_twist[VALID_DATA_START_INDX + 9] = twist_seq;
+	send_twist_[VALID_DATA_START_INDX + 9] = twist_seq;
 	
-	send_cache = send_twist;
-	SendCmd(send_twist, send_twist_finish);
+	send_cache = send_twist_;
+	SendCmd(send_twist_, send_twist_finish);
 	
 	send_cnt_++;
 	//cout <<"send times: "<<send_cnt_<<endl;
@@ -909,7 +909,6 @@ void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odo
 void AIV_Driver::MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_info)
 {
 	cur_music_mode = music_info->music_mode;
-
 }
 
 void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
@@ -925,12 +924,11 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 			switch(cmd[CMD_BYTE_INDX])
 			{					
 				case SEND_TWIST:
-					cout<<"TRIO respones the send_twist cmd timeout !"<<endl;
+					cout<<"TRIO respones the send_twist_ cmd timeout !"<<endl;
 					lost_twist_res_cnt++;
 					if(lost_twist_res_cnt > 30)
 					{
 						system("roslaunch colibri_crabnav kill_aiv.launch");
-						//system("");
 					}
 					break;	
 
