@@ -49,7 +49,6 @@ using namespace boost::asio;
 #define END_INDX_2	31
 
 //definition of the cmd byte
-#define ENABLE_DISABLE_MOTOR	0x00
 #define SEND_TWIST	0x01
 #define REQ_VELOCITY	0x06
 #define SEND_AUX	0X07

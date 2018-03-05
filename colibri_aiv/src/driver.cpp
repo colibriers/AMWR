@@ -64,11 +64,8 @@ AIV_Driver::AIV_Driver()
 	unsigned char cmd_data[21];	//used to store for valid data in defined protocol
 	memset(cmd_data,0,21);
 	
-	cmd_data[0] = ENABLE_MOTOR;
-	GenerateCmd(enable_motor, ENABLE_DISABLE_MOTOR, 0x01, RSVD_VAL, cmd_data);
-	
+	cmd_data[0] = ENABLE_MOTOR;	
 	cmd_data[0] = DISABLE_MOTOR;
-	GenerateCmd(disable_motor, ENABLE_DISABLE_MOTOR, 0x01, RSVD_VAL, cmd_data);
 	
 	GenerateCmd(send_twist, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
@@ -311,39 +308,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	}
 
 	switch(recv_data[CMD_BYTE_INDX])
-	{
-		case ENABLE_DISABLE_MOTOR:
-			if((AIV_Driver::enable_motor_finish == true) ||(AIV_Driver::disable_motor_finish == true))
-			{
-				if(recv_data[VALID_DATA_LEN_INDX] != 0x01)
-				{
-					cout<<"The valid data lenth of the respones for enable_disable_motor shoud be 0x01,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
-					return;
-				}
-				
-				if((AIV_Driver::enable_motor_finish == true) && (recv_data[VALID_DATA_START_INDX + 0] == 0xff))
-				{
-					enable_motor_finish = false;
-					cout<<"enable_motor cmd is executed successfully !"<<endl;
-					return;
-					
-				}
-				else if((AIV_Driver::disable_motor_finish == true) && (recv_data[VALID_DATA_START_INDX + 0] == 0x55))
-				{
-					AIV_Driver::disable_motor_finish = false;
-					cout<<"disable_motor cmd is executed successfully !"<<endl;
-					return;
-				}
-				
-			}
-			else
-			{
-				cout<<"ROS does not send enable or disable motor cmd,but recv a response cmd !"<<endl;
-				return;
-			}
-
-			break;
-			
+	{		
 		case SEND_TWIST:
 			if(AIV_Driver::send_twist_finish == true)
 			{
@@ -971,7 +936,6 @@ void AIV_Driver::MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_i
 
 }
 
-
 void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 {
 	WriteToCom(cmd);
@@ -983,18 +947,7 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 		if(ros::Time::now() - start_time > ros::Duration(TIMEOUT, 0))
 		{
 			switch(cmd[CMD_BYTE_INDX])
-			{
-				case ENABLE_DISABLE_MOTOR:
-					if(cmd[VALID_DATA_START_INDX + 0] == 0xff)
-					{
-						cout<<"TRIO respones the enable_motor cmd timeout !"<<endl;
-					}
-					else if(cmd[VALID_DATA_START_INDX + 0] == 0x55)
-					{
-						cout<<"TRIO respones the disable_motor cmd timeout !"<<endl;	
-					}
-					break;
-					
+			{					
 				case SEND_TWIST:
 					cout<<"TRIO respones the send_twist cmd timeout !"<<endl;
 					lost_twist_res_cnt++;
