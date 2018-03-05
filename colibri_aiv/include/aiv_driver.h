@@ -119,7 +119,7 @@ class AIV_Driver {
 		unsigned char req_vel_start_[CONST_PROTOCOL_LEN];
 		unsigned char req_vel_stop_[CONST_PROTOCOL_LEN];
 		
-		static volatile bool send_twist_finish;
+		static volatile bool send_twist_finish_;
 		static volatile bool send_aux_finish;
 		static volatile bool req_vel_start_finish;	
 		static volatile bool req_vel_stop_finish;		

@@ -6,7 +6,7 @@ static io_service AIV_ios;
 static serial_port pserialport(AIV_ios);
 static boost::system::error_code ec;
 
-volatile bool AIV_Driver::send_twist_finish = false;
+volatile bool AIV_Driver::send_twist_finish_ = false;
 volatile bool AIV_Driver::send_aux_finish = false;
 volatile bool AIV_Driver::req_vel_start_finish = false;
 volatile bool AIV_Driver::req_vel_stop_finish = false;
@@ -296,7 +296,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	switch(recv_data[CMD_BYTE_INDX])
 	{		
 		case SEND_TWIST:
-			if(AIV_Driver::send_twist_finish == true)
+			if(AIV_Driver::send_twist_finish_ == true)
 			{
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x04)
 				{
@@ -314,7 +314,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 				}
 				else
 				{
-					AIV_Driver::send_twist_finish = false;
+					AIV_Driver::send_twist_finish_ = false;
 
 					//cout<<"send_twist_ cmd is executed successfully !"<<endl;
 				}
@@ -682,7 +682,7 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 	send_twist_[VALID_DATA_START_INDX + 9] = twist_seq;
 	
 	send_cache = send_twist_;
-	SendCmd(send_twist_, send_twist_finish);
+	SendCmd(send_twist_, send_twist_finish_);
 	
 	send_cnt_++;
 	//cout <<"send times: "<<send_cnt_<<endl;
