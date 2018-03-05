@@ -104,15 +104,11 @@ typedef struct st_nav_state{
 	int err_code;
 }nav_state;
 
-void *ReadDataThread(void *args);
+void* ReadDataThread(void *args);
+void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw);
+void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
 
-class AIV_Driver
-{
-	private:
-		void GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned char valid_data_len,unsigned char control,unsigned char *data);
-		void TwistCallback(const geometry_msgs::Twist::ConstPtr & twist);
-		void AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info);
-		void DisplayFrame(unsigned char *cmd_list);
+class AIV_Driver {
 	public:
 		unsigned int send_cnt;
 		unsigned int recv_cnt;
@@ -245,12 +241,14 @@ class AIV_Driver
 		ros::Publisher wheel_odom_pub;
 		ros::Subscriber amcl_pose_sub;
 		ros::Subscriber nav_state_sub;
+		
+		void GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned char valid_data_len,unsigned char control,unsigned char *data);
+		void TwistCallback(const geometry_msgs::Twist::ConstPtr & twist);
+		void AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info);
+		void DisplayFrame(unsigned char *cmd_list);
 		void ParseWheelRpm(const unsigned char *valid_data);
 		void CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta);
 
 };
-
-void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw);
-void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
 
 #endif	// AIV_DRIVER_H_

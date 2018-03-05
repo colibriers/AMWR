@@ -1,5 +1,5 @@
-#include "aiv_driver.h" 
 #include <stdlib.h>
+#include "aiv_driver.h" 
 
 static unsigned char recv_cache[CONST_PROTOCOL_LEN];
 static io_service AIV_ios;
@@ -15,7 +15,7 @@ unsigned char *AIV_Driver::send_cache = NULL;
 unsigned int dbg_info_cnt = 0;
 unsigned int lost_twist_res_cnt = 0;
 
-void *ReadDataThread(void *args)
+void* ReadDataThread(void *args)
 {
 	AIV_Driver obj_driver;
 	obj_driver.InitSubandPub();
@@ -536,8 +536,6 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					//publish the message
 					odom_pub.publish(odom);
 
-					
-
 					dbg_info_cnt++;
 					if(dbg_info_cnt>7)
 					{
@@ -615,7 +613,7 @@ void AIV_Driver::ReadFromCom(void *args)
 
 void AIV_Driver::ComCallHandle()
 {
-//	AIV_ios.poll();
+  //	AIV_ios.poll();
 	AIV_ios.run();
 	AIV_ios.reset();
 }
