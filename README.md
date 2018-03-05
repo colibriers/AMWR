@@ -1,3 +1,3 @@
-# MWR
+# AMWR
 
-Mobile Wheeled Robot Proj
+Autonomous Mobile Wheeled Robot Proj
