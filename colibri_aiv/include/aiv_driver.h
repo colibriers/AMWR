@@ -32,70 +32,69 @@
 using namespace std;
 using namespace boost::asio;
 
-#define CONST_PROTOCOL_LEN			32
+#define CONST_PROTOCOL_LEN	32
 
 // protocol bytes seperation
-#define START_INDX_1			0
-#define START_INDX_2			1     
-#define RSVD_BYTE_INDX			2
-#define REQ_RES_INDX        	3
-#define VALID_DATA_LEN_INDX     4
-#define CMD_BYTE_INDX           5
-#define CMD_CTRL_INDX         	6
-#define VALID_DATA_START_INDX   7
-#define CRC_INDX_1				28
-#define CRC_INDX_2				29
-#define END_INDX_1           	30
-#define END_INDX_2          	31
+#define START_INDX_1  0
+#define START_INDX_2	1     
+#define RSVD_BYTE_INDX	2
+#define REQ_RES_INDX	3
+#define VALID_DATA_LEN_INDX		4
+#define CMD_BYTE_INDX  5
+#define CMD_CTRL_INDX	 6
+#define VALID_DATA_START_INDX  7
+#define CRC_INDX_1  28
+#define CRC_INDX_2	29
+#define END_INDX_1	30
+#define END_INDX_2	31
 
 //definition of the cmd byte
-#define ENABLE_DISABLE_MOTOR         0x00
-#define SEND_TWIST                   0x01
-#define REQ_ENCODER              	 0x02
-#define REQ_IMU                 	 0x03
-#define REQ_ULTRASONIC          	 0x04
-#define REQ_BUMPER            	 	 0x05
-#define REQ_VELOCITY             	 0x06
-#define SEND_AUX				 	 0X07
+#define ENABLE_DISABLE_MOTOR	0x00
+#define SEND_TWIST	0x01
+#define REQ_ENCODER  0x02
+#define REQ_IMU		0x03
+#define REQ_ULTRASONIC	0x04
+#define REQ_BUMPER	0x05
+#define REQ_VELOCITY	0x06
+#define SEND_AUX	0X07
 
-#define ENABLE_MOTOR		0xff
-#define DISABLE_MOTOR		0x55
-#define RSVD_VAL			0x00
-#define POS_SIGN			0x00
-#define NEG_SIGN			0xff
+#define ENABLE_MOTOR	0xff
+#define DISABLE_MOTOR	 0x55
+#define RSVD_VAL	0x00
+#define POS_SIGN	0x00
+#define NEG_SIGN	0xff
 
 // definition of the common const bytes in protocol
-#define FRAME_START_1             0xfa
-#define FRAME_START_2             0x55
-#define FRAME_RSVD                0x00
-#define FRAME_REQ_RES             0x05
-#define FRAME_RES_SUCC            0x06
-#define FRAME_RES_FAIL            0x15
-#define FRAME_CMD_START           0x00
-#define FRAME_CMD_STOP            0xff
-#define FRAME_END_1               0x55
-#define FRAME_END_2               0xfa
+#define FRAME_START_1  0xfa
+#define FRAME_START_2  0x55
+#define FRAME_RSVD	0x00
+#define FRAME_REQ_RES  0x05
+#define FRAME_RES_SUCC	0x06
+#define FRAME_RES_FAIL	0x15
+#define FRAME_CMD_START  0x00
+#define FRAME_CMD_STOP	0xff
+#define FRAME_END_1  0x55
+#define FRAME_END_2  0xfa
 
 //The definition of the timeout
-#define TIMEOUT                      1
-#define PI                           3.14159265
-#define WHEEL_TRACK                  0.46
-#define WHEEL_RADIUS                 0.1
-#define WHEEL_GEAR                   25
+#define TIMEOUT	 1.0
+#define PI	3.14159265
+#define WHEEL_TRACK  0.46
+#define WHEEL_RADIUS	0.1
+#define WHEEL_GEAR	25
 
 //The definiotion of the offset 
-#define OFFSET_LASER_X			0.352
-#define RAD2DEG					57.296
-#define DEG2RAD					0.01745
+#define OFFSET_LASER_X	0.352
+#define RAD2DEG  57.296
+#define DEG2RAD  0.01745
 
 //secb_frame_offset
-#define OFFSET_NX2GX 	-15.8  //nav frame 2 google carto frame
-#define OFFSET_NY2GY    -6.0
+#define OFFSET_NX2GX  -15.8  //nav frame 2 google carto frame
+#define OFFSET_NY2GY  -6.0
 
-#define ODOM_EXCEPT_GAP   1.2
-#define UPDATE_CNT		300
-#define SW_AMCL_YAW_CNT	2
-
+#define ODOM_EXCEPT_GAP  1.2
+#define UPDATE_CNT  300
+#define SW_AMCL_YAW_CNT  2
 
 typedef struct st_pose{
 	float x;
