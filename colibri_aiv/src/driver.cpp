@@ -7,7 +7,7 @@ static serial_port pserialport(AIV_ios);
 static boost::system::error_code ec;
 
 volatile bool AIV_Driver::send_twist_finish_ = false;
-volatile bool AIV_Driver::send_aux_finish = false;
+volatile bool AIV_Driver::send_aux_finish_ = false;
 volatile bool AIV_Driver::req_vel_start_finish = false;
 volatile bool AIV_Driver::req_vel_stop_finish = false;
 
@@ -554,7 +554,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			break;
 
 		case SEND_AUX:
-			if(AIV_Driver::send_aux_finish == true)
+			if(AIV_Driver::send_aux_finish_ == true)
 			{
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x0B)
 				{
@@ -572,7 +572,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 				}
 				else
 				{
-					AIV_Driver::send_aux_finish = false;
+					AIV_Driver::send_aux_finish_ = false;
 
 					//cout<<"send_aux cmd is executed successfully !"<<endl;
 				}
@@ -711,7 +711,7 @@ void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_inf
 	send_aux_info_[VALID_DATA_START_INDX + 10] = aux_info->ros_fault;
 
 	send_cache = send_aux_info_;
-	SendCmd(send_aux_info_, send_aux_finish);
+	SendCmd(send_aux_info_, send_aux_finish_);
 	
 	send_cnt_++;
 	//cout <<"send times: "<<send_cnt_<<endl; 
