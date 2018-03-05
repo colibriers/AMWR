@@ -74,11 +74,9 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
 	GenerateCmd(req_ultra_start, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_START, cmd_data);
-	GenerateCmd(req_bumper_start, REQ_BUMPER, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	
 	GenerateCmd(req_ultra_stop, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
-	GenerateCmd(req_bumper_stop, REQ_BUMPER, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
 	//DisplayFrame(send_twist);
@@ -420,52 +418,6 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	//			cout<<"ROS does not send request_ultra but recv a response cmd"<<endl;
 	//			return;
 	//		}
-
-			break;
-			
-		case REQ_BUMPER:
-			if((AIV_Driver::req_ultra_start_finish == true) || (AIV_Driver::req_ultra_stop_finish == true))
-			{	
-				if(recv_data[VALID_DATA_LEN_INDX] != 0x01)
-				{
-					cout<<"The data count byte of the respones of the request_collision cmd shoud be 0x01,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
-					return;
-				}
-				else
-				{
-					if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_START)
-					{
-						colibri_aiv::Bumper bumper;
-						bumper.header.stamp = ros::Time::now();
-						bumper.header.frame_id = "bumper";
-						if(recv_data[VALID_DATA_START_INDX + 0] == 0x55)
-						{
-							bumper.bumper.data = false;
-						}
-						else if (recv_data[VALID_DATA_START_INDX + 0] == 0xff)
-						{
-							bumper.bumper.data = true;
-						}
-						else
-						{
-							cout<<"request_bumper cmd recv a illegal data !"<<endl;
-							return;
-						}
-						bumper_pub.publish(bumper);
-						AIV_Driver::req_bumper_start_finish = false;
-						cout<<"request_bumper cmd is executed successfully !"<<endl;
-					}
-					else if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_STOP)
-					{
-						AIV_Driver::req_bumper_stop_finish = false;
-					}
-				}
-			}
-			else
-			{
-				cout<<"ROS does not send request_bumper but recv a response cmd"<<endl;
-				return;
-			}
 
 			break;
 
@@ -1099,10 +1051,6 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 
 				case REQ_ULTRASONIC:
 					cout<<"TRIO respones the request_ultrasonic cmd timeout !"<<endl;
-					break;
-
-				case REQ_BUMPER:
-					cout<<"TRIO respones the request_bumper cmd timeout !"<<endl;
 					break;
 
 				case REQ_VELOCITY:
