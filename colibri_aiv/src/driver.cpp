@@ -63,10 +63,7 @@ AIV_Driver::AIV_Driver()
 
 	unsigned char cmd_data[21];	//used to store for valid data in defined protocol
 	memset(cmd_data,0,21);
-	
-	cmd_data[0] = ENABLE_MOTOR;	
-	cmd_data[0] = DISABLE_MOTOR;
-	
+		
 	GenerateCmd(send_twist, SEND_TWIST, 0x04,RSVD_VAL, cmd_data);
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 

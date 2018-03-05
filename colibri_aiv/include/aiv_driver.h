@@ -53,8 +53,6 @@ using namespace boost::asio;
 #define REQ_VELOCITY	0x06
 #define SEND_AUX	0X07
 
-#define ENABLE_MOTOR	0xff
-#define DISABLE_MOTOR	 0x55
 #define RSVD_VAL	0x00
 #define POS_SIGN	0x00
 #define NEG_SIGN	0xff
