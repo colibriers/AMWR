@@ -8,10 +8,10 @@ static boost::system::error_code ec;
 
 volatile bool AIV_Driver::send_twist_finish_ = false;
 volatile bool AIV_Driver::send_aux_finish_ = false;
-volatile bool AIV_Driver::req_vel_start_finish = false;
-volatile bool AIV_Driver::req_vel_stop_finish = false;
+volatile bool AIV_Driver::req_vel_start_finish_ = false;
+volatile bool AIV_Driver::req_vel_stop_finish_ = false;
 
-unsigned char *AIV_Driver::send_cache = NULL;
+unsigned char *AIV_Driver::send_cache_ = NULL;
 unsigned int dbg_info_cnt = 0;
 unsigned int lost_twist_res_cnt = 0;
 
@@ -304,10 +304,10 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					return;
 				}
 
-				if( recv_data[VALID_DATA_START_INDX + 0] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 0]
-					|| recv_data[VALID_DATA_START_INDX + 1] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 1]
-					|| recv_data[VALID_DATA_START_INDX + 2] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 2]
-					|| recv_data[VALID_DATA_START_INDX + 3] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 3] )
+				if( recv_data[VALID_DATA_START_INDX + 0] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 0]
+					|| recv_data[VALID_DATA_START_INDX + 1] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 1]
+					|| recv_data[VALID_DATA_START_INDX + 2] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 2]
+					|| recv_data[VALID_DATA_START_INDX + 3] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 3] )
 				{
 					cout<<"The received data bytes is not same with the send data byte"<<endl;
 					return;
@@ -544,11 +544,11 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						dbg_info_cnt = 0;
 					}
 					
-					AIV_Driver::req_vel_start_finish = false; 
+					AIV_Driver::req_vel_start_finish_ = false; 
 				}
 				else if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_STOP)
 				{
-					AIV_Driver::req_vel_stop_finish = false;
+					AIV_Driver::req_vel_stop_finish_ = false;
 				} 
 			
 			break;
@@ -562,10 +562,10 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					return;
 				}
 
-				if( recv_data[VALID_DATA_START_INDX + 0] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 0]
-					|| recv_data[VALID_DATA_START_INDX + 1] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 1]
-					|| recv_data[VALID_DATA_START_INDX + 2] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 2]
-					|| recv_data[VALID_DATA_START_INDX + 3] != AIV_Driver::send_cache[VALID_DATA_START_INDX + 3] )
+				if( recv_data[VALID_DATA_START_INDX + 0] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 0]
+					|| recv_data[VALID_DATA_START_INDX + 1] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 1]
+					|| recv_data[VALID_DATA_START_INDX + 2] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 2]
+					|| recv_data[VALID_DATA_START_INDX + 3] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 3] )
 				{
 					cout<<"The received data bytes is not same with the send data byte"<<endl;
 					return;
@@ -681,7 +681,7 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 	}
 	send_twist_[VALID_DATA_START_INDX + 9] = twist_seq;
 	
-	send_cache = send_twist_;
+	send_cache_ = send_twist_;
 	SendCmd(send_twist_, send_twist_finish_);
 	
 	send_cnt_++;
@@ -710,7 +710,7 @@ void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_inf
 	send_aux_info_[VALID_DATA_START_INDX + 9] = aux_info->ultra_switch;
 	send_aux_info_[VALID_DATA_START_INDX + 10] = aux_info->ros_fault;
 
-	send_cache = send_aux_info_;
+	send_cache_ = send_aux_info_;
 	SendCmd(send_aux_info_, send_aux_finish_);
 	
 	send_cnt_++;

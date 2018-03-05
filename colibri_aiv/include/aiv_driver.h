@@ -121,10 +121,10 @@ class AIV_Driver {
 		
 		static volatile bool send_twist_finish_;
 		static volatile bool send_aux_finish_;
-		static volatile bool req_vel_start_finish;	
-		static volatile bool req_vel_stop_finish;		
+		static volatile bool req_vel_start_finish_;	
+		static volatile bool req_vel_stop_finish_;		
 
-		static unsigned char *send_cache;
+		static unsigned char *send_cache_;
 
 		double cartodom_x;
 		double cartodom_y;
