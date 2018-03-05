@@ -52,7 +52,6 @@ using namespace boost::asio;
 #define ENABLE_DISABLE_MOTOR	0x00
 #define SEND_TWIST	0x01
 #define REQ_ENCODER  0x02
-#define REQ_IMU		0x03
 #define REQ_ULTRASONIC	0x04
 #define REQ_BUMPER	0x05
 #define REQ_VELOCITY	0x06

@@ -74,13 +74,11 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(send_aux_info, SEND_AUX, 0x0B,RSVD_VAL, cmd_data);
 
 	GenerateCmd(req_encoder_start, REQ_ENCODER, RSVD_VAL, FRAME_CMD_START, cmd_data);
-	GenerateCmd(req_imu_start, REQ_IMU, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_ultra_start, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_bumper_start, REQ_BUMPER, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	GenerateCmd(req_vel_start, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_START, cmd_data);
 	
 	GenerateCmd(req_encoder_stop, REQ_ENCODER, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
-	GenerateCmd(req_imu_stop, REQ_IMU, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 	GenerateCmd(req_ultra_stop, REQ_ULTRASONIC, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 	GenerateCmd(req_bumper_stop, REQ_BUMPER, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 	GenerateCmd(req_vel_stop, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
@@ -413,35 +411,6 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			
 			break;
 			
-		case REQ_IMU:
-			if((AIV_Driver::req_imu_start_finish == true) || (AIV_Driver::req_imu_stop_finish == true))
-			{			
-				if(recv_data[VALID_DATA_LEN_INDX] != 0x0c)
-				{
-					cout<<"The data count byte of the respones of the request_imu cmd shoud be 0x0c,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
-					return;
-				}else
-				{
-					cout<<"request_imu cmd is executed successfully !"<<endl;
-					
-					if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_START)
-					{
-						AIV_Driver::req_imu_start_finish = false;
-					}
-					else if(recv_data[CMD_CTRL_INDX] == FRAME_CMD_STOP)
-					{
-						AIV_Driver::req_imu_stop_finish = false;
-					}					
-
-				}
-			}
-			else
-			{
-				cout<<"ROS does not send request_IMU cmd,but recv a response cmd !"<<endl;
-				return;
-			}
-			
-			break;
 			
 		case REQ_ULTRASONIC:
 			//if((AIV_Driver::req_ultra_start_finish == true) || (AIV_Driver::req_ultra_stop_finish == true))
@@ -1160,10 +1129,6 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 					
 				case REQ_ENCODER:
 					cout<<"TRIO respones the request_encoder cmd timeout !"<<endl;
-					break;
-
-				case REQ_IMU:
-					cout<<"TRIO respones the request_imu cmd timeout !"<<endl;
 					break;
 
 				case REQ_ULTRASONIC:
