@@ -27,8 +27,8 @@ AIV_Driver::AIV_Driver()
 	send_cnt_ = 0;
 	recv_cnt_ = 0;
 
-	last_time = ros::Time::now();
-	current_time = ros::Time::now();
+	last_time_ = ros::Time::now();
+	cur_time_ = ros::Time::now();
 
 	cur_wheels_vel_.left = 0.0;
 	cur_wheels_vel_.right = 0.0;
@@ -89,11 +89,13 @@ AIV_Driver::AIV_Driver()
 
 	correct_wheelodom_flag = false;
 	correct_cartodom_flag = false;
+
+	amcl_pose_.x = OFFSET_NX2GX; //for secb 
+	amcl_pose_.y = OFFSET_NY2GY;
+	amcl_pose_.yaw = 1.57;
+
 	
-	amcl_pose_x = OFFSET_NX2GX; //for secb 
-	amcl_pose_y = OFFSET_NY2GY;
 	frame_delta_rad = 0.0;
-	amcl_yaw_rad = 1.57;
 	
 	opt_odom_x = carto_odom_.x;
 	opt_odom_y = carto_odom_.y;
@@ -342,9 +344,9 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 
 					//cout<<"left_rot_rate:"<<left_rot_rate<<"   right_rot_rate:"<<right_rot_rate<<endl;
 
-					current_time = ros::Time::now();
-					time_period = (current_time - last_time).toSec();
-					last_time = current_time;
+					cur_time_ = ros::Time::now();
+					time_period_ = (cur_time_ - last_time_).toSec();
+					last_time_ = cur_time_;
 
 					CalcWheelParameters();
 
@@ -403,14 +405,14 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 							compen_y = 0.4;
 						}
 						
-						compen_y += aiv_vx_ * time_period;
+						compen_y += aiv_vx_ * time_period_;
 						tmp_cartodom_dr_x = cartodom_.x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
 					}
 					else if(carto_.except_phase==2)
 					{
-						compen_y += aiv_vx_ * time_period;
+						compen_y += aiv_vx_ * time_period_;
 						tmp_cartodom_dr_x = cartodom_.x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
@@ -433,7 +435,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					
 					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_.yaw);
 
-					SmoothFrameRotAngle(frame_delta_rad, cartodom_.yaw, amcl_yaw_rad);
+					SmoothFrameRotAngle(frame_delta_rad, cartodom_.yaw, amcl_pose_.yaw);
 					//ROS_INFO("frame_delta_rad / cartodom_yaw / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", frame_delta_rad, cartodom_yaw, amcl_yaw_rad);					
 					frame_delta_rad = 0.0;
 					CalcCartodomByAmcl(frame_delta_rad);
@@ -441,8 +443,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					// calc wheel odom 
 					if(sw_amcl_yaw_flag == false)
 					{
-						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period;
-						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period_;
+						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period_;
 					}
 					else
 					{
@@ -450,8 +452,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						//delta_y = -1.0 * aiv_vx_ * cos(amcl_yaw_rad) * time_period;
 						//ROS_INFO("delta_x / delta_y / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", delta_x, delta_y, amcl_yaw_rad);
 
-						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period;
-						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period_;
+						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period_;
 					}
 					
 					wheel_odom_.x += delta_x;
@@ -461,8 +463,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					if(correct_wheelodom_flag)
 					{
 						correct_wheelodom_flag = false;
-						wheel_odom_.x = amcl_pose_y - OFFSET_NY2GY;
-						wheel_odom_.y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+						wheel_odom_.x = amcl_pose_.y - OFFSET_NY2GY;
+						wheel_odom_.y = -1.0 * (amcl_pose_.x - OFFSET_NX2GX);
 						rec_amcl_cnt++;
 						if(rec_amcl_cnt > SW_AMCL_YAW_CNT)
 						{
@@ -473,7 +475,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					}
 
 					nav_msgs::Odometry odom_wheel;
-					odom_wheel.header.stamp = current_time;
+					odom_wheel.header.stamp = cur_time_;
 					odom_wheel.header.frame_id = "odom_virtual";
 
 					odom_wheel.pose.pose.position.x = wheel_odom_.x;
@@ -494,7 +496,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					ROS_INFO("opt_odom_x/y odom_except_flag sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x, opt_odom_y, odom_except_flag,sw_amcl_yaw_flag);
 
 					geometry_msgs::TransformStamped odom_trans;
-					odom_trans.header.stamp = current_time;
+					odom_trans.header.stamp = cur_time_;
 					odom_trans.header.frame_id = "odom";
 					odom_trans.child_frame_id = "base_footprint";					
 
@@ -508,7 +510,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					
 					//publish the odometry message over ROS
 					nav_msgs::Odometry odom;
-					odom.header.stamp = current_time;
+					odom.header.stamp = cur_time_;
 					odom.header.frame_id = "odom";
 					
 					//set the position
@@ -612,8 +614,8 @@ void AIV_Driver::CalcWheelParameters(void) {
 	last_wheels_vel_.left = cur_wheels_vel_.left ;
 	last_wheels_vel_.right = cur_wheels_vel_.right ;
 
-	avg_wheels_dis_.left = avg_wheels_vel_.left * time_period;
-	avg_wheels_dis_.right = avg_wheels_vel_.right * time_period;
+	avg_wheels_dis_.left = avg_wheels_vel_.left * time_period_;
+	avg_wheels_dis_.right = avg_wheels_vel_.right * time_period_;
 		
 }
 
@@ -627,7 +629,7 @@ void AIV_Driver::ComCallHandle()
 
 void AIV_Driver::CreateThread(void *(*start_routine) (void *))
 {	
-	int ret = pthread_create(&thread_id,NULL,start_routine,NULL);
+	int ret = pthread_create(&thread_id_,NULL,start_routine,NULL);
 	if( ret )
 	{
 	   cout << "pthread_create error,error_code: "<< ret <<endl;
@@ -747,8 +749,8 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 	{
 		correct_wheelodom_flag = true;
 		correct_cartodom_flag = true;
-		amcl_pose_x = pose_info->pose.pose.position.x;
-		amcl_pose_y = pose_info->pose.pose.position.y;
+		amcl_pose_.x = pose_info->pose.pose.position.x;
+		amcl_pose_.y = pose_info->pose.pose.position.y;
 		lock_amcl = true;	
 	}
 
@@ -757,12 +759,12 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 		lock_amcl = false;
 	}
 
-	amcl_quat.x = pose_info->pose.pose.orientation.x;
-	amcl_quat.y = pose_info->pose.pose.orientation.y;
-	amcl_quat.z = pose_info->pose.pose.orientation.z;
-	amcl_quat.w = pose_info->pose.pose.orientation.w;
+	amcl_quat_.x = pose_info->pose.pose.orientation.x;
+	amcl_quat_.y = pose_info->pose.pose.orientation.y;
+	amcl_quat_.z = pose_info->pose.pose.orientation.z;
+	amcl_quat_.w = pose_info->pose.pose.orientation.w;
 
-	amcl_yaw_rad = tf::getYaw(amcl_quat);
+	amcl_pose_.yaw = tf::getYaw(amcl_quat_);
 	ROS_INFO("correct_wheelodom_flag: %d ", correct_wheelodom_flag);
 
 }
@@ -798,8 +800,8 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 
 	if(cur_nav_state.cur_seg==0 && cur_nav_state.task_succ_flag==1 && lock_pose==false)
 	{
-		amcl_pose_x = cur_nav_state.robot.x;
-		amcl_pose_y = cur_nav_state.robot.y;
+		amcl_pose_.x = cur_nav_state.robot.x;
+		amcl_pose_.y = cur_nav_state.robot.y;
 		correct_wheelodom_flag = true;
 		correct_cartodom_flag = true;		
 		lock_pose = true;
@@ -842,8 +844,8 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 	if(correct_cartodom_flag)
 	{
 		correct_cartodom_flag = false;
-		carto_odom_.x = amcl_pose_y - OFFSET_NY2GY;
-		carto_odom_.y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+		carto_odom_.x = amcl_pose_.y - OFFSET_NY2GY;
+		carto_odom_.y = -1.0 * (amcl_pose_.x - OFFSET_NX2GX);
 	}
 
 	last_carto_x_ideal = cur_carto_x_ideal;

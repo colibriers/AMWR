@@ -163,15 +163,13 @@ class AIV_Driver {
 		bool correct_wheelodom_flag;
 		pose wheel_odom_;
 
-		double amcl_pose_x;
-		double amcl_pose_y;
+		pose amcl_pose_;
 
 		float opt_odom_x;
 		float opt_odom_y;
 		bool odom_except_flag;
 
-		geometry_msgs::Quaternion amcl_quat;
-		float amcl_yaw_rad;
+		geometry_msgs::Quaternion amcl_quat_;
 
 		float frame_delta_rad;  // nav frame and google carto frame rotation angle offset
 
@@ -212,11 +210,11 @@ class AIV_Driver {
 		
 	private:
 
-		pthread_t thread_id;
-		double time_period;
+		pthread_t thread_id_;
+		double time_period_;
 
-		ros::Time last_time;		
-		ros::Time current_time;
+		ros::Time last_time_;		
+		ros::Time cur_time_;
 
 		float left_rot_rate_;
 		float right_rot_rate_;
