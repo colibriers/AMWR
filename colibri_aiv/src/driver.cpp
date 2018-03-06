@@ -50,7 +50,7 @@ AIV_Driver::AIV_Driver()
 	aiv_vx_ = 0.0;	
 	aiv_vth_ = 0.0;
 
-	cur_music_mode = 0;
+	cur_music_mode_ = 0;
 
 	unsigned char cmd_data[21];	//used to store for valid data in defined protocol
 	memset(cmd_data,0,21);
@@ -77,21 +77,15 @@ AIV_Driver::AIV_Driver()
 	cartodom_vel_.vy = 0.0;
 	cartodom_vel_.vth = 0.0;
 
-	cartodom_vel_.vth = 0.0;
-	cartodom_interval = 0.02;
+	cartodom_interval_ = 0.02;
 
-	carto_odom_x = -0.352;
-	carto_odom_y = 0.0;
-	carto_odom_th = 0.0;
+	carto_odom_.x = -0.352;
+	carto_odom_.y = 0.0;
+	carto_odom_.yaw = 0.0;
 
-
-	wheel_odom_x = -0.352;
-	wheel_odom_y = 0.0;
-	wheel_odom_th = 0.0;
-
-	wheel_odom_vx = 0.0;
-	wheel_odom_vy = 0.0;
-	wheel_odom_vth = 0.0;
+	wheel_odom_.x = -0.352;
+	wheel_odom_.y = 0.0;
+	wheel_odom_.yaw = 0.0;
 
 	correct_wheelodom_flag = false;
 	correct_cartodom_flag = false;
@@ -101,8 +95,8 @@ AIV_Driver::AIV_Driver()
 	frame_delta_rad = 0.0;
 	amcl_yaw_rad = 1.57;
 	
-	opt_odom_x = carto_odom_x;
-	opt_odom_y = carto_odom_y;
+	opt_odom_x = carto_odom_.x;
+	opt_odom_y = carto_odom_.y;
 	odom_except_flag = false;
 
 	cur_nav_state.target_node = 127;
@@ -359,48 +353,48 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					aiv_vx_ = (avg_wheels_vel_.left + avg_wheels_vel_.right) / 2.0;
 					//aiv_vth_ = aiv_dth_ / time_period;
 					
-					/*mask the patch
+					/*/mask the patch
 					ctrl_couter++;
 					if(ctrl_couter > 9)
 					{
-						carto.cur_correct_time = ros::Time::now();
-						float correct_delta_time = (carto.cur_correct_time - carto.last_correct_time).toSec();					
+						carto_.cur_correct_time = ros::Time::now();
+						float correct_delta_time = (carto_.cur_correct_time - carto_.last_correct_time).toSec();					
 
-						carto.cur_cartodom.x = cartodom_x;
-						carto.cur_cartodom.y = cartodom_y;
-						carto.cur_cartodom.yaw = cartodom_yaw;
-						carto.cur_vx = aiv_vx_;
+						carto_.cur_cartodom.x = cartodom_.x;
+						carto_.cur_cartodom.y = cartodom_.y;
+						carto_.cur_cartodom.yaw = cartodom_.yaw;
+						carto_.cur_vx = aiv_vx_;
 						
-						carto.CalcCartodomOriDeltaDis();
-						carto.CalcDeadReckonDeltaDis(correct_delta_time);
-						carto.CalcCurExceptState();
+						carto_.CalcCartodomOriDeltaDis();
+						carto_.CalcDeadReckonDeltaDis(correct_delta_time);
+						carto_.CalcCurExceptState();
 
 
-						carto.last_cartodom.x = carto.cur_cartodom.x;
-						carto.last_cartodom.y = carto.cur_cartodom.y;
-						carto.last_cartodom.yaw = carto.cur_cartodom.yaw;
-						carto.last_vx = carto.cur_vx;
-						carto.last_correct_time = carto.cur_correct_time;
+						carto_.last_cartodom.x = carto_.cur_cartodom.x;
+						carto_.last_cartodom.y = carto_.cur_cartodom.y;
+						carto_.last_cartodom.yaw = carto_.cur_cartodom.yaw;
+						carto_.last_vx = carto_.cur_vx;
+						carto_.last_correct_time = carto_.cur_correct_time;
 						
 						ctrl_couter = 0;
 
 						lastlast_tmp_cartodom_y = last_tmp_cartodom_y;
 						last_tmp_cartodom_y = tmp_cartodom_dr_y;
 
-						ROS_INFO("cur_cartodom.x cur_cartodom.y: %0.3f %0.3f", cartodom_x, cartodom_y);
+						ROS_INFO("cur_cartodom_.x / y: %0.3f %0.3f", cartodom_.x, cartodom_.y);
 						ROS_INFO("tmp_cartodom_dr_x tmp_cartodom_dr_y: %0.3f %0.3f", tmp_cartodom_dr_x, tmp_cartodom_dr_y);
-						ROS_INFO("compen_y carto.except_phase carto.carto_except: %0.3f %d %d", compen_y, carto.except_phase, carto.carto_except);
+						ROS_INFO("compen_y carto.except_phase carto.carto_except: %0.3f %d %d", compen_y, carto_.except_phase, carto_.carto_except);
 
 					}
 				
-					if(carto.except_phase==0)
+					if(carto_.except_phase==0)
 					{
-						tmp_cartodom_dr_x = cartodom_x;
-						tmp_cartodom_dr_y = cartodom_y + compen_y;
+						tmp_cartodom_dr_x = cartodom_.x;
+						tmp_cartodom_dr_y = cartodom_.y + compen_y;
 						lock_dec_flag = false;
 						lock_inc_flag = false;
 					}
-					else if(carto.except_phase==1)
+					else if(carto_.except_phase==1)
 					{
 						if(lock_inc_flag==false)
 						{
@@ -410,14 +404,14 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						}
 						
 						compen_y += aiv_vx_ * time_period;
-						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_x = cartodom_.x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
 					}
-					else if(carto.except_phase==2)
+					else if(carto_.except_phase==2)
 					{
 						compen_y += aiv_vx_ * time_period;
-						tmp_cartodom_dr_x = cartodom_x;
+						tmp_cartodom_dr_x = cartodom_.x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
 						lock_inc_flag = false;
@@ -426,13 +420,13 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					{
 						if(lock_dec_flag==false)
 						{
-							dec_edge_delta = tmp_cartodom_dr_y - cartodom_y;
+							dec_edge_delta = tmp_cartodom_dr_y - cartodom_.y;
 							compen_y = dec_edge_delta;
 							lock_dec_flag = true;
 						}
 
-						tmp_cartodom_dr_x = cartodom_x;
-						tmp_cartodom_dr_y = cartodom_y + compen_y;
+						tmp_cartodom_dr_x = cartodom_.x;
+						tmp_cartodom_dr_y = cartodom_.y + compen_y;
 						lock_inc_flag = false;
 					}
 					*/
@@ -460,15 +454,15 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period;
 					}
 					
-					wheel_odom_x += delta_x;
-					wheel_odom_y += delta_y;
-					wheel_odom_th = cartodom_.yaw;
+					wheel_odom_.x += delta_x;
+					wheel_odom_.y += delta_y;
+					wheel_odom_.yaw = cartodom_.yaw;
 
 					if(correct_wheelodom_flag)
 					{
 						correct_wheelodom_flag = false;
-						wheel_odom_x = amcl_pose_y - OFFSET_NY2GY;
-						wheel_odom_y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+						wheel_odom_.x = amcl_pose_y - OFFSET_NY2GY;
+						wheel_odom_.y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
 						rec_amcl_cnt++;
 						if(rec_amcl_cnt > SW_AMCL_YAW_CNT)
 						{
@@ -482,8 +476,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom_wheel.header.stamp = current_time;
 					odom_wheel.header.frame_id = "odom_virtual";
 
-					odom_wheel.pose.pose.position.x = wheel_odom_x;
-					odom_wheel.pose.pose.position.y = wheel_odom_y;
+					odom_wheel.pose.pose.position.x = wheel_odom_.x;
+					odom_wheel.pose.pose.position.y = wheel_odom_.y;
 					odom_wheel.pose.pose.position.z = 0.0;
 					odom_wheel.pose.pose.orientation = odom_quat;
 
@@ -496,7 +490,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 
 					OdomException(sw_amcl_yaw_flag);
 
-					ROS_INFO("carto_odom_x/y / wheel_odom_x/y cartodom_x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_x, carto_odom_y, wheel_odom_x,wheel_odom_y,cartodom_.x,cartodom_.y);					
+					ROS_INFO("carto_odom_.x/y / wheel_odom_.x/y cartodom_.x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_.x, carto_odom_.y, wheel_odom_.x,wheel_odom_.y,cartodom_.x,cartodom_.y);					
 					ROS_INFO("opt_odom_x/y odom_except_flag sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x, opt_odom_y, odom_except_flag,sw_amcl_yaw_flag);
 
 					geometry_msgs::TransformStamped odom_trans;
@@ -641,7 +635,7 @@ void AIV_Driver::CreateThread(void *(*start_routine) (void *))
 	}
 }
 
-bool AIV_Driver::InitSubandPub()
+bool AIV_Driver::InitSubandPub(void)
 {
 
 	ros::NodeHandle global_nh;	
@@ -686,7 +680,7 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 		send_twist_[VALID_DATA_START_INDX + 3] = 100*twist->angular.z;
 	}
 
-	send_twist_[VALID_DATA_START_INDX + 8] = cur_music_mode; //add music ctrl
+	send_twist_[VALID_DATA_START_INDX + 8] = cur_music_mode_; //add music ctrl
 	twist_seq++;
 	if(twist_seq > 255)
 	{
@@ -841,15 +835,15 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 
 	ROS_DEBUG("cur_carto_ideal x/y last_carto_ideal x/y: %0.3lf %0.3lf %0.3lf %0.3lf",cur_carto_x_ideal,cur_carto_y_ideal,last_carto_x_ideal,last_carto_y_ideal);
 		
-	carto_odom_x += delta_x;
-	carto_odom_y += delta_y;
-	carto_odom_th = cartodom_.yaw;
+	carto_odom_.x += delta_x;
+	carto_odom_.y += delta_y;
+	carto_odom_.yaw = cartodom_.yaw;
 
 	if(correct_cartodom_flag)
 	{
 		correct_cartodom_flag = false;
-		carto_odom_x = amcl_pose_y - OFFSET_NY2GY;
-		carto_odom_y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
+		carto_odom_.x = amcl_pose_y - OFFSET_NY2GY;
+		carto_odom_.y = -1.0 * (amcl_pose_x - OFFSET_NX2GX);
 	}
 
 	last_carto_x_ideal = cur_carto_x_ideal;
@@ -860,8 +854,8 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 
 void AIV_Driver::OdomException(bool & sys_stable)
 {
-	float odom_delta_x = carto_odom_x - wheel_odom_x;
-	float odom_delta_y = carto_odom_y - wheel_odom_y;
+	float odom_delta_x = carto_odom_.x - wheel_odom_.x;
+	float odom_delta_y = carto_odom_.y - wheel_odom_.y;
 
 	static int delay_cnt = 0;
 	static bool start_opt_odom_flag = false;
@@ -881,14 +875,14 @@ void AIV_Driver::OdomException(bool & sys_stable)
 	{
 		if(abs(odom_delta_y) > ODOM_EXCEPT_GAP) //compare axis pose diff
 		{
-			opt_odom_x = wheel_odom_x;
-			opt_odom_y = wheel_odom_y;
+			opt_odom_x = wheel_odom_.x;
+			opt_odom_y = wheel_odom_.y;
 			odom_except_flag = true;
 		}
 		else
 		{
-			opt_odom_x = carto_odom_x;
-			opt_odom_y = carto_odom_y;
+			opt_odom_x = carto_odom_.x;
+			opt_odom_y = carto_odom_.y;
 			odom_except_flag = false;
 		}
 	}
@@ -916,12 +910,12 @@ void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odo
 	
 	cartodom_vel_.vx = carto_odom->vx;
 	cartodom_vel_.vth = carto_odom->vth;
-	cartodom_interval = carto_odom->interval;
+	cartodom_interval_ = carto_odom->interval;
 }
 
 void AIV_Driver::MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_info)
 {
-	cur_music_mode = music_info->music_mode;
+	cur_music_mode_ = music_info->music_mode;
 }
 
 void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
@@ -962,7 +956,7 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 
 }
 
-void AIV_Driver::DisplayFrame(unsigned char *cmd)
+void AIV_Driver::DisplayFrame(const unsigned char *cmd)
 {
 	int i;
 	
@@ -987,7 +981,7 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 	}
 	else
 	{
-		cout<<"The [VALID_DATA_START_INDX + 0] of the request_vel cmd is illegal: data sign is not correct!"<<endl;
+		cout<<"[VALID_DATA_START_INDX + 0] of request_vel cmd is illegal: data sign is not correct!"<<endl;
 		return;
 	}
 
@@ -1005,7 +999,7 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 	}
 	else
 	{
-		cout<<"The [VALID_DATA_START_INDX + 3] of the request_vel cmd is illegal: data sign is not correct!"<<endl;
+		cout<<"[VALID_DATA_START_INDX + 3] of request_vel cmd is illegal: data sign is not correct!"<<endl;
 		return;
 	}
 

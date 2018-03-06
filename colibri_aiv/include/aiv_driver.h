@@ -151,26 +151,18 @@ class AIV_Driver {
 
 		vel cartodom_vel_;
 
-		float cartodom_interval;
+		float cartodom_interval_;
 
-		int cur_music_mode;
+		int cur_music_mode_;
 
-		cartodom_correct carto;
+		cartodom_correct carto_;
 		
 		bool correct_cartodom_flag;
-		double carto_odom_x;
-		double carto_odom_y;
-		double carto_odom_th;
-
-		double wheel_odom_x;
-		double wheel_odom_y;
-		double wheel_odom_th;
-
-		double wheel_odom_vx;
-		double wheel_odom_vy;
-		double wheel_odom_vth;
-
+		pose carto_odom_;
+		
 		bool correct_wheelodom_flag;
+		pose wheel_odom_;
+
 		double amcl_pose_x;
 		double amcl_pose_y;
 
@@ -192,7 +184,7 @@ class AIV_Driver {
 
 		bool InitCom(const string port_name);
 		bool CloseCom(const string port_name);
-		bool InitSubandPub();
+		bool InitSubandPub(void);
 		//write data to serial port
 		void WriteToCom(const unsigned char * data);
 		//read data from serial port
@@ -253,7 +245,7 @@ class AIV_Driver {
 		void GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned char valid_data_len,unsigned char control,unsigned char *data);
 		void TwistCallback(const geometry_msgs::Twist::ConstPtr & twist);
 		void AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info);
-		void DisplayFrame(unsigned char *cmd_list);
+		void DisplayFrame(const unsigned char *cmd_list);
 		void ParseWheelRpm(const unsigned char *valid_data);
 		void CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta);
 
