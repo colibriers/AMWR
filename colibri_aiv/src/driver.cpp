@@ -115,7 +115,6 @@ AIV_Driver::AIV_Driver()
 	cur_nav_state.robot.yaw = 0.0;
 	cur_nav_state.err_code = 127;
 
-	recv_nav_flag = false;
 
 }
 
@@ -784,7 +783,6 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 
 	static bool lock_pose = false;
 
-	recv_nav_flag = true;
 	cur_nav_state.target_node = nav_info->target_node;
 	cur_nav_state.target_heading = nav_info->cur_seg;
 	cur_nav_state.cur_seg = nav_info->cur_seg;
