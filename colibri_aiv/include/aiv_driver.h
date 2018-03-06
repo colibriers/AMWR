@@ -165,9 +165,9 @@ class AIV_Driver {
 
 		pose amcl_pose_;
 
-		float opt_odom_x;
-		float opt_odom_y;
-		bool odom_except_flag;
+		float opt_odom_x_;
+		float opt_odom_y_;
+		bool odom_except_flag_;
 
 		geometry_msgs::Quaternion amcl_quat_;
 

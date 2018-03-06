@@ -97,9 +97,9 @@ AIV_Driver::AIV_Driver()
 	
 	frame_delta_rad_ = 0.0;
 	
-	opt_odom_x = carto_odom_.x;
-	opt_odom_y = carto_odom_.y;
-	odom_except_flag = false;
+	opt_odom_x_ = carto_odom_.x;
+	opt_odom_y_ = carto_odom_.y;
+	odom_except_flag_ = false;
 
 	cur_nav_state_.target_node = 127;
 	cur_nav_state_.target_heading = 0.0;
@@ -492,7 +492,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					OdomException(sw_amcl_yaw_flag);
 
 					ROS_INFO("carto_odom_.x/y / wheel_odom_.x/y cartodom_.x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_.x, carto_odom_.y, wheel_odom_.x,wheel_odom_.y,cartodom_.x,cartodom_.y);					
-					ROS_INFO("opt_odom_x/y odom_except_flag sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x, opt_odom_y, odom_except_flag,sw_amcl_yaw_flag);
+					ROS_INFO("opt_odom_x/y_ odom_except_flag_ sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x_, opt_odom_y_, odom_except_flag_,sw_amcl_yaw_flag);
 
 					geometry_msgs::TransformStamped odom_trans;
 					odom_trans.header.stamp = cur_time_;
@@ -875,21 +875,21 @@ void AIV_Driver::OdomException(bool & sys_stable)
 	{
 		if(abs(odom_delta_y) > ODOM_EXCEPT_GAP) //compare axis pose diff
 		{
-			opt_odom_x = wheel_odom_.x;
-			opt_odom_y = wheel_odom_.y;
-			odom_except_flag = true;
+			opt_odom_x_ = wheel_odom_.x;
+			opt_odom_y_ = wheel_odom_.y;
+			odom_except_flag_ = true;
 		}
 		else
 		{
-			opt_odom_x = carto_odom_.x;
-			opt_odom_y = carto_odom_.y;
-			odom_except_flag = false;
+			opt_odom_x_ = carto_odom_.x;
+			opt_odom_y_ = carto_odom_.y;
+			odom_except_flag_ = false;
 		}
 	}
 	else
 	{
-		opt_odom_x = cartodom_.x;
-		opt_odom_y = cartodom_.y;
+		opt_odom_x_ = cartodom_.x;
+		opt_odom_y_ = cartodom_.y;
 	}
 
 	ROS_INFO("start_opt_odom_flag: %d ", start_opt_odom_flag);
