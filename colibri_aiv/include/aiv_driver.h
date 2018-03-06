@@ -157,10 +157,10 @@ class AIV_Driver {
 
 		cartodom_correct carto_;
 		
-		bool correct_cartodom_flag;
+		bool correct_cartodom_flag_;
 		pose carto_odom_;
 		
-		bool correct_wheelodom_flag;
+		bool correct_wheelodom_flag_;
 		pose wheel_odom_;
 
 		pose amcl_pose_;
@@ -171,7 +171,7 @@ class AIV_Driver {
 
 		geometry_msgs::Quaternion amcl_quat_;
 
-		float frame_delta_rad;  // nav frame and google carto frame rotation angle offset
+		float frame_delta_rad_;  // nav frame and google carto frame rotation angle offset
 
 		nav_state cur_nav_state;
 		bool recv_nav_flag;

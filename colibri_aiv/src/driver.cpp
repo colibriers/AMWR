@@ -87,15 +87,15 @@ AIV_Driver::AIV_Driver()
 	wheel_odom_.y = 0.0;
 	wheel_odom_.yaw = 0.0;
 
-	correct_wheelodom_flag = false;
-	correct_cartodom_flag = false;
+	correct_wheelodom_flag_ = false;
+	correct_cartodom_flag_ = false;
 
 	amcl_pose_.x = OFFSET_NX2GX; //for secb 
 	amcl_pose_.y = OFFSET_NY2GY;
 	amcl_pose_.yaw = 1.57;
 
 	
-	frame_delta_rad = 0.0;
+	frame_delta_rad_ = 0.0;
 	
 	opt_odom_x = carto_odom_.x;
 	opt_odom_y = carto_odom_.y;
@@ -435,10 +435,10 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					
 					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_.yaw);
 
-					SmoothFrameRotAngle(frame_delta_rad, cartodom_.yaw, amcl_pose_.yaw);
+					SmoothFrameRotAngle(frame_delta_rad_, cartodom_.yaw, amcl_pose_.yaw);
 					//ROS_INFO("frame_delta_rad / cartodom_yaw / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", frame_delta_rad, cartodom_yaw, amcl_yaw_rad);					
-					frame_delta_rad = 0.0;
-					CalcCartodomByAmcl(frame_delta_rad);
+					frame_delta_rad_ = 0.0;
+					CalcCartodomByAmcl(frame_delta_rad_);
 
 					// calc wheel odom 
 					if(sw_amcl_yaw_flag == false)
@@ -460,9 +460,9 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					wheel_odom_.y += delta_y;
 					wheel_odom_.yaw = cartodom_.yaw;
 
-					if(correct_wheelodom_flag)
+					if(correct_wheelodom_flag_)
 					{
-						correct_wheelodom_flag = false;
+						correct_wheelodom_flag_ = false;
 						wheel_odom_.x = amcl_pose_.y - OFFSET_NY2GY;
 						wheel_odom_.y = -1.0 * (amcl_pose_.x - OFFSET_NX2GX);
 						rec_amcl_cnt++;
@@ -747,8 +747,8 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 						 && (pose_info->pose.pose.position.y < 0.5) && (pose_info->pose.pose.position.y > -0.5);
 	if(pose_rec_flag == true && lock_amcl == false)
 	{
-		correct_wheelodom_flag = true;
-		correct_cartodom_flag = true;
+		correct_wheelodom_flag_ = true;
+		correct_cartodom_flag_ = true;
 		amcl_pose_.x = pose_info->pose.pose.position.x;
 		amcl_pose_.y = pose_info->pose.pose.position.y;
 		lock_amcl = true;	
@@ -765,7 +765,7 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 	amcl_quat_.w = pose_info->pose.pose.orientation.w;
 
 	amcl_pose_.yaw = tf::getYaw(amcl_quat_);
-	ROS_INFO("correct_wheelodom_flag: %d ", correct_wheelodom_flag);
+	ROS_INFO("correct_wheelodom_flag_: %d ", correct_wheelodom_flag_);
 
 }
 
@@ -802,8 +802,8 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 	{
 		amcl_pose_.x = cur_nav_state.robot.x;
 		amcl_pose_.y = cur_nav_state.robot.y;
-		correct_wheelodom_flag = true;
-		correct_cartodom_flag = true;		
+		correct_wheelodom_flag_ = true;
+		correct_cartodom_flag_ = true;		
 		lock_pose = true;
 	}
 
@@ -811,7 +811,7 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 	{
 		lock_pose = false;
 	}
-	ROS_INFO("correct_cartodom_flag: %d ", correct_cartodom_flag);
+	ROS_INFO("correct_cartodom_flag_: %d ", correct_cartodom_flag_);
 
 
 }
@@ -841,9 +841,9 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 	carto_odom_.y += delta_y;
 	carto_odom_.yaw = cartodom_.yaw;
 
-	if(correct_cartodom_flag)
+	if(correct_cartodom_flag_)
 	{
-		correct_cartodom_flag = false;
+		correct_cartodom_flag_ = false;
 		carto_odom_.x = amcl_pose_.y - OFFSET_NY2GY;
 		carto_odom_.y = -1.0 * (amcl_pose_.x - OFFSET_NX2GX);
 	}
