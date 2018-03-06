@@ -30,8 +30,8 @@ AIV_Driver::AIV_Driver()
 	last_time = ros::Time::now();
 	current_time = ros::Time::now();
 	
-	left_rot_rate = 0.0;
-	right_rot_rate = 0.0;
+	left_rot_rate_ = 0.0;
+	right_rot_rate_ = 0.0;
 	
 	left_last_vel = 0.0;
 	left_cur_vel = 0.0;
@@ -347,8 +347,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					time_period = (current_time - last_time).toSec();
 					last_time = current_time;
 
-					left_cur_vel = (2 * PI * WHEEL_RADIUS * left_rot_rate)/(60 * WHEEL_GEAR);  //left speed:m/s
-					right_cur_vel = (2 * PI * WHEEL_RADIUS * right_rot_rate)/(60 * WHEEL_GEAR); //right speed:m/s
+					left_cur_vel = (2 * PI * WHEEL_RADIUS * left_rot_rate_)/(60 * WHEEL_GEAR);  //left speed:m/s
+					right_cur_vel = (2 * PI * WHEEL_RADIUS * right_rot_rate_)/(60 * WHEEL_GEAR); //right speed:m/s
 					
 					left_avg_vel = (left_cur_vel + left_last_vel) / 2.0;
 					right_avg_vel = (right_cur_vel + right_last_vel) / 2.0;
@@ -363,7 +363,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					aiv_vx = (left_avg_vel + right_avg_vel) / 2.0;
 					//aiv_vth = aiv_dth / time_period;
 					
-					/* mask the patch
+					/*mask the patch
 					ctrl_couter++;
 					if(ctrl_couter > 9)
 					{
@@ -966,11 +966,11 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 {
 	if(*(valid_data  + 0)== 0x00)
 	{
-		left_rot_rate = (float)((*(valid_data + 1) << 8) | (*(valid_data + 2)));
+		left_rot_rate_ = (float)((*(valid_data + 1) << 8) | (*(valid_data + 2)));
 	}
 	else if(*(valid_data  + 0)== 0xff)
 	{
-		left_rot_rate =(-1.0)*(float)((*(valid_data + 1) << 8) | (*(valid_data + 2)));
+		left_rot_rate_ =(-1.0)*(float)((*(valid_data + 1) << 8) | (*(valid_data + 2)));
 	}
 	else
 	{
@@ -982,12 +982,12 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 	
 	if(*(valid_data + 3)== 0x00)
 	{
-		right_rot_rate = (float)((*(valid_data + 4) << 8) | (*(valid_data + 5)));
+		right_rot_rate_ = (float)((*(valid_data + 4) << 8) | (*(valid_data + 5)));
 
 	}
 	else if(*(valid_data + 3)== 0xff)
 	{
-		right_rot_rate =(-1.0)*(float)((*(valid_data + 4) << 8) | (*(valid_data + 5)));
+		right_rot_rate_ =(-1.0)*(float)((*(valid_data + 4) << 8) | (*(valid_data + 5)));
 
 	}
 	else

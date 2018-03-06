@@ -210,8 +210,8 @@ class AIV_Driver {
 		ros::Time last_time;		
 		ros::Time current_time;
 
-		float left_rot_rate;
-		float right_rot_rate;
+		float left_rot_rate_;
+		float right_rot_rate_;
 
 		float left_last_vel;
 		float left_cur_vel;
