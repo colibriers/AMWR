@@ -92,6 +92,12 @@ typedef struct st_pose {
 	float yaw;
 }pose;
 
+typedef struct st_vel {
+	float vx;
+	float vy;
+	float vth;
+}vel;
+
 typedef struct st_post {
 	double qx;
 	double qy;
@@ -139,14 +145,12 @@ class AIV_Driver {
 
 		static unsigned char *send_cache_;
 
-		double cartodom_x;
-		double cartodom_y;
-		float cartodom_yaw;
+		pose cartodom_;
 
-		quat cartodom_quat;
+		quat cartodom_quat_;
 
-		float cartodom_vx;
-		float cartodom_vth;
+		vel cartodom_vel_;
+
 		float cartodom_interval;
 
 		int cur_music_mode;

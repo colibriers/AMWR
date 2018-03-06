@@ -62,18 +62,22 @@ AIV_Driver::AIV_Driver()
 	GenerateCmd(req_vel_stop_, REQ_VELOCITY, RSVD_VAL, FRAME_CMD_STOP, cmd_data);
 		
 	//DisplayFrame(send_twist_);
+
+	cartodom_.x = -OFFSET_LASER_X;
+	cartodom_.y = 0.0;
+	cartodom_.yaw = 0.0;
+
 	
-	cartodom_x = -OFFSET_LASER_X;
-	cartodom_y = 0.0;
-	cartodom_yaw = 0.0;
-	
-	cartodom_quat.qx = 0.0;
-	cartodom_quat.qy = 0.0;
-	cartodom_quat.qz = 0.0;
-	cartodom_quat.qw = 1.0;
-	
-	cartodom_vx = 0.0;
-	cartodom_vth = 0.0;
+	cartodom_quat_.qx = 0.0;
+	cartodom_quat_.qy = 0.0;
+	cartodom_quat_.qz = 0.0;
+	cartodom_quat_.qw = 1.0;
+
+	cartodom_vel_.vx = 0.0;
+	cartodom_vel_.vy = 0.0;
+	cartodom_vel_.vth = 0.0;
+
+	cartodom_vel_.vth = 0.0;
 	cartodom_interval = 0.02;
 
 	carto_odom_x = -0.352;
@@ -216,8 +220,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	static int ctrl_couter = 0;	//ctrl correct cartodom period
 	static bool lock_dec_flag = false;
 	static bool lock_inc_flag = false;
-	static float tmp_cartodom_dr_x = cartodom_x;
-	static float tmp_cartodom_dr_y = cartodom_y;
+	static float tmp_cartodom_dr_x = cartodom_.x;
+	static float tmp_cartodom_dr_y = cartodom_.y;
 	static float compen_y = 0.0;
 	static float inc_edge_y = 0.0;
 	float dec_edge_delta = 0.0;
@@ -433,9 +437,9 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					}
 					*/
 					
-					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_yaw);
+					geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(cartodom_.yaw);
 
-					SmoothFrameRotAngle(frame_delta_rad, cartodom_yaw, amcl_yaw_rad);
+					SmoothFrameRotAngle(frame_delta_rad, cartodom_.yaw, amcl_yaw_rad);
 					//ROS_INFO("frame_delta_rad / cartodom_yaw / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", frame_delta_rad, cartodom_yaw, amcl_yaw_rad);					
 					frame_delta_rad = 0.0;
 					CalcCartodomByAmcl(frame_delta_rad);
@@ -443,8 +447,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					// calc wheel odom 
 					if(sw_amcl_yaw_flag == false)
 					{
-						delta_x = aiv_vx_ * cos(cartodom_yaw) * time_period;
-						delta_y = aiv_vx_ * sin(cartodom_yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period;
+						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period;
 					}
 					else
 					{
@@ -452,13 +456,13 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						//delta_y = -1.0 * aiv_vx_ * cos(amcl_yaw_rad) * time_period;
 						//ROS_INFO("delta_x / delta_y / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", delta_x, delta_y, amcl_yaw_rad);
 
-						delta_x = aiv_vx_ * cos(cartodom_yaw) * time_period;
-						delta_y = aiv_vx_ * sin(cartodom_yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_.yaw) * time_period;
+						delta_y = aiv_vx_ * sin(cartodom_.yaw) * time_period;
 					}
 					
 					wheel_odom_x += delta_x;
 					wheel_odom_y += delta_y;
-					wheel_odom_th = cartodom_yaw;
+					wheel_odom_th = cartodom_.yaw;
 
 					if(correct_wheelodom_flag)
 					{
@@ -486,13 +490,13 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom_wheel.child_frame_id = "base_footprint_virtual";
 					odom_wheel.twist.twist.linear.x = aiv_vx_;
 					odom_wheel.twist.twist.linear.y = 0;
-					odom_wheel.twist.twist.angular.z = cartodom_vth;
+					odom_wheel.twist.twist.angular.z = cartodom_vel_.vth;
 
 					wheel_odom_pub.publish(odom_wheel);
 
 					OdomException(sw_amcl_yaw_flag);
 
-					ROS_INFO("carto_odom_x/y / wheel_odom_x/y cartodom_x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_x, carto_odom_y, wheel_odom_x,wheel_odom_y,cartodom_x,cartodom_y);					
+					ROS_INFO("carto_odom_x/y / wheel_odom_x/y cartodom_x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_x, carto_odom_y, wheel_odom_x,wheel_odom_y,cartodom_.x,cartodom_.y);					
 					ROS_INFO("opt_odom_x/y odom_except_flag sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x, opt_odom_y, odom_except_flag,sw_amcl_yaw_flag);
 
 					geometry_msgs::TransformStamped odom_trans;
@@ -500,8 +504,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom_trans.header.frame_id = "odom";
 					odom_trans.child_frame_id = "base_footprint";					
 
-					odom_trans.transform.translation.x = cartodom_x;	// this tf value from the cartodom
-					odom_trans.transform.translation.y = cartodom_y;
+					odom_trans.transform.translation.x = cartodom_.x;	// this tf value from the cartodom
+					odom_trans.transform.translation.y = cartodom_.y;
 					odom_trans.transform.translation.z = 0.0;
 					odom_trans.transform.rotation = odom_quat;
 
@@ -514,8 +518,8 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom.header.frame_id = "odom";
 					
 					//set the position
-					odom.pose.pose.position.x = cartodom_x;
-					odom.pose.pose.position.y = cartodom_y;
+					odom.pose.pose.position.x = cartodom_.x;
+					odom.pose.pose.position.y = cartodom_.y;
 					odom.pose.pose.position.z = 0.0;
 					odom.pose.pose.orientation = odom_quat;
 					
@@ -523,7 +527,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom.child_frame_id = "base_footprint";
 					odom.twist.twist.linear.x = aiv_vx_;		//in topic /odom ,the aiv total v from encoder
 					odom.twist.twist.linear.y = 0;
-					odom.twist.twist.angular.z = cartodom_vth;
+					odom.twist.twist.angular.z = cartodom_vel_.vth;
 					
 					//publish the message
 					odom_pub.publish(odom);
@@ -531,7 +535,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					dbg_info_cnt++;
 					if(dbg_info_cnt>7)
 					{
-						ROS_DEBUG("virtual x/y/yaw: %0.3lfm %0.3lfm %0.2lfdeg", cartodom_x, cartodom_y, cartodom_yaw * RAD2DEG);
+						ROS_DEBUG("virtual x/y/yaw: %0.3lfm %0.3lfm %0.2lfdeg", cartodom_.x, cartodom_.y, cartodom_.yaw * RAD2DEG);
 						//ROS_INFO("virtual vx/vth: %0.3lfm/s  %0.2lfrad/s",aiv_vx_,cartodom_vth);
 						dbg_info_cnt = 0;
 					}
@@ -819,8 +823,8 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 {
 	// calc carto delta odom 
-	float cur_carto_x = cartodom_x;
-	float cur_carto_y = cartodom_y;
+	float cur_carto_x = cartodom_.x;
+	float cur_carto_y = cartodom_.y;
 
 	static float last_carto_x_ideal = 0.0;
 	static float last_carto_y_ideal = 0.0;
@@ -839,7 +843,7 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 		
 	carto_odom_x += delta_x;
 	carto_odom_y += delta_y;
-	carto_odom_th = cartodom_yaw;
+	carto_odom_th = cartodom_.yaw;
 
 	if(correct_cartodom_flag)
 	{
@@ -890,8 +894,8 @@ void AIV_Driver::OdomException(bool & sys_stable)
 	}
 	else
 	{
-		opt_odom_x = cartodom_x;
-		opt_odom_y = cartodom_y;
+		opt_odom_x = cartodom_.x;
+		opt_odom_y = cartodom_.y;
 	}
 
 	ROS_INFO("start_opt_odom_flag: %d ", start_opt_odom_flag);
@@ -901,17 +905,17 @@ void AIV_Driver::OdomException(bool & sys_stable)
 
 void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odom)
 {
-	cartodom_x = carto_odom->x;
-	cartodom_y = carto_odom->y;
-	cartodom_yaw = carto_odom->yaw;
+	cartodom_.x = carto_odom->x;
+	cartodom_.y = carto_odom->y;
+	cartodom_.yaw = carto_odom->yaw;
 	
-	cartodom_quat.qx = carto_odom->qx;
-	cartodom_quat.qy = carto_odom->qy;
-	cartodom_quat.qz = carto_odom->qz;
-	cartodom_quat.qw = carto_odom->qw;
+	cartodom_quat_.qx = carto_odom->qx;
+	cartodom_quat_.qy = carto_odom->qy;
+	cartodom_quat_.qz = carto_odom->qz;
+	cartodom_quat_.qw = carto_odom->qw;
 	
-	cartodom_vx = carto_odom->vx;
-	cartodom_vth = carto_odom->vth;
+	cartodom_vel_.vx = carto_odom->vx;
+	cartodom_vel_.vth = carto_odom->vth;
 	cartodom_interval = carto_odom->interval;
 }
 
