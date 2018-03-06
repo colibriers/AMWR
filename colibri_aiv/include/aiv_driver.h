@@ -86,11 +86,18 @@ using namespace boost::asio;
 #define UPDATE_CNT  300
 #define SW_AMCL_YAW_CNT  2
 
-typedef struct st_pose{
+typedef struct st_pose {
 	float x;
 	float y;
 	float yaw;
 }pose;
+
+typedef struct st_post {
+	double qx;
+	double qy;
+	double qz;
+	double qw;
+}quat;
 
 typedef struct st_nav_state{
 	int target_node;
@@ -136,10 +143,7 @@ class AIV_Driver {
 		double cartodom_y;
 		float cartodom_yaw;
 
-		float cartodom_qx;
-		float cartodom_qy;
-		float cartodom_qz;
-		float cartodom_qw;
+		quat cartodom_quat;
 
 		float cartodom_vx;
 		float cartodom_vth;
@@ -226,10 +230,10 @@ class AIV_Driver {
 		wheel  avg_wheels_vel_;
 		wheel  avg_wheels_dis_;
 
-		float aiv_dx;
-		float aiv_vx;
-		float aiv_dth;
-		float aiv_vth; 
+		float aiv_dx_;
+		float aiv_vx_;
+		float aiv_dth_;
+		float aiv_vth_; 
 		
 		ros::Subscriber twist_sub;
 		ros::Publisher odom_pub;

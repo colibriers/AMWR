@@ -45,10 +45,10 @@ AIV_Driver::AIV_Driver()
 	left_rot_rate_ = 0.0;
 	right_rot_rate_ = 0.0;
 	
-	aiv_dx = 0.0;	
-	aiv_dth = 0.0;	
-	aiv_vx = 0.0;	
-	aiv_vth = 0.0;
+	aiv_dx_ = 0.0;	
+	aiv_dth_ = 0.0;	
+	aiv_vx_ = 0.0;	
+	aiv_vth_ = 0.0;
 
 	cur_music_mode = 0;
 
@@ -67,10 +67,10 @@ AIV_Driver::AIV_Driver()
 	cartodom_y = 0.0;
 	cartodom_yaw = 0.0;
 	
-	cartodom_qx = 0.0;
-	cartodom_qy = 0.0;
-	cartodom_qz = 0.0;
-	cartodom_qw = 1.0;
+	cartodom_quat.qx = 0.0;
+	cartodom_quat.qy = 0.0;
+	cartodom_quat.qz = 0.0;
+	cartodom_quat.qw = 1.0;
 	
 	cartodom_vx = 0.0;
 	cartodom_vth = 0.0;
@@ -350,10 +350,10 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 
 					CalcWheelParameters();
 
-					aiv_dx = (avg_wheels_dis_.left + avg_wheels_dis_.right) / 2.0;
-					aiv_dth = (avg_wheels_dis_.right - avg_wheels_dis_.left) / WHEEL_TRACK;
-					aiv_vx = (avg_wheels_vel_.left + avg_wheels_vel_.right) / 2.0;
-					//aiv_vth = aiv_dth / time_period;
+					aiv_dx_ = (avg_wheels_dis_.left + avg_wheels_dis_.right) / 2.0;
+					aiv_dth_ = (avg_wheels_dis_.right - avg_wheels_dis_.left) / WHEEL_TRACK;
+					aiv_vx_ = (avg_wheels_vel_.left + avg_wheels_vel_.right) / 2.0;
+					//aiv_vth_ = aiv_dth_ / time_period;
 					
 					/*mask the patch
 					ctrl_couter++;
@@ -365,7 +365,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 						carto.cur_cartodom.x = cartodom_x;
 						carto.cur_cartodom.y = cartodom_y;
 						carto.cur_cartodom.yaw = cartodom_yaw;
-						carto.cur_vx = aiv_vx;
+						carto.cur_vx = aiv_vx_;
 						
 						carto.CalcCartodomOriDeltaDis();
 						carto.CalcDeadReckonDeltaDis(correct_delta_time);
@@ -405,14 +405,14 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 							compen_y = 0.4;
 						}
 						
-						compen_y += aiv_vx * time_period;
+						compen_y += aiv_vx_ * time_period;
 						tmp_cartodom_dr_x = cartodom_x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
 					}
 					else if(carto.except_phase==2)
 					{
-						compen_y += aiv_vx * time_period;
+						compen_y += aiv_vx_ * time_period;
 						tmp_cartodom_dr_x = cartodom_x;
 						tmp_cartodom_dr_y = inc_edge_y + compen_y;
 						lock_dec_flag = false;
@@ -443,17 +443,17 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					// calc wheel odom 
 					if(sw_amcl_yaw_flag == false)
 					{
-						delta_x = aiv_vx * cos(cartodom_yaw) * time_period;
-						delta_y = aiv_vx * sin(cartodom_yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_yaw) * time_period;
+						delta_y = aiv_vx_ * sin(cartodom_yaw) * time_period;
 					}
 					else
 					{
-						//delta_x = aiv_vx * sin(amcl_yaw_rad) * time_period;
-						//delta_y = -1.0 * aiv_vx * cos(amcl_yaw_rad) * time_period;
+						//delta_x = aiv_vx_ * sin(amcl_yaw_rad) * time_period;
+						//delta_y = -1.0 * aiv_vx_ * cos(amcl_yaw_rad) * time_period;
 						//ROS_INFO("delta_x / delta_y / amcl_yaw_rad: %0.2lf %0.2lf %0.2lf rad", delta_x, delta_y, amcl_yaw_rad);
 
-						delta_x = aiv_vx * cos(cartodom_yaw) * time_period;
-						delta_y = aiv_vx * sin(cartodom_yaw) * time_period;
+						delta_x = aiv_vx_ * cos(cartodom_yaw) * time_period;
+						delta_y = aiv_vx_ * sin(cartodom_yaw) * time_period;
 					}
 					
 					wheel_odom_x += delta_x;
@@ -484,7 +484,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					odom_wheel.pose.pose.orientation = odom_quat;
 
 					odom_wheel.child_frame_id = "base_footprint_virtual";
-					odom_wheel.twist.twist.linear.x = aiv_vx;
+					odom_wheel.twist.twist.linear.x = aiv_vx_;
 					odom_wheel.twist.twist.linear.y = 0;
 					odom_wheel.twist.twist.angular.z = cartodom_vth;
 
@@ -521,7 +521,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					
 					//set the vel
 					odom.child_frame_id = "base_footprint";
-					odom.twist.twist.linear.x = aiv_vx;		//in topic /odom ,the aiv total v from encoder
+					odom.twist.twist.linear.x = aiv_vx_;		//in topic /odom ,the aiv total v from encoder
 					odom.twist.twist.linear.y = 0;
 					odom.twist.twist.angular.z = cartodom_vth;
 					
@@ -532,7 +532,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					if(dbg_info_cnt>7)
 					{
 						ROS_DEBUG("virtual x/y/yaw: %0.3lfm %0.3lfm %0.2lfdeg", cartodom_x, cartodom_y, cartodom_yaw * RAD2DEG);
-						//ROS_INFO("virtual vx/vth: %0.3lfm/s  %0.2lfrad/s",aiv_vx,cartodom_vth);
+						//ROS_INFO("virtual vx/vth: %0.3lfm/s  %0.2lfrad/s",aiv_vx_,cartodom_vth);
 						dbg_info_cnt = 0;
 					}
 					
@@ -905,10 +905,10 @@ void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odo
 	cartodom_y = carto_odom->y;
 	cartodom_yaw = carto_odom->yaw;
 	
-	cartodom_qx = carto_odom->qx;
-	cartodom_qy = carto_odom->qy;
-	cartodom_qz = carto_odom->qz;
-	cartodom_qw = carto_odom->qw;
+	cartodom_quat.qx = carto_odom->qx;
+	cartodom_quat.qy = carto_odom->qy;
+	cartodom_quat.qz = carto_odom->qz;
+	cartodom_quat.qw = carto_odom->qw;
 	
 	cartodom_vx = carto_odom->vx;
 	cartodom_vth = carto_odom->vth;
