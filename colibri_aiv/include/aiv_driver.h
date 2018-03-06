@@ -173,7 +173,7 @@ class AIV_Driver {
 
 		float frame_delta_rad_;  // nav frame and google carto frame rotation angle offset
 
-		nav_state cur_nav_state;
+		nav_state cur_nav_state_;
 
 		//Constructor
 		AIV_Driver();

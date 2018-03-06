@@ -101,19 +101,19 @@ AIV_Driver::AIV_Driver()
 	opt_odom_y = carto_odom_.y;
 	odom_except_flag = false;
 
-	cur_nav_state.target_node = 127;
-	cur_nav_state.target_heading = 0.0;
-	cur_nav_state.cur_seg = 44;
-	cur_nav_state.at_target_flag = false;
-	cur_nav_state.achieve_flag = false;
-	cur_nav_state.task_succ_flag = true;
-	cur_nav_state.target.x = 0.0;
-	cur_nav_state.target.y = 0.0;
-	cur_nav_state.target.yaw = 0.0;
-	cur_nav_state.robot.x = 0.0;
-	cur_nav_state.robot.y = 0.0;
-	cur_nav_state.robot.yaw = 0.0;
-	cur_nav_state.err_code = 127;
+	cur_nav_state_.target_node = 127;
+	cur_nav_state_.target_heading = 0.0;
+	cur_nav_state_.cur_seg = 44;
+	cur_nav_state_.at_target_flag = false;
+	cur_nav_state_.achieve_flag = false;
+	cur_nav_state_.task_succ_flag = true;
+	cur_nav_state_.target.x = 0.0;
+	cur_nav_state_.target.y = 0.0;
+	cur_nav_state_.target.yaw = 0.0;
+	cur_nav_state_.robot.x = 0.0;
+	cur_nav_state_.robot.y = 0.0;
+	cur_nav_state_.robot.yaw = 0.0;
+	cur_nav_state_.err_code = 127;
 
 
 }
@@ -783,29 +783,29 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 
 	static bool lock_pose = false;
 
-	cur_nav_state.target_node = nav_info->target_node;
-	cur_nav_state.target_heading = nav_info->cur_seg;
-	cur_nav_state.cur_seg = nav_info->cur_seg;
-	cur_nav_state.at_target_flag = nav_info->at_target_flag;
-	cur_nav_state.achieve_flag = nav_info->achieve_flag;
-	cur_nav_state.task_succ_flag = nav_info->task_succ_flag;
-	cur_nav_state.target.x = nav_info->target_x;
-	cur_nav_state.target.y = nav_info->target_y;
-	cur_nav_state.target.yaw = nav_info->target_yaw;
-	cur_nav_state.robot.x = nav_info->cur_x;
-	cur_nav_state.robot.y = nav_info->cur_y;
-	cur_nav_state.robot.yaw = nav_info->cur_yaw;
+	cur_nav_state_.target_node = nav_info->target_node;
+	cur_nav_state_.target_heading = nav_info->cur_seg;
+	cur_nav_state_.cur_seg = nav_info->cur_seg;
+	cur_nav_state_.at_target_flag = nav_info->at_target_flag;
+	cur_nav_state_.achieve_flag = nav_info->achieve_flag;
+	cur_nav_state_.task_succ_flag = nav_info->task_succ_flag;
+	cur_nav_state_.target.x = nav_info->target_x;
+	cur_nav_state_.target.y = nav_info->target_y;
+	cur_nav_state_.target.yaw = nav_info->target_yaw;
+	cur_nav_state_.robot.x = nav_info->cur_x;
+	cur_nav_state_.robot.y = nav_info->cur_y;
+	cur_nav_state_.robot.yaw = nav_info->cur_yaw;
 
-	if(cur_nav_state.cur_seg==0 && cur_nav_state.task_succ_flag==1 && lock_pose==false)
+	if(cur_nav_state_.cur_seg==0 && cur_nav_state_.task_succ_flag==1 && lock_pose==false)
 	{
-		amcl_pose_.x = cur_nav_state.robot.x;
-		amcl_pose_.y = cur_nav_state.robot.y;
+		amcl_pose_.x = cur_nav_state_.robot.x;
+		amcl_pose_.y = cur_nav_state_.robot.y;
 		correct_wheelodom_flag_ = true;
 		correct_cartodom_flag_ = true;		
 		lock_pose = true;
 	}
 
-	if(cur_nav_state.cur_seg!=0)
+	if(cur_nav_state_.cur_seg!=0)
 	{
 		lock_pose = false;
 	}
