@@ -230,7 +230,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	
 	//cout<<"callback read "<<bytes_transferred<<" bytes:";
 	unsigned char recv_data[CONST_PROTOCOL_LEN];
-    memset(recv_data,0,CONST_PROTOCOL_LEN);
+  memset(recv_data,0,CONST_PROTOCOL_LEN);
     /*
 	cout<<"recv orignal data: ";
 	for(int i = 0; i < CONST_PROTOCOL_LEN; i ++)
@@ -473,59 +473,29 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 
 					}
 
-					nav_msgs::Odometry odom_wheel;
-					odom_wheel.header.stamp = cur_time_;
-					odom_wheel.header.frame_id = "odom_virtual";
-
-					odom_wheel.pose.pose.position.x = wheel_odom_.x;
-					odom_wheel.pose.pose.position.y = wheel_odom_.y;
-					odom_wheel.pose.pose.position.z = 0.0;
-					odom_wheel.pose.pose.orientation = odom_quat;
-
-					odom_wheel.child_frame_id = "base_footprint_virtual";
-					odom_wheel.twist.twist.linear.x = aiv_vx_;
-					odom_wheel.twist.twist.linear.y = 0;
-					odom_wheel.twist.twist.angular.z = cartodom_vel_.vth;
-
-					wheel_odom_pub.publish(odom_wheel);
+					PackWheelOdomTopic(odom_quat);
+					wheel_odom_pub.publish(odom_wheel_);
 
 					OdomException(sw_amcl_yaw_flag);
 
 					ROS_INFO("carto_odom_.x/y / wheel_odom_.x/y cartodom_.x/y : %0.3lf %0.3lf ++ %0.3lf %0.3lf ++ %0.3lf %0.3lf", carto_odom_.x, carto_odom_.y, wheel_odom_.x,wheel_odom_.y,cartodom_.x,cartodom_.y);					
 					ROS_INFO("opt_odom_x/y_ odom_except_flag_ sw_amcl_yaw_flag: %0.3lf %0.3lf ++ %d ++ %d", opt_odom_x_, opt_odom_y_, odom_except_flag_,sw_amcl_yaw_flag);
 
-					geometry_msgs::TransformStamped odom_trans;
-					odom_trans.header.stamp = cur_time_;
-					odom_trans.header.frame_id = "odom";
-					odom_trans.child_frame_id = "base_footprint";					
+					odom_trans_.header.stamp = cur_time_;
+					odom_trans_.header.frame_id = "odom";
+					odom_trans_.child_frame_id = "base_footprint";					
 
-					odom_trans.transform.translation.x = cartodom_.x;	// this tf value from the cartodom
-					odom_trans.transform.translation.y = cartodom_.y;
-					odom_trans.transform.translation.z = 0.0;
-					odom_trans.transform.rotation = odom_quat;
+					odom_trans_.transform.translation.x = cartodom_.x;	// this tf value from the cartodom
+					odom_trans_.transform.translation.y = cartodom_.y;
+					odom_trans_.transform.translation.z = 0.0;
+					odom_trans_.transform.rotation = odom_quat;
 
 					//send the transform
-					odom_broadcaster.sendTransform(odom_trans);
-					
-					//publish the odometry message over ROS
-					nav_msgs::Odometry odom;
-					odom.header.stamp = cur_time_;
-					odom.header.frame_id = "odom";
-					
-					//set the position
-					odom.pose.pose.position.x = cartodom_.x;
-					odom.pose.pose.position.y = cartodom_.y;
-					odom.pose.pose.position.z = 0.0;
-					odom.pose.pose.orientation = odom_quat;
-					
-					//set the vel
-					odom.child_frame_id = "base_footprint";
-					odom.twist.twist.linear.x = aiv_vx_;		//in topic /odom ,the aiv total v from encoder
-					odom.twist.twist.linear.y = 0;
-					odom.twist.twist.angular.z = cartodom_vel_.vth;
+					odom_broadcaster.sendTransform(odom_trans_);
 					
 					//publish the message
-					odom_pub.publish(odom);
+					PackOdomTopic(odom_quat);
+					odom_pub.publish(odom_);
 
 					dbg_info_cnt++;
 					if(dbg_info_cnt>7)
@@ -695,6 +665,41 @@ void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
 	send_cnt_++;
 	//cout <<"send times: "<<send_cnt_<<endl;
 }
+
+void AIV_Driver::PackOdomTopic(const geometry_msgs::Quaternion & odom_quat) {
+	//publish the odometry message over ROS
+	odom_.header.stamp = cur_time_;
+	odom_.header.frame_id = "odom";
+
+	//set the position
+	odom_.pose.pose.position.x = cartodom_.x;
+	odom_.pose.pose.position.y = cartodom_.y;
+	odom_.pose.pose.position.z = 0.0;
+	odom_.pose.pose.orientation = odom_quat;
+
+	//set the vel
+	odom_.child_frame_id = "base_footprint";
+	odom_.twist.twist.linear.x = aiv_vx_;		//in topic /odom ,the aiv total v from encoder
+	odom_.twist.twist.linear.y = 0;
+	odom_.twist.twist.angular.z = cartodom_vel_.vth;
+
+}
+
+void AIV_Driver::PackWheelOdomTopic(const geometry_msgs::Quaternion & odom_quat) {
+	odom_wheel_.header.stamp = cur_time_;
+	odom_wheel_.header.frame_id = "odom_virtual";
+	
+	odom_wheel_.pose.pose.position.x = wheel_odom_.x;
+	odom_wheel_.pose.pose.position.y = wheel_odom_.y;
+	odom_wheel_.pose.pose.position.z = 0.0;
+	odom_wheel_.pose.pose.orientation = odom_quat;
+	
+	odom_wheel_.child_frame_id = "base_footprint_virtual";
+	odom_wheel_.twist.twist.linear.x = aiv_vx_;
+	odom_wheel_.twist.twist.linear.y = 0;
+	odom_wheel_.twist.twist.angular.z = cartodom_vel_.vth;
+}
+
 
 void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info)
 {

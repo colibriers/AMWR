@@ -175,6 +175,10 @@ class AIV_Driver {
 
 		nav_state cur_nav_state_;
 
+		geometry_msgs::TransformStamped odom_trans_;
+		nav_msgs::Odometry odom_;
+		nav_msgs::Odometry odom_wheel_;
+
 		//Constructor
 		AIV_Driver();
 		//Destructor
@@ -207,7 +211,8 @@ class AIV_Driver {
 		void NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info);
 
 		void CalcWheelParameters(void);
-		
+		void PackOdomTopic(const geometry_msgs::Quaternion & odom_quat);
+	  void PackWheelOdomTopic(const geometry_msgs::Quaternion & odom_quat);		
 	private:
 
 		pthread_t thread_id_;
