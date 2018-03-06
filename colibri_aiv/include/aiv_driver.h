@@ -110,6 +110,12 @@ void Quaternion2Yaw(geometry_msgs::Quaternion &quat, float &yaw);
 
 class AIV_Driver {
 	public:
+
+		typedef struct {
+			float left;
+			float right;
+		}wheel;
+		
 		unsigned int send_cnt_;
 		unsigned int recv_cnt_;
 
@@ -201,6 +207,8 @@ class AIV_Driver {
 		void CalcCartodomByAmcl(float & frame_diff_angle);
 		void OdomException(bool & sys_stable);
 		void NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info);
+
+		void CalcWheelParameters(void);
 		
 	private:
 
@@ -213,17 +221,10 @@ class AIV_Driver {
 		float left_rot_rate_;
 		float right_rot_rate_;
 
-		float left_last_vel;
-		float left_cur_vel;
-
-		float right_last_vel;
-		float right_cur_vel;
-
-		float left_avg_vel;
-		float right_avg_vel;
-		
-		float left_avg_distance;
-		float right_avg_distance;
+		wheel  cur_wheels_vel_;
+		wheel  last_wheels_vel_;
+		wheel  avg_wheels_vel_;
+		wheel  avg_wheels_dis_;
 
 		float aiv_dx;
 		float aiv_vx;

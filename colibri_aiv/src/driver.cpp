@@ -29,21 +29,22 @@ AIV_Driver::AIV_Driver()
 
 	last_time = ros::Time::now();
 	current_time = ros::Time::now();
+
+	cur_wheels_vel_.left = 0.0;
+	cur_wheels_vel_.right = 0.0;
+	
+	last_wheels_vel_.left = 0.0;
+	last_wheels_vel_.right = 0.0;
+	
+	avg_wheels_vel_.left = 0.0;
+	avg_wheels_vel_.right = 0.0;
+	
+	avg_wheels_dis_.left = 0.0;
+	avg_wheels_dis_.right = 0.0;
 	
 	left_rot_rate_ = 0.0;
 	right_rot_rate_ = 0.0;
 	
-	left_last_vel = 0.0;
-	left_cur_vel = 0.0;
-	right_last_vel = 0.0;
-	right_cur_vel = 0.0;
-	
-	left_avg_vel = 0.0;
-	right_avg_vel = 0.0;
-	
-	left_avg_distance = 0.0;
-	right_avg_distance = 0.0;
-
 	aiv_dx = 0.0;	
 	aiv_dth = 0.0;	
 	aiv_vx = 0.0;	
@@ -261,7 +262,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 		|| (recv_data[END_INDX_1] != FRAME_END_1)
 		|| (recv_data[END_INDX_2] != FRAME_END_2))
 	{
-		cout<<"The head and tail in received frame is not correct !"<<endl;
+		cout<<"Head and tail in received frame is not correct !"<<endl;
 		for(int j = 0; j < bytes_transferred - 1; j++)
 		{
 			printf(" %x", recv_cache[j]);
@@ -300,7 +301,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			{
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x04)
 				{
-					cout<<"data count for respones of send_twist_ cmd shoud be 0x04,but is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
+					cout<<"Data count for respones of send_twist_ cmd shoud be 0x04,but is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
 					return;
 				}
 
@@ -309,7 +310,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					|| recv_data[VALID_DATA_START_INDX + 2] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 2]
 					|| recv_data[VALID_DATA_START_INDX + 3] != AIV_Driver::send_cache_[VALID_DATA_START_INDX + 3] )
 				{
-					cout<<"The received data bytes is not same with the send data byte"<<endl;
+					cout<<"Received data bytes is not same with the send data byte"<<endl;
 					return;
 				}
 				else
@@ -332,7 +333,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 			
 				if(recv_data[VALID_DATA_LEN_INDX] != 0x06)
 				{
-					cout<<"The recved valid data lenth of respones for the request_vel shoud be 0x06,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
+					cout<<"Recved valid data lenth for request_vel shoud be 0x06,but returned is: "<<recv_data[VALID_DATA_LEN_INDX]<<endl;
 					return;
 				}
 				
@@ -347,20 +348,11 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 					time_period = (current_time - last_time).toSec();
 					last_time = current_time;
 
-					left_cur_vel = (2 * PI * WHEEL_RADIUS * left_rot_rate_)/(60 * WHEEL_GEAR);  //left speed:m/s
-					right_cur_vel = (2 * PI * WHEEL_RADIUS * right_rot_rate_)/(60 * WHEEL_GEAR); //right speed:m/s
-					
-					left_avg_vel = (left_cur_vel + left_last_vel) / 2.0;
-					right_avg_vel = (right_cur_vel + right_last_vel) / 2.0;
-					left_last_vel = left_avg_vel;
-					right_last_vel = right_avg_vel;
+					CalcWheelParameters();
 
-					left_avg_distance = left_avg_vel * time_period;
-					right_avg_distance = right_avg_vel * time_period;
-
-					aiv_dx = (left_avg_distance + right_avg_distance) / 2.0;
-					aiv_dth = (right_avg_distance - left_avg_distance) / WHEEL_TRACK;
-					aiv_vx = (left_avg_vel + right_avg_vel) / 2.0;
+					aiv_dx = (avg_wheels_dis_.left + avg_wheels_dis_.right) / 2.0;
+					aiv_dth = (avg_wheels_dis_.right - avg_wheels_dis_.left) / WHEEL_TRACK;
+					aiv_vx = (avg_wheels_vel_.left + avg_wheels_vel_.right) / 2.0;
 					//aiv_vth = aiv_dth / time_period;
 					
 					/*mask the patch
@@ -610,6 +602,23 @@ void AIV_Driver::ReadFromCom(void *args)
 	}
 
 }
+
+void AIV_Driver::CalcWheelParameters(void) {
+
+	cur_wheels_vel_.left = (2 * PI * WHEEL_RADIUS * left_rot_rate_)/(60 * WHEEL_GEAR);	//left speed:m/s
+	cur_wheels_vel_.right = (2 * PI * WHEEL_RADIUS * right_rot_rate_)/(60 * WHEEL_GEAR); //right speed:m/s
+
+	avg_wheels_vel_.left = (cur_wheels_vel_.left + last_wheels_vel_.left) / 2.0;
+	avg_wheels_vel_.right = (cur_wheels_vel_.right + last_wheels_vel_.right) / 2.0;
+	
+	last_wheels_vel_.left = cur_wheels_vel_.left ;
+	last_wheels_vel_.right = cur_wheels_vel_.right ;
+
+	avg_wheels_dis_.left = avg_wheels_vel_.left * time_period;
+	avg_wheels_dis_.right = avg_wheels_vel_.right * time_period;
+		
+}
+
 
 void AIV_Driver::ComCallHandle()
 {
