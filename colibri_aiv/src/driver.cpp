@@ -15,15 +15,13 @@ unsigned char *AIV_Driver::send_cache_ = NULL;
 unsigned int dbg_info_cnt = 0;
 unsigned int lost_twist_res_cnt = 0;
 
-void* ReadDataThread(void *args)
-{
+void* ReadDataThread(void *args) {
 	AIV_Driver obj_driver;
 	obj_driver.InitSubandPub();
 	obj_driver.ReadFromCom(NULL);
 }
 
-AIV_Driver::AIV_Driver()
-{
+AIV_Driver::AIV_Driver() {
 	send_cnt_ = 0;
 	recv_cnt_ = 0;
 
@@ -118,13 +116,11 @@ AIV_Driver::AIV_Driver()
 
 }
 
-AIV_Driver::~AIV_Driver()
-{
+AIV_Driver::~AIV_Driver() {
 
 }
 
-bool AIV_Driver::InitCom(const string port_name)
-{
+bool AIV_Driver::InitCom(const string port_name) {
 	/*
 	pserialport = serial_port(AIV_ios);
 	if(!pserialport){
@@ -155,8 +151,7 @@ bool AIV_Driver::InitCom(const string port_name)
 	return true;
 }
 
-bool AIV_Driver::CloseCom(const string port_name)
-{
+bool AIV_Driver::CloseCom(const string port_name) {
 
 	pserialport.open(port_name,ec);
 	pserialport.set_option( serial_port::baud_rate( 115200 ), ec );  
@@ -167,8 +162,7 @@ bool AIV_Driver::CloseCom(const string port_name)
 	return true;
 }
 
-void AIV_Driver::GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned char valid_data_len,unsigned char control,unsigned char *data)
-{
+void AIV_Driver::GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned char valid_data_len,unsigned char control,unsigned char *data) {
 	memset(cmd_name,0,CONST_PROTOCOL_LEN);
 
 	*(cmd_name + START_INDX_1) = FRAME_START_1;
@@ -195,8 +189,7 @@ void AIV_Driver::GenerateCmd(unsigned char *cmd_name,unsigned char cmd,unsigned 
 }
 
 
-void AIV_Driver::WriteToCom(const unsigned char * data)
-{
+void AIV_Driver::WriteToCom(const unsigned char * data) {
 	size_t len = write(pserialport, buffer(data, CONST_PROTOCOL_LEN), ec);
 	/*	
 	cout <<"send "<<len<<" Bytes:";
@@ -210,8 +203,7 @@ void AIV_Driver::WriteToCom(const unsigned char * data)
 }
 
 
-void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec, std::size_t bytes_transferred)
-{	
+void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec, std::size_t bytes_transferred) {	
 	static int ctrl_couter = 0;	//ctrl correct cartodom period
 	static bool lock_dec_flag = false;
 	static bool lock_inc_flag = false;
@@ -557,9 +549,7 @@ void AIV_Driver::ReadInfoProc(unsigned char buf[], boost::system::error_code ec,
 	return;
 }
 
-void AIV_Driver::ReadFromCom(void *args)
-{
-
+void AIV_Driver::ReadFromCom(void *args) {
 	while(ros::ok())
 	{
 		async_read(pserialport,buffer(recv_cache,CONST_PROTOCOL_LEN),boost::bind(&AIV_Driver::ReadInfoProc,this,recv_cache,_1,_2));
@@ -589,15 +579,13 @@ void AIV_Driver::CalcWheelParameters(void) {
 }
 
 
-void AIV_Driver::ComCallHandle()
-{
+void AIV_Driver::ComCallHandle() {
   //	AIV_ios.poll();
 	AIV_ios.run();
 	AIV_ios.reset();
 }
 
-void AIV_Driver::CreateThread(void *(*start_routine) (void *))
-{	
+void AIV_Driver::CreateThread(void *(*start_routine) (void *)) {	
 	int ret = pthread_create(&thread_id_,NULL,start_routine,NULL);
 	if( ret )
 	{
@@ -606,8 +594,7 @@ void AIV_Driver::CreateThread(void *(*start_routine) (void *))
 	}
 }
 
-bool AIV_Driver::InitSubandPub(void)
-{
+bool AIV_Driver::InitSubandPub(void) {
 
 	ros::NodeHandle global_nh;	
 	twist_sub= global_nh.subscribe<geometry_msgs::Twist>("t_cmd_vel", 10, boost::bind(&AIV_Driver::TwistCallback, this, _1));
@@ -625,8 +612,7 @@ bool AIV_Driver::InitSubandPub(void)
 
 }
 
-void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist)
-{
+void AIV_Driver::TwistCallback(const geometry_msgs::Twist::ConstPtr & twist) {
 
 	static int twist_seq = 0;
 	if(twist->linear.x < 0 )
@@ -701,8 +687,7 @@ void AIV_Driver::PackWheelOdomTopic(const geometry_msgs::Quaternion & odom_quat)
 }
 
 
-void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info)
-{
+void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_info) {
 
 	send_aux_info_[VALID_DATA_START_INDX + 0] = aux_info->lf_light;
 	send_aux_info_[VALID_DATA_START_INDX + 1] = aux_info->lr_light;
@@ -730,8 +715,7 @@ void AIV_Driver::AuxInfoCallback(const colibri_msgs::AuxInfo::ConstPtr & aux_inf
 	//cout <<"send times: "<<send_cnt_<<endl; 
 }
 
-void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr & pose_info)
-{
+void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr & pose_info) {
 	static int recv_amcl_cnt = 0;
 	static bool lock_amcl = false;
 	/*	
@@ -773,8 +757,7 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 
 }
 
-void AIV_Driver::CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta)
-{
+void AIV_Driver::CartoReal2CartoIdeal(float & x_real, float & y_real , float & x_ideal, float & y_ideal , float & theta) {
 	float trans_x = 0.0;
 	float trans_y = 0.0;
 
@@ -783,8 +766,7 @@ void AIV_Driver::CartoReal2CartoIdeal(float & x_real, float & y_real , float & x
 }
 
 
-void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info)
-{
+void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_info) {
 
 	static bool lock_pose = false;
 
@@ -819,8 +801,7 @@ void AIV_Driver:: NavStateCallback(const colibri_msgs::NavState::ConstPtr & nav_
 
 }
 
-void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
-{
+void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle) {
 	// calc carto delta odom 
 	float cur_carto_x = cartodom_.x;
 	float cur_carto_y = cartodom_.y;
@@ -857,8 +838,7 @@ void AIV_Driver::CalcCartodomByAmcl(float & frame_diff_angle)
 }
 
 
-void AIV_Driver::OdomException(bool & sys_stable)
-{
+void AIV_Driver::OdomException(bool & sys_stable) {
 	float odom_delta_x = carto_odom_.x - wheel_odom_.x;
 	float odom_delta_y = carto_odom_.y - wheel_odom_.y;
 
@@ -902,8 +882,7 @@ void AIV_Driver::OdomException(bool & sys_stable)
 }
 
 
-void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odom)
-{
+void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odom) {
 	cartodom_.x = carto_odom->x;
 	cartodom_.y = carto_odom->y;
 	cartodom_.yaw = carto_odom->yaw;
@@ -918,13 +897,11 @@ void AIV_Driver::CartodomCallback(const cartodom::Cartodom::ConstPtr & carto_odo
 	cartodom_interval_ = carto_odom->interval;
 }
 
-void AIV_Driver::MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_info)
-{
+void AIV_Driver::MusicCallback(const colibri_msgs::MusicMode::ConstPtr & music_info) {
 	cur_music_mode_ = music_info->music_mode;
 }
 
-void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
-{
+void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag) {
 	WriteToCom(cmd);
 	send_flag = true;
 	ros::Time start_time = ros::Time::now();
@@ -961,8 +938,7 @@ void AIV_Driver::SendCmd(const unsigned char *cmd ,volatile bool &send_flag)
 
 }
 
-void AIV_Driver::DisplayFrame(const unsigned char *cmd)
-{
+void AIV_Driver::DisplayFrame(const unsigned char *cmd) {
 	int i;
 	
 	for(i = 0;i < CONST_PROTOCOL_LEN; i ++)
@@ -974,8 +950,7 @@ void AIV_Driver::DisplayFrame(const unsigned char *cmd)
 }
 
 
-void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
-{
+void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data) {
 	if(*(valid_data  + 0)== 0x00)
 	{
 		left_rot_rate_ = (float)((*(valid_data + 1) << 8) | (*(valid_data + 2)));
@@ -1010,8 +985,7 @@ void AIV_Driver::ParseWheelRpm(const unsigned char *valid_data)
 
 }
 
-void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw)
-{
+void SmoothFrameRotAngle(float & correct_yaw, float & carto_yaw, float & amcl_yaw) {
 	static float rot_diff[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	float tmp_angle_diff = amcl_yaw - carto_yaw ;
 	float angle_offset = 0.0;

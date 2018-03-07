@@ -1,7 +1,6 @@
 #include "cartodom_correct.h" 
 
-cartodom_correct::cartodom_correct()
-{
+cartodom_correct::cartodom_correct() {
 	cur_cartodom.x = -OFFSET_LASER_X;
 	cur_cartodom.y = 0.0;
 	cur_cartodom.yaw = 0.0;
@@ -34,13 +33,11 @@ cartodom_correct::cartodom_correct()
 
 }
 
-cartodom_correct::~cartodom_correct()
-{
+cartodom_correct::~cartodom_correct() {
 
 }
 
-void cartodom_correct::CalcDeadReckonDeltaDis(float delta_time)
-{
+void cartodom_correct::CalcDeadReckonDeltaDis(float delta_time) {
 	if(cur_vx > 0.65) //avoid except vel
 	{
 		cur_vx = last_vx;
@@ -48,8 +45,7 @@ void cartodom_correct::CalcDeadReckonDeltaDis(float delta_time)
 	delta_dead_reckon = (cur_vx + last_vx) / 2.0 * delta_time;
 	delta_dead_reckon = abs(delta_dead_reckon);
 }
-void cartodom_correct::CalcCartodomOriDeltaDis()
-{
+void cartodom_correct::CalcCartodomOriDeltaDis() {
 	float tmp_delta_x = 0.0;
 	float tmp_delta_y = 0.0;
 	tmp_delta_x = cur_cartodom.x - last_cartodom.x;
@@ -57,8 +53,7 @@ void cartodom_correct::CalcCartodomOriDeltaDis()
 	delta_cartodom = sqrt(pow(tmp_delta_x, 2) + pow(tmp_delta_y, 2));
 }
 
-robot_pos cartodom_correct::CorrectCartodom()
-{
+robot_pos cartodom_correct::CorrectCartodom() {
 	if((cur_cartodom.x > 7.5) && (cur_cartodom.y < 2.5) && (cur_vx > 0.3) && abs(delta_cartodom - delta_dead_reckon) > epsilon) //7.5 = 8.28 - 2*0.4 long line cartodom_x - offset
 	{
 		cartodom_dr.x = 0.0;
@@ -81,8 +76,7 @@ robot_pos cartodom_correct::CorrectCartodom()
 
 }
 
-bool cartodom_correct::IsCartoException()
-{
+bool cartodom_correct::IsCartoException() {
 	static float cur_delta_carto2dr = 0.0;
 	static float last_delta_carto2dr = 0.0;
 	static float lastlast_delta_carto2dr = 0.0;
@@ -110,8 +104,7 @@ bool cartodom_correct::IsCartoException()
 
 }
 
-void cartodom_correct::CalcCurExceptState()
-{
+void cartodom_correct::CalcCurExceptState() {
 	bool cur_isExcept = false;
 	static bool last_isExcept = false;
 	cur_isExcept = IsCartoException();
