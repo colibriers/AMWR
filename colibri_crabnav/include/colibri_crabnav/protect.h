@@ -1,31 +1,28 @@
-#ifndef _PROTECT_H_
-#define _PROTECT_H_
+#ifndef PROTECT_H_
+#define PROTECT_H_
 
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <map>
 #include <algorithm>
-
+#include <bitset>
+#include <cmath>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <ctime>
-#include <bitset>
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Bool.h>
 
-#include "colibri_ca.h"
-
-#include "colibri_aiv/Ultrasonic.h"
-#include "colibri_ultra/Ultrasonic.h"
 #include "colibri_aiv/Bumper.h"
+#include "colibri_aiv/Ultrasonic.h"
+#include "colibri_ca.h"
+#include "colibri_ultra/Ultrasonic.h"
 #include "colibri_msgs/EnvSecurity.h"
 #include "colibri_msgs/SafeVel.h"
-#include "colibri_ca.h"
 
 // 3 layers for running safty : laser / ultrosonic  /bumper
 
@@ -228,6 +225,4 @@ class protector
 
 };
 
-
-#endif
-
+#endif	// PROTECT_H_
