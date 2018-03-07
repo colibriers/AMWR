@@ -164,7 +164,6 @@ class protector
 		
 		ros::Subscriber scan_sub4safe;
 		ros::Subscriber	ultra_sub4safe;
-		ros::Subscriber	bumper_sub4safe;
 		ros::Subscriber	odom_sub4safe;
 
 		ros::Publisher security_pub4env;
