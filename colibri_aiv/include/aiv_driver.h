@@ -98,7 +98,7 @@ typedef struct st_vel {
 	float vth;
 }vel;
 
-typedef struct st_post {
+typedef struct st_quat {
 	double qx;
 	double qy;
 	double qz;
