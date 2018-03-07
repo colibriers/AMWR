@@ -4,7 +4,11 @@
 //#define ULTRA_SAFE
 
 bool node_shutdown  = false;
-void MySigintHandler(int sig);
+void MySigintHandler(int sig)
+{
+	node_shutdown = true;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -87,10 +91,5 @@ int main(int argc, char* argv[])
 	}
 
 	return 0;
-}
-
-void MySigintHandler(int sig)
-{
-	node_shutdown = true;
 }
 
