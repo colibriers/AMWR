@@ -44,7 +44,6 @@ protector::protector()
 	scan_sub4safe = nh_safety.subscribe<sensor_msgs::LaserScan>("/scan", 1, &protector::CrabScanSafeCallBack, this);
 
 	ultra_sub4safe = nh_safety.subscribe<colibri_ultra::Ultrasonic>("/ultra_front", 1, &protector::UltraSafeCallBack, this);
-	bumper_sub4safe = nh_safety.subscribe<colibri_aiv::Bumper>("/bumper", 1, &protector::BumperSafeCallBack, this);
 	odom_sub4safe = nh_safety.subscribe<nav_msgs::Odometry>("/odom", 1, &protector::OdomSafeCallBack, this);
 
 	security_pub4env = nh_safety.advertise<colibri_msgs::EnvSecurity>("/env_secure", 1);
