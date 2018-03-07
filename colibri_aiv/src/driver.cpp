@@ -739,10 +739,10 @@ void AIV_Driver::AmclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped
 
 	if(recv_amcl_cnt > UPDATE_CNT)
 	{
-		correct_wheelodom_flag = true;
-		correct_cartodom_flag = true;
-		amcl_pose_x = pose_info->pose.pose.position.x;
-		amcl_pose_y = pose_info->pose.pose.position.y;
+		correct_wheelodom_flag_ = true;
+		correct_cartodom_flag_ = true;
+		amcl_pose_.x = pose_info->pose.pose.position.x;
+		amcl_pose_.y = pose_info->pose.pose.position.y;
 		recv_amcl_cnt = 0;	
 	}
 	*/
