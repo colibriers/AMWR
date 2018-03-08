@@ -14,16 +14,8 @@ int main(int argc, char* argv[]) {
 	int delay_cnt = 0;
 	int CNT = 5;
 
-	float laser_linear_vel_safe = 0.0;
-	float laser_angular_vel_safe = 0.0;
-	int laser_steer = 0;
 	int laser_rect_encoder = 0;
-	int laser_area_sts = 0;
-	
-	int ultra_area_sts = 0;
-	float ultra_linear_vel_safe = 0.0;
-	float ultra_angular_vel_safe = 0.0;
-	int ultra_steer = 0;
+
 	float coli_prob = 0.0;
 	
 	protector protectObj;		// init laser ultra and bumper anti collision obj
