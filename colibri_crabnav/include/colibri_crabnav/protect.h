@@ -92,17 +92,6 @@ using namespace std;
 
 typedef enum
 {
-	HOLD_STATE,
-	DEC_VEL,
-	TURN_LEFT,
-	TURN_RIGHT,
-	STILL_ROT,
-	STOP,
-
-}enum_act4safe;
-
-typedef enum
-{
 	OMNI,	// omni-dir means no dir
 	LEFT,
 	RIGHT,
@@ -158,6 +147,15 @@ class SafeSensor {
 class protector
 {
 	public:
+
+		typedef enum {
+			HOLD_STATE,
+			DEC_VEL,
+			TURN_LEFT,
+			TURN_RIGHT,
+			STILL_ROT,
+			STOP,
+		}enum_act4safe;
 		
 		SafeSensor<float, SCAN4SAFE_NUM> ObjLaser;
 		SafeSensor<float, ULTRA_NUM> ObjUltra;
