@@ -3,15 +3,12 @@
 #define LASER_SAFE
 //#define ULTRA_SAFE
 
-bool node_shutdown  = false;
-void MySigintHandler(int sig)
-{
+bool node_shutdown = false;
+void SigintHandler(int sig) {
 	node_shutdown = true;
 }
 
-
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "Anti_Collision_Node");
 		
 	int delay_cnt = 0;
