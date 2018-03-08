@@ -890,9 +890,9 @@ bool protector::StopMovingInForce(void)
 *   Description: Detect for odom v and vth for exception
 *   return  vel exception flag
 */
-bool protector::Detect4ExceptHighVel(float* v, float* vth)
+bool protector::Detect4ExceptHighVel(void)
 {
-	if(*v >= V_EXCPT_VAL || *vth >= VTH_EXCPT_VAL)
+	if(v >= V_EXCPT_VAL || vth >= VTH_EXCPT_VAL)
 	{
 		return true;
 	}

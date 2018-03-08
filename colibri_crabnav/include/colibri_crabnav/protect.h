@@ -133,6 +133,7 @@ class SafeSensor {
 																								 unsafe_prob_(init_prob),
 																								 update_flag_(update),
 																								 data_(N, init_val) {
+																								 
 		 };
 		
 		~SafeSensor();
@@ -159,9 +160,6 @@ class protector
 		
 		SafeSensor<float, SCAN4SAFE_NUM> ObjLaser;
 		SafeSensor<float, ULTRA_NUM> ObjUltra;
-
-		float v;
-		float vth;
 
 		enum_act4safe advise_action;
 
@@ -195,7 +193,7 @@ class protector
 		void CalcMinDis4Ultrosonic(void);
 		
 		void IntegrateMultiInfo4Safety(void);	
-		bool Detect4ExceptHighVel(float* v, float* vth);
+		bool Detect4ExceptHighVel(void);
 		bool StopMovingInForce(void);
 		void InitRectPolarVec(void);
 		
@@ -220,6 +218,9 @@ class protector
 
 
 	private:
+
+		float v;
+		float vth;
 		
 		void CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe);
 		void UltraSafeCallBack(const colibri_ultra::Ultrasonic::ConstPtr& ultra4safe);
