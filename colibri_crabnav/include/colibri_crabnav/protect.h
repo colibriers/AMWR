@@ -131,23 +131,36 @@ typedef struct st_safe_state
 	int area_state;
 }safe_state;
 
+template <class T, int N> 
+class SafeSensor {
+	public:
+		SafeSensor();
+		SafeSensor(const T &init_val, 
+									 const T &safe_dis = 3., 
+									 const unsigned int &safe_index = 0,
+									 const float &init_prob = 0.0,
+									 const bool & update = false): min_data_(safe_dis),
+																							   min_index_(safe_index), 
+																								 unsafe_prob_(init_prob),
+																								 update_flag_(update),
+																								 data_(N, init_val) {
+		 };
+		
+		~SafeSensor();
+		
+		float min_data_;
+		unsigned int min_index_;
+		float unsafe_prob_;
+		bool update_flag_;
+		vector<T> data_;
+};
 
 class protector
 {
 	public:
 		
-		float scan4safty[SCAN4SAFE_NUM];
-		float ultra_vec[ULTRA_NUM];
-		vector<float> vec_scan4safe;
-
-		float min_scan;
-		float min_ultra;
-
-		unsigned int min_index_scan;
-		unsigned int min_index_ultra;
-		int min_scan_angle;
-		
-		bool bumper_signal;
+		SafeSensor<float, SCAN4SAFE_NUM> ObjLaser;
+		SafeSensor<float, ULTRA_NUM> ObjUltra;
 
 		float v;
 		float vth;
@@ -157,9 +170,6 @@ class protector
 		bool collision_flag;
 		float colision_prob;
 
-		float laser_unsafe_prob;
-		float ultra_unsafe_prob;
-		
 		ros::NodeHandle nh_safety;
 		
 		ros::Subscriber scan_sub4safe;
@@ -167,25 +177,22 @@ class protector
 		ros::Subscriber	odom_sub4safe;
 
 		ros::Publisher security_pub4env;
-    	colibri_msgs::EnvSecurity env_secure;
+    colibri_msgs::EnvSecurity env_secure;
 
 		ros::Publisher security_pub4laser;
-		ros::Publisher security_pub4ultra;
 		colibri_msgs::SafeVel laser_safe_vel;
+		ros::Publisher security_pub4ultra;
 		colibri_msgs::SafeVel ultra_safe_vel;
 
 		rect rectangle[SAFE_RECT_NUM];
 		vector< map<int, float> > vec_rect_polar;
 		bitset<SAFE_RECT_NUM> rect_encoder;
 
-		bool recv_laser_flag_;
-		bool recv_ultra_flag_;
-		
-		protector();
+		protector(void);
+		protector(const float &init_laser_val = 20.0, const float &init_ultra_val = 3.0);
 		
 		~protector();
 
-		void CalcMinDis4LaserScan(float* laser_vec);	
 		void CalcMinDis4LaserScan(void);
 		void CalcMinDis4Ultrosonic(float* ultra_vec);
 		
@@ -207,7 +214,7 @@ class protector
 		map<int, float> Rect2Polar(float &width, float &height);
 		bool PointInRect(map<int, float> &rec2polar);
 		int LaserRectEncoder(void);	
-	    bool CalcCrabSafeVelThd(int &laser_encoder,float  &min_scan, int &min_scan_ang, float *linear_safe, float* angular_safe);
+	  bool CalcCrabSafeVelThd(int &laser_encoder,float  &min_scan, int &min_scan_ang, float *linear_safe, float* angular_safe);
 		bool CalcCrabUltraCA(range_finder & laser, safe_state & safe_laser);
 		bool CalcCrabLaserCA(int &laser_encoder, range_finder & laser, safe_state & safe_laser);
 		void PubLaserSafeVel(safe_state & laser_safe, int &laser_rect_encoder);
@@ -216,10 +223,8 @@ class protector
 
 	private:
 		
-		void ScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe);
 		void CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe);
 		void UltraSafeCallBack(const colibri_ultra::Ultrasonic::ConstPtr& ultra4safe);
-		void BumperSafeCallBack(const colibri_aiv::Bumper::ConstPtr& bumper4safe);
 		void OdomSafeCallBack(const nav_msgs::Odometry::ConstPtr& odom4safe);
 		void Polar2Decare(float  &min_scan, int &min_scan_ang,float &x, float &y);
 		bool LocateInRecArea(float &rec_x, float &rec_y, float &x, float &y);

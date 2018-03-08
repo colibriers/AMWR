@@ -1,18 +1,18 @@
 #include "protect.h"
 
-protector::protector()
-{
-	for(int i = 0; i < SCAN4SAFE_NUM; i++)
-	{
-		scan4safty[i] = 20.0;
-	}
-	
-	for(int j = 0; j < ULTRA_NUM; j++)
-	{
-		ultra_vec[j] = 3.0;
-	}
+template <class T, int N>
+SafeSensor<T, N>::SafeSensor() {
 
-	bumper_signal = false;
+}
+
+template <class T, int N>
+SafeSensor<T, N>::~SafeSensor() {
+
+}
+
+protector::protector(void)
+{
+
 	
 	v = 0.0;
 	vth = 0.0;
@@ -21,17 +21,6 @@ protector::protector()
 	collision_flag = false;
 	colision_prob = 0.0;
 	
-	laser_unsafe_prob = 0.0;
-	ultra_unsafe_prob = 0.0;
-	
-	min_scan = 20.0;
-	min_ultra = 3.0;
-
-	min_index_scan = 105;
-	min_scan_angle = 90;
-	min_index_ultra = 0;	
-
-	vec_scan4safe.reserve(SCAN4SAFE_NUM);
 	vec_rect_polar.reserve(SAFE_RECT_NUM);
 
 	rectangle[0].width = 0.6;
@@ -50,73 +39,69 @@ protector::protector()
 	security_pub4laser = nh_safety.advertise<colibri_msgs::SafeVel>("/laser_safe_vel", 1);
 	security_pub4ultra = nh_safety.advertise<colibri_msgs::SafeVel>("/ultra_safe_vel", 1);
 
-	recv_laser_flag_ = false;
-	recv_ultra_flag_ = false;
 
 }
+
+protector::protector(const float &init_laser_val,
+											 const float &init_ultra_val):ObjLaser(init_laser_val), 
+											 															ObjUltra(init_ultra_val) {
+
+
+	
+	v = 0.0;
+	vth = 0.0;
+	advise_action = HOLD_STATE;
+
+	collision_flag = false;
+	colision_prob = 0.0;
+	
+	vec_rect_polar.reserve(SAFE_RECT_NUM);
+
+	rectangle[0].width = 0.6;
+	rectangle[0].height = 0.5;
+	rectangle[1].width = 0.6;
+	rectangle[1].height = 1.6;
+	rectangle[2].width = 0.6;
+	rectangle[2].height = 3.0;
+
+	scan_sub4safe = nh_safety.subscribe<sensor_msgs::LaserScan>("/scan", 1, &protector::CrabScanSafeCallBack, this);
+
+	ultra_sub4safe = nh_safety.subscribe<colibri_ultra::Ultrasonic>("/ultra_front", 1, &protector::UltraSafeCallBack, this);
+	odom_sub4safe = nh_safety.subscribe<nav_msgs::Odometry>("/odom", 1, &protector::OdomSafeCallBack, this);
+
+	security_pub4env = nh_safety.advertise<colibri_msgs::EnvSecurity>("/env_secure", 1);
+	security_pub4laser = nh_safety.advertise<colibri_msgs::SafeVel>("/laser_safe_vel", 1);
+	security_pub4ultra = nh_safety.advertise<colibri_msgs::SafeVel>("/ultra_safe_vel", 1);
+
+
+}
+
+
 protector::~protector()
 {
 
 }
 
-/*	
-*   void CalcMinDis4LaserScan(float* laser_vec) 
-*   Description: Calc the min dis , index min_scan and colision prob in the scan laser data
-*   Results in min_scan, min_index_scan
-*/
-void protector::CalcMinDis4LaserScan(float* laser_vec)
-{
-	float tmp_range = *laser_vec;
-	int index_mindis = 0;
-	
-	for(int i = 0; i < SCAN4SAFE_NUM; i++)
-	{
-		if(*(laser_vec + i) <= tmp_range)
-		{
-			tmp_range = *(laser_vec + i);
-			index_mindis = i;
-		}
-	}
-	
-	min_scan = tmp_range;
-	min_index_scan = index_mindis;
-	min_scan_angle = index_mindis - 15; //-15  is the laser safty start angle
-
-	if(tmp_range <= LASER_SAFE_MIN)
-	{
-		laser_unsafe_prob = 1.0;
-	}
-	else if(tmp_range <= LASER_SAFE_MAX)
-	{
-		laser_unsafe_prob = (LASER_SAFE_MAX - tmp_range) / LASER_SAFE_MAX;
-	}
-	else
-	{
-		laser_unsafe_prob = 0.0;
-	}
-
-}
 
 void protector::CalcMinDis4LaserScan(void)
 {
 	
-	vector<float>::iterator min_it = min_element(vec_scan4safe.begin(), vec_scan4safe.end());
+	vector<float>::iterator min_it = min_element(ObjLaser.data_.begin(), ObjLaser.data_.end());
 	
-	min_scan = *min_it;
-	min_index_scan = distance(vec_scan4safe.begin(), min_it);
-	min_scan_angle = min_index_scan - 15; //-15  is the laser safty start angle
+	ObjLaser.min_data_ = *min_it;
+	ObjLaser.min_index_ = distance(ObjLaser.data_.begin(), min_it);
 
 	if((*min_it) <= LASER_SAFE_MIN)
 	{
-		laser_unsafe_prob = 1.0;
+		ObjLaser.unsafe_prob_ = 1.0;
 	}
 	else if((*min_it) <= LASER_SAFE_MAX)
 	{
-		laser_unsafe_prob = (LASER_SAFE_MAX - (*min_it)) / LASER_SAFE_MAX;
+		ObjLaser.unsafe_prob_ = (LASER_SAFE_MAX - (*min_it)) / LASER_SAFE_MAX;
 	}
 	else
 	{
-		laser_unsafe_prob = 0.0;
+		ObjLaser.unsafe_prob_ = 0.0;
 	}
 
 }
@@ -141,20 +126,20 @@ void protector::CalcMinDis4Ultrosonic(float* ultra_vec)
 		}
 	}
 	
-	min_ultra = tmp_range;
-	min_index_ultra = index_mindis + 1;		// +1 for vec from 0 but ultra start from 1 for phiscically
+	ObjUltra.min_data_ = tmp_range;
+	ObjUltra.min_index_ = index_mindis + 1;		// +1 for vec from 0 but ultra start from 1 for phiscically
 
 	if(tmp_range <= ULTRA_SAFE_MIN)
 	{
-		ultra_unsafe_prob = 1.0;
+		ObjUltra.unsafe_prob_ = 1.0;
 	}
 	else if(tmp_range <= ULTRA_SAFE_MAX)
 	{
-		ultra_unsafe_prob = (ULTRA_SAFE_MAX - tmp_range) / (ULTRA_SAFE_MAX - ULTRA_SAFE_MIN);
+		ObjUltra.unsafe_prob_ = (ULTRA_SAFE_MAX - tmp_range) / (ULTRA_SAFE_MAX - ULTRA_SAFE_MIN);
 	}
 	else
 	{
-		ultra_unsafe_prob = 0.0;
+		ObjUltra.unsafe_prob_ = 0.0;
 	}
 
 }
@@ -332,7 +317,6 @@ bool protector::CalcCrabSafeVelThd(int &laser_encoder,float  &min_scan, int &min
 		
 }
 
-
 bool protector::CalcLaserCA(float	&min_scan, int &min_scan_ang, int &steer, float *linear_safe, float* angular_safe, int &area_state)
 {
 	float tmp_x = 0.0;
@@ -391,7 +375,6 @@ bool protector::CalcLaserCA(float	&min_scan, int &min_scan_ang, int &steer, floa
 		area_state = 0;
 		return false;
 	}
-	
 
 }
 bool protector::CalcUltraCA(float &min_ultra, unsigned int &min_ultra_index, int &steer, float* linear_safe, float* angular_safe, int &area_state)
@@ -438,7 +421,6 @@ bool protector::CalcUltraCA(float &min_ultra, unsigned int &min_ultra_index, int
 		area_state = 3;
 
 	}
-
 
 }
 
@@ -487,13 +469,12 @@ bool protector::CalcCrabUltraCA(range_finder & ultra, safe_state & safe_ultra)
 
 	}
 
-
 }
 
 bool protector::CalcCrabUltraCA(safe_state & safe_ultra)
 {
 	static int confirm_cnt = 0;
-	float tmp_ultra_min = (ultra_vec[2]>ultra_vec[1]) ? ultra_vec[1]:ultra_vec[2];
+	float tmp_ultra_min = (ObjUltra.data_[2]>ObjUltra.data_[1]) ? ObjUltra.data_[1]:ObjUltra.data_[2];
 		
 	if(tmp_ultra_min < ULTRA_STOP_DIS)
 	{
@@ -526,9 +507,7 @@ bool protector::CalcCrabUltraCA(safe_state & safe_ultra)
 		return false;	
 	}
 	
-	
 }
-
 
 void protector::PubLaserSafeVel(safe_state & laser_safe, int &laser_rect_encoder)
 {
@@ -554,7 +533,6 @@ void protector::PubLaserSafeVel(safe_state & laser_safe, int &laser_rect_encoder
 
 }
 
-
 void protector::PubUltraSafeVel(safe_state & ultra_safe)
 {
 	// publish the ultra module safe vel
@@ -578,7 +556,6 @@ void protector::PubUltraSafeVel(safe_state & ultra_safe)
 	security_pub4ultra.publish(ultra_safe_vel);
 
 }
-
 
 bool protector::CalcCrabLaserCA(int &laser_encoder, range_finder & laser, safe_state & safe_laser)
 {
@@ -661,7 +638,6 @@ bool protector::CalcCrabLaserCA(int &laser_encoder, range_finder & laser, safe_s
 
 }
 
-
 void protector::Polar2Decare(float  &min_scan, int &min_scan_ang,float &x, float &y)
 {
 	x = min_scan * cos(min_scan_ang * DEG2RAD);
@@ -710,14 +686,13 @@ map<int, float> protector::Rect2Polar(float &width, float &height)
 
 }
 
-
 bool protector::PointInRect(map<int, float> &rec2polar)
 {
 	float tmp_diff = 0.0;
 	vector<float> differ;
 	for(int i = 0 ; i <= 180; i++)
 	{
-		tmp_diff = vec_scan4safe.at(i+15) - rec2polar[i];
+		tmp_diff = ObjLaser.data_.at(i+15) - rec2polar[i];
 		differ.push_back(tmp_diff);
 	}
 
@@ -734,7 +709,6 @@ bool protector::PointInRect(map<int, float> &rec2polar)
 
 
 }
-
 
 bool protector::CalcSafeLinearVel(float &ctrl_vel, float &linear_thd, float* safe_linear_vel)
 {
@@ -839,7 +813,7 @@ float protector::IntegrateMultiInfo4Safety(enum_act4safe* advise_action)
 
 	enum_bearing obs_dir = OMNI;
 	
-	if(bumper_signal == true || ultra_unsafe_prob > LEVEL_1_PROB || laser_unsafe_prob > LEVEL_1_PROB)
+	if(ObjUltra.unsafe_prob_ > LEVEL_1_PROB || ObjLaser.unsafe_prob_ > LEVEL_1_PROB)
 	{
 		collision_flag = true;
 		colision_prob = 1.0;
@@ -848,31 +822,29 @@ float protector::IntegrateMultiInfo4Safety(enum_act4safe* advise_action)
 	else
 	{
 		collision_flag = false;
-		if(bumper_signal == false)
+
+		colision_prob = MAX(ObjLaser.unsafe_prob_, ObjUltra.unsafe_prob_);
+		if(colision_prob == ObjLaser.unsafe_prob_)
 		{
-			colision_prob = MAX(laser_unsafe_prob, ultra_unsafe_prob);
-			if(colision_prob == laser_unsafe_prob)
+			if(ObjLaser.min_index_ <= (SCAN4SAFE_NUM - 1)/2)
 			{
-				if(min_index_scan <= (SCAN4SAFE_NUM - 1)/2)
-				{
-					obs_dir = RIGHT;
-				}
-				else
-				{
-					obs_dir = LEFT;
-				}			
+				obs_dir = RIGHT;
 			}
 			else
 			{
-				if(min_index_ultra<= ULTRA_NUM / 4)	// for front collision safty ,shoule be 4/2 ->8/4 ,right hand law for order
-				{
-					obs_dir = RIGHT;
-				}
-				else
-				{
-					obs_dir = LEFT;
-				}	
+				obs_dir = LEFT;
+			}			
+		}
+		else
+		{
+			if(ObjUltra.min_index_<= ULTRA_NUM / 4)	// for front collision safty ,shoule be 4/2 ->8/4 ,right hand law for order
+			{
+				obs_dir = RIGHT;
 			}
+			else
+			{
+				obs_dir = LEFT;
+			}	
 		}
 		
 		if(colision_prob <= LEVEL_3_PROB)
@@ -948,45 +920,17 @@ void protector::Intg4EnvSecure(void)
 	env_secure.collision.data = collision_flag;
 	env_secure.collision_prob = colision_prob;
 	
-	env_secure.laser_min_dis = min_scan;
-	env_secure.laser_min_angle = min_scan_angle;
-	env_secure.laser_prob = laser_unsafe_prob;
+	env_secure.laser_min_dis = ObjLaser.min_data_;
+	env_secure.laser_min_angle = ObjLaser.min_index_;
+	env_secure.laser_prob = ObjLaser.unsafe_prob_;
 	
-	env_secure.ultra_min_dis = min_ultra;
-	env_secure.ultra_min_index = min_index_ultra;
-	env_secure.ultra_prob = ultra_unsafe_prob;
+	env_secure.ultra_min_dis = ObjUltra.min_data_;
+	env_secure.ultra_min_index = ObjUltra.min_index_;
+	env_secure.ultra_prob = ObjUltra.unsafe_prob_;
 
-	if(bumper_signal == true)
-	{
-		env_secure.bumper_min_dis = 0.0;
-		env_secure.bumper_prob = 1.0 ;
-	}
-	else
-	{
-		env_secure.bumper_min_dis = 3.0;
-		env_secure.bumper_prob = 0.0;
-	}
-			
-	env_secure.bumper_min_index = 1;
-
-}
-
-
-
-void protector::ScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe)
-{
-	int j = 31;	//from laser ray at  -15deg starts : 31 = 15/0.5+1;
-	for(int i = 0; i < SCAN4SAFE_NUM; i++)
-	{
-		scan4safty[i] = scan4safe->ranges[j];
-		
-		if(scan4safty[i] <= 0.08)
-		{
-			scan4safty[i] = (0.2*scan4safe->ranges[j-4] + 0.3*scan4safe->ranges[j-1] + 0.3*scan4safe->ranges[j+1] + 0.2*scan4safe->ranges[j+4]) ;
-		}
-		
-		j = j + 2; 
-	}
+	env_secure.bumper_min_dis = 3.0;
+	env_secure.bumper_prob = 0.0;		
+	env_secure.bumper_min_index = 0;
 
 }
 
@@ -1057,8 +1001,8 @@ void protector::CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& sca
 void protector::CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe)
 {
 	float tmp_scan = 20.0;
-	vec_scan4safe.clear();
-	vector<float> ().swap(vec_scan4safe);
+	ObjLaser.data_.clear();
+	vector<float> ().swap(ObjLaser.data_);
 	
 	int j = 31;	//from laser ray at  -15deg starts : 31 = 15/0.5+1;
 	for(int i = 0; i < SCAN4SAFE_NUM; i++)
@@ -1070,36 +1014,29 @@ void protector::CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& sca
 			tmp_scan = 20.0;
 		}
 
-		vec_scan4safe.push_back(tmp_scan);
+		ObjLaser.data_.push_back(tmp_scan);
 		
 		j = j + 2; 
 	}
 
-	recv_laser_flag_ = true;
+	ObjLaser.update_flag_ = true;
 }
-
-
 
 void protector::UltraSafeCallBack(const colibri_ultra::Ultrasonic::ConstPtr& ultra4safe)
 {
-	ultra_vec[0] = (ultra4safe->ultra_1); //for front ultra unit cm to m
-	ultra_vec[1] = (ultra4safe->ultra_2);
-	ultra_vec[2] = (ultra4safe->ultra_3);
-	ultra_vec[3] = (ultra4safe->ultra_4);
+
+	ObjUltra.data_[0] = (ultra4safe->ultra_1); //for front ultra unit cm to m
+	ObjUltra.data_[1] = (ultra4safe->ultra_2);
+	ObjUltra.data_[2] = (ultra4safe->ultra_3);
+	ObjUltra.data_[3] = (ultra4safe->ultra_4);
 	
-	recv_ultra_flag_ = true;
+	ObjUltra.update_flag_ = true;
 }
 
-void protector::BumperSafeCallBack(const colibri_aiv::Bumper::ConstPtr& bumper4safe)
-{	
-	bumper_signal = bumper4safe->bumper.data;	
-}
 
 void protector::OdomSafeCallBack(const nav_msgs::Odometry::ConstPtr& odom4safe)
 {
 	v = odom4safe->twist.twist.linear.x;
 	vth = odom4safe->twist.twist.angular.z;	
 }
-
-
 
