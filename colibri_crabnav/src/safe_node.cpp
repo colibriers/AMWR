@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 #ifdef ULTRA_SAFE
 			protectObj.ObjUltra.update_flag_ = false;
 
-			protectObj.CalcMinDis4Ultrosonic(protectObj.ObjUltra.data_);
+			protectObj.CalcMinDis4Ultrosonic();
  			ultra_property.min_dis =  protectObj.ObjUltra.min_data_;
 			ultra_property.min_index =  protectObj.ObjUltra.min_index_;
 

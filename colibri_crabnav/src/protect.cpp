@@ -112,30 +112,21 @@ void protector::CalcMinDis4LaserScan(void)
 *   Description: Calc the min dis , index min_ultra and colision prob in the ultra data
 *   results in min_ultra, min_index_ultra
 */
-void protector::CalcMinDis4Ultrosonic(float* ultra_vec)
+void protector::CalcMinDis4Ultrosonic(void)
 {
-	float tmp_range = *ultra_vec;
-	unsigned int index_mindis = 0;
+	vector<float>::iterator min_it = min_element(ObjUltra.data_.begin(), ObjUltra.data_.begin() + 4);
 	
-	for(int i = 0; i < ULTRA_NUM/2; i++)		// for ca the front 4 ultra should be concerned
-	{
-		if(*(ultra_vec + i) <= tmp_range)
-		{
-			tmp_range = *(ultra_vec + i);
-			index_mindis = i;
-		}
-	}
-	
-	ObjUltra.min_data_ = tmp_range;
-	ObjUltra.min_index_ = index_mindis + 1;		// +1 for vec from 0 but ultra start from 1 for phiscically
+	ObjUltra.min_data_ = *min_it;
+	ObjUltra.min_index_ = distance(ObjLaser.data_.begin(), min_it) + 1;
 
-	if(tmp_range <= ULTRA_SAFE_MIN)
+
+	if(*min_it <= ULTRA_SAFE_MIN)
 	{
 		ObjUltra.unsafe_prob_ = 1.0;
 	}
-	else if(tmp_range <= ULTRA_SAFE_MAX)
+	else if(*min_it <= ULTRA_SAFE_MAX)
 	{
-		ObjUltra.unsafe_prob_ = (ULTRA_SAFE_MAX - tmp_range) / (ULTRA_SAFE_MAX - ULTRA_SAFE_MIN);
+		ObjUltra.unsafe_prob_ = (ULTRA_SAFE_MAX - *min_it) / (ULTRA_SAFE_MAX - ULTRA_SAFE_MIN);
 	}
 	else
 	{

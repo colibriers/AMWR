@@ -194,7 +194,7 @@ class protector
 		~protector();
 
 		void CalcMinDis4LaserScan(void);
-		void CalcMinDis4Ultrosonic(float* ultra_vec);
+		void CalcMinDis4Ultrosonic(void);
 		
 		float IntegrateMultiInfo4Safety(enum_act4safe* advise_action);	
 		bool Detect4ExceptHighVel(float* v, float* vth);
