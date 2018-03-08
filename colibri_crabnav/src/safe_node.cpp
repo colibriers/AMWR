@@ -23,14 +23,14 @@ int main(int argc, char* argv[]) {
 	safe_state laser_safe, ultra_safe;
 
 	while (ros::ok()) {			
-		if(protectObj.ObjLaser.update_flag_) {
+		if(protectObj.ObjLaser_.update_flag_) {
 			
 #ifdef LASER_SAFE
-			protectObj.ObjLaser.update_flag_ = false;
+			protectObj.ObjLaser_.update_flag_ = false;
 
 			protectObj.CalcMinDis4LaserScan();	
- 			laser_property.min_dis =  protectObj.ObjLaser.min_data_;
-			laser_property.min_index =  protectObj.ObjLaser.min_index_;
+ 			laser_property.min_dis =  protectObj.ObjLaser_.min_data_;
+			laser_property.min_index =  protectObj.ObjLaser_.min_index_;
 
 			laser_rect_encoder = protectObj.LaserRectEncoder();
 
@@ -39,14 +39,14 @@ int main(int argc, char* argv[]) {
 #endif
 			}
 		
-		if(protectObj.ObjUltra.update_flag_) {
+		if(protectObj.ObjUltra_.update_flag_) {
 
 #ifdef ULTRA_SAFE
-			protectObj.ObjUltra.update_flag_ = false;
+			protectObj.ObjUltra_.update_flag_ = false;
 
 			protectObj.CalcMinDis4Ultrosonic();
- 			ultra_property.min_dis =  protectObj.ObjUltra.min_data_;
-			ultra_property.min_index =  protectObj.ObjUltra.min_index_;
+ 			ultra_property.min_dis =  protectObj.ObjUltra_.min_data_;
+			ultra_property.min_index =  protectObj.ObjUltra_.min_index_;
 
 			protectObj.CalcCrabUltraCA(ultra_safe);
 			protectObj.PubUltraSafeVel(ultra_safe);
@@ -54,9 +54,9 @@ int main(int argc, char* argv[]) {
 			}
 
 			protectObj.IntegrateMultiInfo4Safety();
-			//cout<<"Intg coli_prob: "<< protectObj.coli_prob<< endl;
+			cout<<"Intg laser_rect_encoder: "<< laser_rect_encoder<< endl;
 			protectObj.Intg4EnvSecure();	
-			protectObj.security_pub4env.publish(protectObj.env_secure);
+			protectObj.security_pub4env_.publish(protectObj.env_secure_);
 
 			if(node_shutdown == true) {
 				ros::shutdown();

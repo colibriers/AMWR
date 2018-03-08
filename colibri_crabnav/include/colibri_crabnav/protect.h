@@ -158,31 +158,24 @@ class protector
 			STOP,
 		}enum_act4safe;
 		
-		SafeSensor<float, SCAN4SAFE_NUM> ObjLaser;
-		SafeSensor<float, ULTRA_NUM> ObjUltra;
+		SafeSensor<float, SCAN4SAFE_NUM> ObjLaser_;
+		SafeSensor<float, ULTRA_NUM> ObjUltra_;
 
-		enum_act4safe advise_action;
+		enum_act4safe adv_action_;
 
-		bool collision_flag;
-		float colision_prob;
+		bool collision_flag_;
+		float colision_prob_;
 
-		ros::NodeHandle nh_safety;
-		
-		ros::Subscriber scan_sub4safe;
-		ros::Subscriber	ultra_sub4safe;
-		ros::Subscriber	odom_sub4safe;
+		ros::Publisher security_pub4env_;
+		ros::Publisher security_pub4laser_;
+		ros::Publisher security_pub4ultra_;
+    colibri_msgs::EnvSecurity env_secure_;
+		colibri_msgs::SafeVel laser_safe_vel_;
+		colibri_msgs::SafeVel ultra_safe_vel_;
 
-		ros::Publisher security_pub4env;
-    colibri_msgs::EnvSecurity env_secure;
-
-		ros::Publisher security_pub4laser;
-		colibri_msgs::SafeVel laser_safe_vel;
-		ros::Publisher security_pub4ultra;
-		colibri_msgs::SafeVel ultra_safe_vel;
-
-		rect rectangle[SAFE_RECT_NUM];
-		vector< map<int, float> > vec_rect_polar;
-		bitset<SAFE_RECT_NUM> rect_encoder;
+		rect rectangle_[SAFE_RECT_NUM];
+		vector< map<int, float> > vec_rect_polar_;
+		bitset<SAFE_RECT_NUM> rect_encoder_;
 
 		protector(void);
 		protector(const float &init_laser_val = 20.0, const float &init_ultra_val = 3.0);
@@ -219,8 +212,14 @@ class protector
 
 	private:
 
-		float v;
-		float vth;
+		float v_;
+		float v_theta_;
+		
+		ros::NodeHandle nh_safety_;
+		
+		ros::Subscriber scan_sub4safe_;
+		ros::Subscriber	ultra_sub4safe_;
+		ros::Subscriber	odom_sub4safe_;
 		
 		void CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& scan4safe);
 		void UltraSafeCallBack(const colibri_ultra::Ultrasonic::ConstPtr& ultra4safe);
