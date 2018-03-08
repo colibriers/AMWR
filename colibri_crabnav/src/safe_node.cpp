@@ -1,7 +1,7 @@
 #include "protect.h"
 
 #define LASER_SAFE
-//#define ULTRA_SAFE
+#define ULTRA_SAFE
 
 bool node_shutdown = false;
 void SigintHandler(int sig) {
@@ -12,7 +12,6 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "Anti_Collision_Node");
 		
 	int laser_rect_encoder = 0;
-	float coli_prob = 0.0;
 	
 	protector protectObj(20.0, 3.0);		// init laser ultra and bumper anti collision obj
 	protectObj.InitRectPolarVec();	// init the 3 rectangle area for laser obstacle encoder
@@ -54,8 +53,8 @@ int main(int argc, char* argv[]) {
 #endif
 			}
 
-			coli_prob = protectObj.IntegrateMultiInfo4Safety(&protectObj.advise_action);
-			//cout<<"Intg coli_prob: "<< coli_prob<< endl;
+			protectObj.IntegrateMultiInfo4Safety(&protectObj.advise_action);
+			//cout<<"Intg coli_prob: "<< protectObj.coli_prob<< endl;
 			protectObj.Intg4EnvSecure();	
 			protectObj.security_pub4env.publish(protectObj.env_secure);
 

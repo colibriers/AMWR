@@ -196,7 +196,7 @@ class protector
 		void CalcMinDis4LaserScan(void);
 		void CalcMinDis4Ultrosonic(void);
 		
-		float IntegrateMultiInfo4Safety(enum_act4safe* advise_action);	
+		void IntegrateMultiInfo4Safety(enum_act4safe* advise_action);	
 		bool Detect4ExceptHighVel(float* v, float* vth);
 		bool StopMovingInForce(void);
 		void InitRectPolarVec(void);
