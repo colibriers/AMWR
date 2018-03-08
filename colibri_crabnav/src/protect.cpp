@@ -50,6 +50,9 @@ protector::protector()
 	security_pub4laser = nh_safety.advertise<colibri_msgs::SafeVel>("/laser_safe_vel", 1);
 	security_pub4ultra = nh_safety.advertise<colibri_msgs::SafeVel>("/ultra_safe_vel", 1);
 
+	recv_laser_flag_ = false;
+	recv_ultra_flag_ = false;
+
 }
 protector::~protector()
 {
@@ -1072,6 +1075,7 @@ void protector::CrabScanSafeCallBack(const sensor_msgs::LaserScan::ConstPtr& sca
 		j = j + 2; 
 	}
 
+	recv_laser_flag_ = true;
 }
 
 
@@ -1082,7 +1086,8 @@ void protector::UltraSafeCallBack(const colibri_ultra::Ultrasonic::ConstPtr& ult
 	ultra_vec[1] = (ultra4safe->ultra_2);
 	ultra_vec[2] = (ultra4safe->ultra_3);
 	ultra_vec[3] = (ultra4safe->ultra_4);
-
+	
+	recv_ultra_flag_ = true;
 }
 
 void protector::BumperSafeCallBack(const colibri_aiv::Bumper::ConstPtr& bumper4safe)

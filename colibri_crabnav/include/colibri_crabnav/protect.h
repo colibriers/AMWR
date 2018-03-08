@@ -178,6 +178,8 @@ class protector
 		vector< map<int, float> > vec_rect_polar;
 		bitset<SAFE_RECT_NUM> rect_encoder;
 
+		bool recv_laser_flag_;
+		bool recv_ultra_flag_;
 		
 		protector();
 		

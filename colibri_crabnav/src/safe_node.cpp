@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
 	int CNT = 5;
 
 	int laser_rect_encoder = 0;
-
 	float coli_prob = 0.0;
 	
 	protector protectObj;		// init laser ultra and bumper anti collision obj
