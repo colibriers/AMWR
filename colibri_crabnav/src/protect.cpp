@@ -799,7 +799,7 @@ bool protector::CalcSafeAngularVel(float &ctrl_vel, int &steer, float &angular_t
 *   Description: Using MultiInfo: laser prob, ultra prob and bumper to obtain comprehensive colision prob and remmend action
 *   return  colision_prob  and results in advise_action
 */
-void protector::IntegrateMultiInfo4Safety(enum_act4safe* advise_action)
+void protector::IntegrateMultiInfo4Safety(void)
 {
 
 	enum_bearing obs_dir = OMNI;
@@ -808,7 +808,7 @@ void protector::IntegrateMultiInfo4Safety(enum_act4safe* advise_action)
 	{
 		collision_flag = true;
 		colision_prob = 1.0;
-		*advise_action = STOP;
+		advise_action = STOP;
 	}
 	else
 	{
@@ -840,25 +840,25 @@ void protector::IntegrateMultiInfo4Safety(enum_act4safe* advise_action)
 		
 		if(colision_prob <= LEVEL_3_PROB)
 		{
-			*advise_action = HOLD_STATE;
+			advise_action = HOLD_STATE;
 		}
 		else if(colision_prob <= LEVEL_2_PROB)
 		{
-			*advise_action = DEC_VEL;
+			advise_action = DEC_VEL;
 		}
 		else
 		{
 			if(obs_dir == RIGHT)
 			{
-				*advise_action = TURN_LEFT;
+				advise_action = TURN_LEFT;
 			}
 			else if(obs_dir == LEFT)
 			{
-				*advise_action = TURN_RIGHT;
+				advise_action = TURN_RIGHT;
 			}
 			else
 			{
-				*advise_action = STOP;
+				advise_action = STOP;
 			}			
 		}
 

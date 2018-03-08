@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 #endif
 			}
 
-			protectObj.IntegrateMultiInfo4Safety(&protectObj.advise_action);
+			protectObj.IntegrateMultiInfo4Safety();
 			//cout<<"Intg coli_prob: "<< protectObj.coli_prob<< endl;
 			protectObj.Intg4EnvSecure();	
 			protectObj.security_pub4env.publish(protectObj.env_secure);
