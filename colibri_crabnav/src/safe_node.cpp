@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
 			laser_rect_encoder = protectObj.LaserRectEncoder();
 
-			protectObj.CalcCrabLaserCA(laser_rect_encoder,laser_property, laser_safe);
+			protectObj.CalcCrabLaserCA(laser_rect_encoder, laser_property, laser_safe);
 			protectObj.PubLaserSafeVel(laser_safe, laser_rect_encoder);
 #endif
 			}
