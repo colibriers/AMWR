@@ -12,7 +12,8 @@ logic_nodes:
   branch4_map: [11, 40, -90.0]
 func_nodes:
 	init_node_id: [44]
-	waiting_node_id: [0, 1, 2, 3]
-  charge_node_id: [40, 41, 42, 43]
-  upload_node_id: [6, 21]
-	download_node_id: [13, 14]
+	waiting_node: [0, 1, 2, 3]
+  charge_node: [40, 41, 42, 43]
+  upload_node: [6, 7, 21, 22, 23, 24, 25, 26, 27]
+	download_node: [13, 14, 30, 31, 32, 33, 34, 35]
+  traffic_ctrl_node: [16, 17]
