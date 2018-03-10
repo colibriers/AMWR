@@ -584,7 +584,7 @@ bool PathProc::NavPixValid(point2d_pix &pix_uv)
 	}
 }
 
-int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> & straight_path)
+int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path)
 {
 	int path_total_len = straight_path.size();
 	vector<float> delta_dis;
@@ -1107,8 +1107,7 @@ bool CalcPixesInLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &
 
 }
 
-void int2str(int & i_val, string & str)
-{
+void Int2String(const int & i_val, string & str) {
 	stringstream stream;
 	stream << i_val;
 	str = stream.str();

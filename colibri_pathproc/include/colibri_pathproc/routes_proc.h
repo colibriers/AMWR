@@ -53,10 +53,10 @@ void operator >> (const YAML::Node& node, T& i) {
 }
 #endif
 
-template <class Type>  
-Type stringToNum(const string& str) {  
+template <class T>  
+T stringToNum(const string& str) {  
   istringstream iss(str);  
-  Type num;  
+  T num;  
   iss >> num;  
   return num;      
 }  
@@ -65,22 +65,11 @@ template <typename T>
 struct st_2d_point {
 	T x;
 	T y;
-}2d_point;
+};
 
-typedef 2d_point<double> point2d_map;
-typedef 2d_point<unsigned int> point2d_pix;
+typedef st_2d_point<double> point2d_map;
+typedef st_2d_point<unsigned int> point2d_pix;
 
-/*
-typedef struct st_point2D_int{
-	int x;
-	int y;
-}point2d_pix;
-
-typedef struct st_point2D_float{
-	float x;
-	float y;
-}point2d_map;
-*/
 typedef struct st_pose{
 	float x;
 	float y;
@@ -108,6 +97,13 @@ typedef struct st_nav_state{
 	int err_code;
 }nav_state;
 
+struct st_test {
+	st_test(int c, int d) :a(c), b (d) {
+	}
+	int a;
+	int b;
+};
+
 typedef struct st_seg_prop{
 	int seg_id;
 	int start_id;
@@ -123,7 +119,7 @@ typedef struct st_route_list
 	vector<int> seg_list;
 }route_list;
 
-void int2str(int & i_val, string &str);
+void Int2String(const int & i_val, string &str);
 bool VerticalLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &ver_line);
 bool BresenhamBasic(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line);
 bool CalcPixesInLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line);

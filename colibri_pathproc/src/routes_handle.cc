@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-#include "path_proc.h"
+#include "routes_proc.h"
 
 using namespace std;
 string routes_path;
@@ -29,6 +29,9 @@ int main(int argc, char *argv[])
 #endif
 
 	PathProc pathProcObj;
+
+	st_test tt(1,2);
+
 
 	point2d_map cur_robot = {0.0, 0.0};
 	int cur_seg = 1;
