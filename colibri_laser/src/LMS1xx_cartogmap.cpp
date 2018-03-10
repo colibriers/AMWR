@@ -27,8 +27,28 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 
+#include <fstream> 
+#include <iostream> 
+#include <string.h>
+#include "yaml-cpp/yaml.h" //modified by iwtjatjat at 2018-03-09 09:58
+using namespace std; 
+
+
 #define DEG2RAD M_PI/180.0
 #define MIN(x,y) (x<=y)?(x):(y)
+
+#ifdef HAVE_NEW_YAMLCPP
+// The >> operator disappeared in yaml-cpp 0.5, so this function is
+// added to provide support for code written under the yaml-cpp 0.3 API.
+template<typename T>
+void operator >> (const YAML::Node& node, T& i)
+{
+  i = node.as<T>();
+}
+#endif
+
+
+
 
 int main(int argc, char **argv)
 {
@@ -49,19 +69,38 @@ int main(int argc, char **argv)
   std::string frame_id;
   
   std::string gmapframe_id;
-
+  std::string laser_mounting_type;//modified by iwtjatjat at 2018-03-07 09:58
+  //params.yaml
+  string param_path;
+  
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
   ros::NodeHandle n("~");
   ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("cartoscan", 1);
 
   ros::Publisher gmapscan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+  sleep(1);
 
-  n.param<std::string>("host", host, "192.168.10.100");
+  param_path.assign("/home/rosindigo/catkin_ws/src/colibri_laser/param/params.yaml");
+  ifstream fin_path(param_path.c_str());
+
+  
+  YAML::Node config = YAML::Load(fin_path); 
+  
+  //n.param<std::string>("host", host, "192.168.10.100"); //modified by iwtjatjat at 2018-03-07 09:58
+  //ros::param::get("host",host);
+ // host = config["host"].as<std::string>();
+  config["host"] >> host;
+  ROS_INFO_STREAM("laser_host_IP_address = " << host);
+
+  //modified by iwtjatjat at 2018-03-07 09:58 
+  //ros::param::get("laser_mounting_type",laser_mounting_type);
+  //laser_mounting_type = config["laser_mounting_type"].as<std::string>();
+  config["laser_mounting_type"] >> laser_mounting_type;
+  ROS_INFO_STREAM("laser_mounting_type = " << laser_mounting_type);
+  
   n.param<std::string>("frame_id", frame_id, "laser_frame");  //cartographer use "laser_frame",
-
   n.param<std::string>("gmapframe_id", gmapframe_id, "gmaplaser_frame");  //gmap use "gmaplaser_frame",
-
   ROS_INFO_STREAM(" Testing output... " );
 
   while (ros::ok())
@@ -75,7 +114,7 @@ int main(int argc, char **argv)
       continue;
     }
 
-    ROS_INFO_STREAM("Logging in to laser.");
+    ROS_DEBUG("Logging in to laser."); //modified by iwtjatjat at 2018-03-07 09:58
     laser.login();
     cfg = laser.getScanCfg();
 	
@@ -122,9 +161,10 @@ int main(int argc, char **argv)
     gmapscan_msg.angle_increment = (double)cfg.angleResolution / 10000.0 * DEG2RAD;
     gmapscan_msg.angle_min = (double)outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2;
     gmapscan_msg.angle_max = (double)outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2;
-
-    ROS_INFO_STREAM("Device resolution is " << (double)outputRange.angleResolution / 10000.0 << " degrees.");
-    ROS_INFO_STREAM("Device frequency is " << (double)cfg.scaningFrequency / 100.0 << " Hz");
+ 
+   // ROS_INFO_STREAM-->ROS_DEBUG_STREAM c
+    ROS_DEBUG_STREAM("Device resolution is " << (double)outputRange.angleResolution / 10000.0 << " degrees.");
+    ROS_DEBUG_STREAM("Device frequency is " << (double)cfg.scaningFrequency / 100.0 << " Hz");
 
     int angle_range = outputRange.stopAngle - outputRange.startAngle;
     int num_values = angle_range / cfg.angleResolution ;
@@ -137,11 +177,11 @@ int main(int argc, char **argv)
       ++num_values;
     }
 
-    ROS_INFO_STREAM("Device num_values is " << num_values);	
+    //ROS_INFO_STREAM("Device num_values is " << num_values);	//modified by iwtjatjat at 2018-03-07 10:10
     scan_msg.ranges.resize(num_values);
     scan_msg.intensities.resize(num_values);
 
-	gmapscan_msg.ranges.resize(num_values);
+    gmapscan_msg.ranges.resize(num_values);
     gmapscan_msg.intensities.resize(num_values);
 
     scan_msg.time_increment =
@@ -149,7 +189,8 @@ int main(int argc, char **argv)
       / 360.0
       / (cfg.scaningFrequency / 100.0);
 
-    ROS_INFO_STREAM("Time increment is " << static_cast<int>(scan_msg.time_increment * 1000000) << " microseconds");
+    // ROS_INFO_STREAM-->ROS_DEBUG_STREAM modified by iwtjatjat at 2018-03-07 10:10
+    ROS_DEBUG_STREAM("Time increment is " << static_cast<int>(scan_msg.time_increment * 1000000) << " microseconds");
 
     dataCfg.outputChannel = 1;
     dataCfg.remission = true;
@@ -162,10 +203,12 @@ int main(int argc, char **argv)
     //ROS_DEBUG("Setting scan data configuration.");
     //laser.setScanDataCfg(dataCfg);
 
-    ROS_INFO_STREAM("Starting measurements.");
+    // ROS_INFO_STREAM-->ROS_DEBUG modified by iwtjatjat at 2018-03-07 10:10
+    ROS_DEBUG("Starting measurements.");
     laser.startMeas();
 
-    ROS_INFO_STREAM("Waiting for ready status.");
+    // ROS_INFO_STREAM-->ROS_DEBUG modified by iwtjatjat at 2018-03-07 10:12
+    ROS_DEBUG("Waiting for ready status.");
     ros::Time ready_status_timeout = ros::Time::now() + ros::Duration(5);
 
     //while(1)
@@ -261,19 +304,42 @@ int main(int argc, char **argv)
 				gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
 			}
 			*/
-		  scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
-		  gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 		  
+			
+			//modified by iwtjatjat at 2018-03-07 10:15
+			if(laser_mounting_type!="positive_install")
+				{
+				     scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
+		                     gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 		  
+				}
+			else
+				{
+				     scan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
+		                     gmapscan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer				
+				}
+		  
         }
 
-        for (int i = 0; i < data.rssi_len1; i++)
+       //modified by iwtjatjat at 2018-03-07 10:15
+	/*if(laser_mounting_type=="positive_install")
+	{
+	    for (int i = 0; i < data.rssi_len1; i++)
+            {
+                scan_msg.intensities[i] = data.rssi1[i];
+	        gmapscan_msg.intensities[i] = data.rssi1[i];
+            }
+	}
+	else
         {
-          scan_msg.intensities[i] = data.rssi1[i];
-		  gmapscan_msg.intensities[i] = data.rssi1[i];
-        }
-
+          for (int i = 0; i < data.rssi_len1; i++)
+            {
+                scan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+	        gmapscan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+            }
+        }*/
+		
         ROS_DEBUG("Publishing scan data.");
         scan_pub.publish(scan_msg);
-		gmapscan_pub.publish(gmapscan_msg);
+	gmapscan_pub.publish(gmapscan_msg);
       }
       else
       {
