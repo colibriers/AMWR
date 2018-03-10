@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	char user_name[10];
 	getlogin_r(user_name, 10);
 	string str_username = user_name;
-	param_path.assign("/home/" + str_username + "/cl_ws/src/colibri_laser/param/params.yaml");
+	param_path.assign("/home/" + str_username + "/colibri_ws/src/colibri_laser/config/params.yaml");
 
 #else
 	param_path(routes_abs_path);
