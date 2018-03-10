@@ -47,3 +47,8 @@ target_link_libraries(path_handle_node yaml-cpp ${catkin_LIBRARIES})
 #add_executable(path_handle src/path_handle.cpp src/path_proc.cpp)
 #target_link_libraries(path_handle yaml-cpp ${catkin_LIBRARIES})
 
+add_executable(routes_handle_node src/routes_handle.cc src/routes_proc.cc)
+target_link_libraries(routes_handle_node yaml-cpp ${catkin_LIBRARIES})
+
+
+

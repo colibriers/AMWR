@@ -41,7 +41,6 @@ static int sub_seg_index = 0;
 static bool new_seg_flag = false;
 static bool lock_seg_flag = false;
 
-
 #define MANUAL_PATH
 //#define REC_PATH
 
@@ -49,21 +48,29 @@ static bool lock_seg_flag = false;
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
 // added to provide support for code written under the yaml-cpp 0.3 API.
 template<typename T>
-void operator >> (const YAML::Node& node, T& i)
-{
+void operator >> (const YAML::Node& node, T& i) {
   i = node.as<T>();
 }
 #endif
 
 template <class Type>  
-Type stringToNum(const string& str)  
-{  
-    istringstream iss(str);  
-    Type num;  
-    iss >> num;  
-    return num;      
+Type stringToNum(const string& str) {  
+  istringstream iss(str);  
+  Type num;  
+  iss >> num;  
+  return num;      
 }  
 
+template <typename T>
+struct st_2d_point {
+	T x;
+	T y;
+}2d_point;
+
+typedef 2d_point<double> point2d_map;
+typedef 2d_point<unsigned int> point2d_pix;
+
+/*
 typedef struct st_point2D_int{
 	int x;
 	int y;
@@ -73,7 +80,7 @@ typedef struct st_point2D_float{
 	float x;
 	float y;
 }point2d_map;
-
+*/
 typedef struct st_pose{
 	float x;
 	float y;
