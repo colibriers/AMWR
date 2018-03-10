@@ -47,9 +47,6 @@ void operator >> (const YAML::Node& node, T& i)
 }
 #endif
 
-
-
-
 int main(int argc, char **argv)
 {
   // laser data
@@ -81,7 +78,7 @@ int main(int argc, char **argv)
   ros::Publisher gmapscan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
   sleep(1);
 
-  param_path.assign("/home/rosindigo/catkin_ws/src/colibri_laser/param/params.yaml");
+  param_path.assign("/home/rosindigo/cl_ws/src/colibri_laser/param/params.yaml");
   ifstream fin_path(param_path.c_str());
 
   
