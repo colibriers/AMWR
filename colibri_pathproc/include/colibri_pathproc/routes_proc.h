@@ -1,35 +1,33 @@
-#ifndef _PATH_PROC_H_
-#define _PATH_PROC_H_
+#ifndef PATH_PROC_H_
+#define PATH_PROC_H_
 
-#include <fstream>
-#include "yaml-cpp/yaml.h"
-
-#include <math.h>
-#include <cmath>
-#include <vector>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
-#include <string.h>
+#include <fstream>
+#include <vector>
 #include <map>
-#include <utility>
-#include <sstream>
 #include <numeric>
 #include <queue>
+#include <sstream>
+#include <string.h>
+#include <utility>
 #include <unistd.h>
 
 #include <ros/ros.h>
-
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/PoseStamped.h"
+#include <nav_msgs/GetPlan.h>
 #include "nav_msgs/Path.h"
 #include "std_msgs/Bool.h"
+#include <visualization_msgs/Marker.h>
+
+#include "yaml-cpp/yaml.h"
+
 #include "colibri_msgs/Coordinator.h"
 #include "colibri_msgs/NavState.h"
 #include "colibri_msgs/RobotCmd.h"
 #include "colibri_msgs/TaskState.h"
-#include "geometry_msgs/PoseStamped.h"
-#include <visualization_msgs/Marker.h>
-#include "geometry_msgs/Pose.h"
-
-#include <nav_msgs/GetPlan.h>
 
 using namespace std;
 extern string routes_path;
@@ -233,5 +231,4 @@ class FindX
 
 };
 
-
-#endif
+#endif //	PATH_PROC_H_
