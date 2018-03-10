@@ -12,7 +12,6 @@ PathProc::PathProc()
 	getlogin_r(user_name, 10);
 	string str_username = user_name;
 	path_name.assign("/home/" + str_username + "/colibri_ws/src/colibri_pathproc/routes/ygl1012_mdf_cut_routes.yaml");
-	map<string, string> tt;
 
 #else
 	string path_name(routes_path);
@@ -29,7 +28,7 @@ PathProc::PathProc()
 	try 
 	{ 
 
-		doc_path["path"] >> tt;
+		doc_path["path"]["image"] >> map_name_;
 		doc_path["path"]["resolution"] >> map_resol_;
 		doc_path["path"]["origin"] >> tt;
 		doc_path["path"]["origin"][0] >> map_origin_[0];
