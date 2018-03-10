@@ -1,0 +1,18 @@
+logic_nodes:
+  sp_nodes_num: 22
+  sp_nodes_id: [5,7,8,9,10,11,12,14,15,16,17,18,20,28,29,33,36,37,38,39,41,42]
+	branch_nodes_num: 2
+  branch_nodes_id: [5, 11]
+  join_nodes_num: 2
+  join_nodes_id: [16, 17]
+  branch_num: 4
+  branch1_map: [5, 20, 90.0]
+  branch2_map: [5, 6, -90.0]
+  branch3_map: [11, 12, 180.0]
+  branch4_map: [11, 40, -90.0]
+func_nodes:
+	init_node_id: [0]
+	waiting_node_id: [1, 2, 3, 4]
+  charge_node_id: [44, 45, 46, 47]
+  upload_node_id: [24, 25]
+	download_node_id: [9, 7]
