@@ -23,26 +23,24 @@
 
 #include <csignal>
 #include <cstdio>
-#include <colibri_laser/LMS1xx.h>
-#include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
-
 #include <fstream> 
 #include <iostream> 
 #include <string.h>
-#include "yaml-cpp/yaml.h" //modified by iwtjatjat at 2018-03-09 09:58
-
 #include <unistd.h>
 
-using namespace std; 
+#include "ros/ros.h"
+#include "sensor_msgs/LaserScan.h"
 
+#include "yaml-cpp/yaml.h" 
+#include <colibri_laser/LMS1xx.h>
+
+using namespace std; 
 
 #define DEG2RAD M_PI/180.0
 #define MIN(x,y) (x<=y)?(x):(y)
 
 #define MANUAL_PATH
 extern string routes_abs_path;
-
 
 #ifdef HAVE_NEW_YAMLCPP
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
@@ -77,12 +75,11 @@ int main(int argc, char **argv)
   //params.yaml
   string param_path;
 
-  #ifdef MANUAL_PATH
+#ifdef MANUAL_PATH
 	char user_name[10];
 	getlogin_r(user_name, 10);
 	string str_username = user_name;
 	param_path.assign("/home/" + str_username + "/colibri_ws/src/colibri_laser/config/params.yaml");
-
 #else
 	param_path(routes_abs_path);
 #endif
