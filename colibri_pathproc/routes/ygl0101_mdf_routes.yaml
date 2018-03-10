@@ -1,4 +1,4 @@
-path:
+routes:
   image: ygl1103_mdf_cut.pgm
   resolution: 0.050000
   origin: [-43.75, -19.8, 0.000000]
