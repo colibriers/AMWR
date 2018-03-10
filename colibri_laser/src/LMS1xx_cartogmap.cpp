@@ -20,7 +20,6 @@
  *   Suite 330, Boston, MA  02111-1307  USA                                *
  *                                                                         *
  ***************************************************************************/
-
 #include <csignal>
 #include <cstdio>
 #include <fstream> 
@@ -40,20 +39,20 @@ using namespace std;
 #define MIN(x,y) (x<=y)?(x):(y)
 
 #define MANUAL_PATH
+//#define ADD_INTENSITY
+
 extern string routes_abs_path;
 
 #ifdef HAVE_NEW_YAMLCPP
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
 // added to provide support for code written under the yaml-cpp 0.3 API.
 template<typename T>
-void operator >> (const YAML::Node& node, T& i)
-{
+void operator >> (const YAML::Node& node, T& i) {
   i = node.as<T>();
 }
 #endif
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   // laser data
   LMS1xx laser;
   scanCfg cfg;
@@ -69,8 +68,8 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   ros::NodeHandle n("~");
 
-	std::string frame_id;
-  std::string gmapframe_id;
+	string frame_id;
+  string gmapframe_id;
 
   sensor_msgs::LaserScan scan_msg;
   sensor_msgs::LaserScan gmapscan_msg;
@@ -98,15 +97,13 @@ int main(int argc, char **argv)
   config["mounting_type"] >> mounting_type;
   ROS_INFO_STREAM("mounting_type = " << mounting_type);
   
-  n.param<std::string>("frame_id", frame_id, "laser_frame");  //cartographer use "laser_frame",
-  n.param<std::string>("gmapframe_id", gmapframe_id, "gmaplaser_frame");  //gmap use "gmaplaser_frame",
+  n.param<string>("frame_id", frame_id, "laser_frame");  //cartographer use "laser_frame",
+  n.param<string>("gmapframe_id", gmapframe_id, "gmaplaser_frame");  //gmap use "gmaplaser_frame",
 
-  while (ros::ok())
-  {
+  while (ros::ok()) {
     ROS_INFO_STREAM("Connecting to laser at " << host);
     laser.connect(host);
-    if (!laser.isConnected())
-    {
+    if (!laser.isConnected()) {
       ROS_WARN("Unable to connect, retrying.");
       ros::Duration(1).sleep();
       continue;
@@ -160,10 +157,8 @@ int main(int argc, char **argv)
     int angle_range = outputRange.stopAngle - outputRange.startAngle;
     int num_values = angle_range / cfg.angleResolution ;
 	
-    if (angle_range % cfg.angleResolution == 0)
-    {
-      // Include endpoint
-      ++num_values;
+    if (angle_range % cfg.angleResolution == 0) {  
+      ++num_values;	// Include endpoint
     }
 
     //ROS_INFO_STREAM("Device num_values is " << num_values);	//modified by iwtjatjat at 2018-03-07 10:10
@@ -199,8 +194,7 @@ int main(int argc, char **argv)
 
     status_t stat = laser.queryStatus();
     ros::Duration(1.0).sleep();
-    if (stat != ready_for_measurement)
-    {
+    if (stat != ready_for_measurement) {
       ROS_WARN("Laser not ready. Retrying initialization.");
       laser.disconnect();
       ros::Duration(1).sleep();
@@ -217,8 +211,7 @@ int main(int argc, char **argv)
 		int rec_flag = 0;
 
 		float tilt_factor = 1.0; //cos(0) = 1.0 ; cos(3)=0.998630; cos(4)=0.997564; cos(5)=0.996195
-    while (ros::ok())
-    {
+    while (ros::ok()) {
       ros::Time start = ros::Time::now();
 
       scan_msg.header.stamp = start;
@@ -228,72 +221,72 @@ int main(int argc, char **argv)
       ++gmapscan_msg.header.seq;	
 
       scanData data;
-      if (laser.getScanData(&data))
-      {
-        for (int i = 0; i < data.dist_len1; i++)
-        {
-       	/*  to handl some mirror reflect exception
-					if(data.dist1[i] * 0.001 > 0.05)  //if scan < 0.05 we believe that is wrong or interference
-					{
-						if(0 == zero_cnt)
-						{
-							scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;  //built for lms1xxinv_node for cartographer 
-							gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;
-						}
-						else
-						{
-							float tmp_scan = data.dist1[i] * 0.001;
-							float min_bnd_scan = MIN(tmp_scan,tmp_zero_bnd);
-							for(int j = 0; j <= zero_cnt; j++)
+      if (laser.getScanData(&data)) {
+				if(mounting_type == down_mounting) {
+					for (int i = 0; i < data.dist_len1; i++) {
+						/*	to handl some mirror reflect exception
+							if(data.dist1[i] * 0.001 > 0.05)	//if scan < 0.05 we believe that is wrong or interference
 							{
-								scan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan;	//care for the over bound
-								gmapscan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan;
+								if(0 == zero_cnt)
+								{
+									scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;	//built for lms1xxinv_node for cartographer 
+									gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;
+								}
+								else
+								{
+									float tmp_scan = data.dist1[i] * 0.001;
+									float min_bnd_scan = MIN(tmp_scan,tmp_zero_bnd);
+									for(int j = 0; j <= zero_cnt; j++)
+									{
+										scan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan; //care for the over bound
+										gmapscan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan;
+									}
+									zero_cnt = 0;
+									rec_flag = 0; 				
+								}
+							
 							}
-							zero_cnt = 0;
-							rec_flag = 0;					
-						}
-					
-					}
-					else
-					{
-						zero_cnt++;
-						if(0 == rec_flag)
+							else
+							{
+								zero_cnt++;
+								if(0 == rec_flag)
+								{
+									tmp_zero_bnd = data.dist1[i-1] * 0.001;
+									rec_flag = 1;
+								}
+								scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
+								gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
+							}
+						*/
+								
+						scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 
+						gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 			
+						
+#ifdef ADD_INTENSITY
+						for (int i = 0; i < data.rssi_len1; i++)
 						{
-							tmp_zero_bnd = data.dist1[i-1] * 0.001;
-							rec_flag = 1;
+							scan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+							gmapscan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+
 						}
-						scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
-						gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
+#endif
 					}
-				*/
-			
-				if(mounting_type!="positive_install") {
-		      scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
-          gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 		  
 				} else {
-				  scan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
-		      gmapscan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer				
+					for (int i = 0; i < data.dist_len1; i++) {
+						scan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
+						gmapscan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer
+
+					}
+
+#ifdef ADD_INTENSITY
+					for (int i = 0; i < data.rssi_len1; i++)
+					{
+							scan_msg.intensities[i] = data.rssi1[i];
+							gmapscan_msg.intensities[i] = data.rssi1[i];
+					}
+#endif
 				}
-		  
-        }
-				
-	/*if(mounting_type=="positive_install")
-	{
-	    for (int i = 0; i < data.rssi_len1; i++)
-            {
-                scan_msg.intensities[i] = data.rssi1[i];
-	        gmapscan_msg.intensities[i] = data.rssi1[i];
-            }
-	}
-	else
-        {
-          for (int i = 0; i < data.rssi_len1; i++)
-            {
-                scan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
-	        gmapscan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
-            }
-        }*/
-		
+        
         ROS_DEBUG("Publishing scan data.");
         scan_pub.publish(scan_msg);
 				gmapscan_pub.publish(gmapscan_msg);
