@@ -206,10 +206,6 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("Commanding continuous measurements.");
     laser.scanContinous(1);
 
-		int zero_cnt = 0;
-		float tmp_zero_bnd = 20.0;
-		int rec_flag = 0;
-
 		float tilt_factor = 1.0; //cos(0) = 1.0 ; cos(3)=0.998630; cos(4)=0.997564; cos(5)=0.996195
     while (ros::ok()) {
       ros::Time start = ros::Time::now();
@@ -224,41 +220,7 @@ int main(int argc, char **argv) {
       if (laser.getScanData(&data)) {
 				if(mounting_type == down_mounting) {
 					for (int i = 0; i < data.dist_len1; i++) {
-						/*	to handl some mirror reflect exception
-							if(data.dist1[i] * 0.001 > 0.05)	//if scan < 0.05 we believe that is wrong or interference
-							{
-								if(0 == zero_cnt)
-								{
-									scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;	//built for lms1xxinv_node for cartographer 
-									gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * tilt_factor * 0.001;
-								}
-								else
-								{
-									float tmp_scan = data.dist1[i] * 0.001;
-									float min_bnd_scan = MIN(tmp_scan,tmp_zero_bnd);
-									for(int j = 0; j <= zero_cnt; j++)
-									{
-										scan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan; //care for the over bound
-										gmapscan_msg.ranges[data.dist_len1-1-i+j] = min_bnd_scan;
-									}
-									zero_cnt = 0;
-									rec_flag = 0; 				
-								}
-							
-							}
-							else
-							{
-								zero_cnt++;
-								if(0 == rec_flag)
-								{
-									tmp_zero_bnd = data.dist1[i-1] * 0.001;
-									rec_flag = 1;
-								}
-								scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
-								gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;
-							}
-						*/
-								
+						
 						scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 
 						gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 			
 						
