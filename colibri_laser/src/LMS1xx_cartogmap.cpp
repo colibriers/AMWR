@@ -31,11 +31,18 @@
 #include <iostream> 
 #include <string.h>
 #include "yaml-cpp/yaml.h" //modified by iwtjatjat at 2018-03-09 09:58
+
+#include <unistd.h>
+
 using namespace std; 
 
 
 #define DEG2RAD M_PI/180.0
 #define MIN(x,y) (x<=y)?(x):(y)
+
+#define MANUAL_PATH
+extern string routes_abs_path;
+
 
 #ifdef HAVE_NEW_YAMLCPP
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
@@ -69,6 +76,16 @@ int main(int argc, char **argv)
   std::string laser_mounting_type;//modified by iwtjatjat at 2018-03-07 09:58
   //params.yaml
   string param_path;
+
+  #ifdef MANUAL_PATH
+	char user_name[10];
+	getlogin_r(user_name, 10);
+	string str_username = user_name;
+	param_path.assign("/home/" + str_username + "/cl_ws/src/colibri_laser/param/params.yaml");
+
+#else
+	param_path(routes_abs_path);
+#endif
   
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
@@ -78,21 +95,12 @@ int main(int argc, char **argv)
   ros::Publisher gmapscan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
   sleep(1);
 
-  param_path.assign("/home/rosindigo/cl_ws/src/colibri_laser/param/params.yaml");
   ifstream fin_path(param_path.c_str());
-
-  
   YAML::Node config = YAML::Load(fin_path); 
   
-  //n.param<std::string>("host", host, "192.168.10.100"); //modified by iwtjatjat at 2018-03-07 09:58
-  //ros::param::get("host",host);
- // host = config["host"].as<std::string>();
   config["host"] >> host;
   ROS_INFO_STREAM("laser_host_IP_address = " << host);
 
-  //modified by iwtjatjat at 2018-03-07 09:58 
-  //ros::param::get("laser_mounting_type",laser_mounting_type);
-  //laser_mounting_type = config["laser_mounting_type"].as<std::string>();
   config["laser_mounting_type"] >> laser_mounting_type;
   ROS_INFO_STREAM("laser_mounting_type = " << laser_mounting_type);
   

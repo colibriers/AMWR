@@ -44,7 +44,7 @@ static bool new_seg_flag = false;
 static bool lock_seg_flag = false;
 
 
-//#define MANUAL_PATH
+#define MANUAL_PATH
 //#define REC_PATH
 
 #ifdef HAVE_NEW_YAMLCPP
