@@ -1,5 +1,5 @@
-#ifndef PATH_PROC_H_
-#define PATH_PROC_H_
+#ifndef ROUTES_PROC_H_
+#define ROUTES_PROC_H_
 
 #include <algorithm>
 #include <cmath>
@@ -69,6 +69,7 @@ struct st_2d_point {
 
 typedef st_2d_point<double> point2d_map;
 typedef st_2d_point<unsigned int> point2d_pix;
+
 
 typedef struct st_pose{
 	float x;
