@@ -76,7 +76,6 @@ PathProc::PathProc()
 		exit(-1);
 	}
 
-	parsed_node_ = 255;
 	req4path_flag = false;
 
 	robot_nav_state_.target_node = 0;

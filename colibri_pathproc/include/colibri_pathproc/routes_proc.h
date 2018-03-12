@@ -170,7 +170,6 @@ class PathProc{
 		
 		int basic_ctrl_;
 		nav_msgs::Path plan_path_;
-		int parsed_node_;
 		bool req4path_flag;
 		
 		bool task_switch_;
