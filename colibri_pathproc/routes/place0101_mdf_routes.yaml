@@ -4,10 +4,10 @@ routes:
   origin: [-43.75, -19.8, 0.000000]
   map_size: [1244, 607]
   seg_num: 2 								# notes: seg total num
-  seg1_property: [1, 0, 1, 0, 0]  # notes: [#seg_num, #start_node, #end_node, #seg_type, #seg_dir]
+  seg1_property: [1, 0, 1, 0, 0, 90]  # notes: [#seg_num, #start_node, #end_node, #seg_type, #seg_dir, #arc_rad]
   seg1_vector: [876, 211, 929, 211] #notes: [start.pix.x, start.pix.y, end.pix.x, end.pix.y]
   seg1_heading: 0.00  #cur seg heading
-  seg2_property: [2, 1, 2, 0, 0]
+  seg2_property: [2, 1, 2, 0, 0, 180]
   seg2_vector: [929, 211, 986, 211]
   seg2_heading: 0.00
 
