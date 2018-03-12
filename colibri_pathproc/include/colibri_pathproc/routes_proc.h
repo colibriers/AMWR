@@ -70,13 +70,11 @@ struct st_2d_point {
 typedef st_2d_point<double> point2d_map;
 typedef st_2d_point<unsigned int> point2d_pix;
 
-
 typedef struct st_pose{
 	float x;
 	float y;
 	float yaw;
 }pose;
-
 
 typedef struct st_segment{
 	int seg_id;
@@ -121,8 +119,8 @@ typedef struct st_route_list
 }route_list;
 
 void Int2String(const int & i_val, string &str);
-bool VerticalLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &ver_line);
-bool BresenhamBasic(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line);
+bool VerticalLine(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &ver_line);
+bool BresenhamBasic(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &point_at_line);
 bool CalcPixesInLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line);
 
 
@@ -235,4 +233,4 @@ class FindX
 
 };
 
-#endif //	PATH_PROC_H_
+#endif //	ROUTES_PROC_H_

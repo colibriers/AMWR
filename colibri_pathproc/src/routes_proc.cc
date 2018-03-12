@@ -944,7 +944,7 @@ void PathProc::HandleRecvRoute(void)
 
 }
 
-bool VerticalLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &ver_line)
+bool VerticalLine(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &ver_line)
 {
 	
 	point2d_pix tmp_point;
@@ -975,7 +975,7 @@ bool VerticalLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &ver
 
 }
 
-bool BresenhamBasic(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line) 
+bool BresenhamBasic(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &point_at_line) 
 {  
 	// Calc the slop [0, 1] bresenham
 	int dx = fabs(end.x - start.x);
