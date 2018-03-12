@@ -61,8 +61,10 @@ int main(int argc, char **argv) {
 	
   // parameters
   string host;
-	string mounting_type;
-	const string down_mounting = "downward";
+  string mounting_type;
+  const string down_mounting = "downward";
+  string add_intensity;
+  const string add_in= "add";
 		
   ros::init(argc, argv, "lms1xx_cartogmap");
   ros::NodeHandle nh;
@@ -95,6 +97,7 @@ int main(int argc, char **argv) {
   
   config["host"] >> host;
   config["mounting_type"] >> mounting_type;
+  config["add_intensity"] >> add_intensity;
   ROS_INFO_STREAM("mounting_type = " << mounting_type);
   
   n.param<string>("frame_id", frame_id, "laser_frame");  //cartographer use "laser_frame",
@@ -218,12 +221,15 @@ int main(int argc, char **argv) {
 
       scanData data;
       if (laser.getScanData(&data)) {
-				if(mounting_type == down_mounting) {
-					for (int i = 0; i < data.dist_len1; i++) {
+				if(mounting_type == down_mounting) 
+				{
+					for (int i = 0; i < data.dist_len1; i++) 
+					{
 						
 						scan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 
 						gmapscan_msg.ranges[data.dist_len1-1-i] = data.dist1[i] * 0.001;	//built for lms1xxinv_node for cartographer 			
 						
+/*
 #ifdef ADD_INTENSITY
 						for (int i = 0; i < data.rssi_len1; i++)
 						{
@@ -232,14 +238,20 @@ int main(int argc, char **argv) {
 
 						}
 #endif
+*/                                              
+											   	
 					}
-				} else {
-					for (int i = 0; i < data.dist_len1; i++) {
+				} 
+				else 
+				{
+					for (int i = 0; i < data.dist_len1; i++) 
+					{
 						scan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer 
 						gmapscan_msg.ranges[i] = data.dist1[i] * 0.001;  //built for lms1xxinv_node for cartographer
 
 					}
 
+/*
 #ifdef ADD_INTENSITY
 					for (int i = 0; i < data.rssi_len1; i++)
 					{
@@ -247,6 +259,25 @@ int main(int argc, char **argv) {
 							gmapscan_msg.intensities[i] = data.rssi1[i];
 					}
 #endif
+*/
+				}
+
+				if(mounting_type == down_mounting && add_intensity== add_in) 
+				{
+					for (int i = 0; i < data.rssi_len1; i++)
+					 {
+					        scan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+					        gmapscan_msg.intensities[data.rssi_len1-1-i] = data.rssi1[i];
+
+					 }
+				}
+				else if(mounting_type != down_mounting && add_intensity== add_in)
+				{
+				       for (int i = 0; i < data.rssi_len1; i++)
+					{
+						scan_msg.intensities[i] = data.rssi1[i];
+						gmapscan_msg.intensities[i] = data.rssi1[i];
+					}
 				}
         
         ROS_DEBUG("Publishing scan data.");
