@@ -70,16 +70,21 @@ struct st_2d_point {
 typedef st_2d_point<double> point2d_map;
 typedef st_2d_point<unsigned int> point2d_pix;
 
-typedef struct st_pose{
-	float x;
-	float y;
-	float yaw;
-}pose;
+template <typename T>
+struct st_pose{
+	T x;
+	T y;
+	T yaw;
+};
+typedef st_pose<float> pose;
 
 typedef struct st_segment{
 	int seg_id;
 	int start_id;
 	int end_id;
+	int seg_type;
+	int seg_dir;
+	int arc_deg;
 	vector<point2d_pix> points_pix;
 	vector<point2d_map> points_map;
 }segment;
@@ -88,6 +93,7 @@ typedef struct st_nav_state{
 	int target_node;
 	int target_heading;
 	int cur_seg;
+	int cur_node;
 	bool at_target_flag;
 	bool achieve_flag;
 	int task_succ_flag;
