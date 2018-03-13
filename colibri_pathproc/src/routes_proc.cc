@@ -91,16 +91,6 @@ PathProc::PathProc()
 	robot_nav_state_.robot.yaw = 0.0;
 	robot_nav_state_.err_code = 0;
 
-	robot_cmd_.target_node = 0;
-	robot_cmd_.clr_at_target = 1;
-	robot_cmd_.clr_achieve_target = 1;
-	robot_cmd_.basic_ctrl = 0;
-	robot_cmd_.cur_seg = 44;
-	robot_cmd_.pre_situated_node = 0;
-	robot_cmd_.task_succ_flag = 1;
-	robot_cmd_.music_mode = 127;
-	robot_cmd_.screen_mode = 127;
-
 
 	cur_route_.target_id = 0;
 	cur_route_.target_heading = 0.0;
@@ -108,7 +98,6 @@ PathProc::PathProc()
 	micro_seg_num_ = 1;
 	task_switch_ = false;
 
-	sub_seg_index_cache_ = 1;
 
 
 	//cout<<"Load map: "<<map_name_<<endl;
@@ -119,7 +108,6 @@ PathProc::PathProc()
 	sub_nav_state_ = nh_route_.subscribe<colibri_msgs::NavState>("/nav_state", 1, &PathProc::NavStateCallBack, this);
 	pub_marker_ = nh_route_.advertise<visualization_msgs::Marker>("waypoint_markers", 1);
  	//srv4getpath_ = nh_route_.advertiseService("/move_base/make_plan", &PathProc::ExecGetPathSrv, this);
-	pub_robot_cmd_ = nh_route_.advertise<colibri_msgs::RobotCmd>("/robot_cmd", 1);
 	//pub_task_state_ = nh_route_.advertise<colibri_msgs::TaskState>("/task_state", 1);
 
 
@@ -221,69 +209,6 @@ bool PathProc::CalcNearestNode(float & robot_x, float &robot_y, int & nearest_no
 	}
 
 }
-
-void PathProc::FillRobotCmd(void)
-{
-	static int confirm_cnt = 0;
-	int near_node = 0;
-	float robot_x = 0.0;
-	float robot_y = 0.0;
-
-	robot_cmd_.target_node = cur_route_.target_id ;
-	
-	if(robot_nav_state_.at_target_flag == true)
-	{
-		robot_cmd_.clr_at_target = 1;
-	}
-	else
-	{
-		robot_cmd_.clr_at_target = 0;
-
-	}
-
-	robot_cmd_.basic_ctrl = basic_ctrl_;
-
-	robot_cmd_.pre_situated_node = 127;
-	
-	if(sub_seg_index_cache_ == (micro_seg_num_ - 1)) 
-	{
-		if(robot_nav_state_.achieve_flag == true)
-		{
-			confirm_cnt ++;
-		}
-		
-		if(confirm_cnt > 25)
-		{
-			robot_cmd_.task_succ_flag = 1;
-			confirm_cnt = 0;
-		}
-		else
-		{
-		
-		}
-		
-	}
-	else
-	{
-		robot_cmd_.task_succ_flag = 0;
-	}
-
-	if(robot_cmd_.task_succ_flag == 1)
-	{
-		robot_x = robot_nav_state_.robot.x;
-		robot_y = robot_nav_state_.robot.y;
-		CalcNearestNode(robot_x, robot_y, near_node);
-		robot_cmd_.cur_seg  = near_node;
-	}
-	else
-	{
-		robot_cmd_.cur_seg = seg_prenode_map_[cur_seg_];
-	}
-
-	robot_cmd_.music_mode = 127;
-	robot_cmd_.screen_mode = 127; 
-}
-
 
 
 /* Calc the bresham line pix coordinate from all existed segs to fill in segment struct vec_seg_*/
@@ -817,7 +742,6 @@ void PathProc::NavStateCallBack(const colibri_msgs::NavState::ConstPtr& nav_stat
 void PathProc::CoordinatorCallBack(const colibri_msgs::Coordinator::ConstPtr& coordinator)
 {
 	int seg_num = 0;
-	cur_route_.seg_list.clear();
 	vector<int> ().swap(cur_route_.seg_list);
 	basic_ctrl_ = coordinator->basic_ctrl;
 	cur_route_.target_id = coordinator->target_node;
@@ -854,90 +778,12 @@ void PathProc::CoordinatorCallBack(const colibri_msgs::Coordinator::ConstPtr& co
 	
 }
 
-void PathProc::ClearFlags4NextTask(void)
-{
-	static int delay_cnt = 0;
-	static bool lock_flag = false;
-	if(task_switch_ == true)
-	{
-		lock_flag = true;
-	}
-
-	if((lock_flag == true) && (delay_cnt < 10))
-	{
-		sub_seg_index = 0;
-		new_seg_flag = false;
-		lock_seg_flag = false;
-		micro_seg_num_ = 1;
-		task_switch_ = false;
-		robot_cmd_.clr_at_target = 0;
-		robot_cmd_.clr_achieve_target = 1;
-		robot_cmd_.task_succ_flag = 0;
-		sub_seg_index_cache_ = 1;
-		delay_cnt++;
-	}
-	else
-	{
-		delay_cnt = 0;
-		lock_flag = false;
-
-	}
-	
-	
-}
-
 void PathProc::HandleRecvRoute(void)
 {
-	AddTargetNode2KneeNodes(cur_route_.target_id);
-	DecomposeRoute(cur_route_.seg_list, updated_knee_nodes_, micro_seg_num_);
-	//cout<<"+++ micro_seg_num_ : "<<micro_seg_num_<<endl;
-	//cout<<"--- sub_seg_index : "<<sub_seg_index<<endl;
-	
-	if(micro_seg_num_ > 1)
-	{
-		if(robot_nav_state_.achieve_flag && (lock_seg_flag == false))
-		{
-			sub_seg_index++;
-			if(sub_seg_index == micro_seg_num_)
-			{
-				sub_seg_index = micro_seg_num_ - 1;
-				robot_cmd_.clr_achieve_target = 0;
-			}
-			else
-			{
-				robot_cmd_.clr_achieve_target = 1;
-			}
-			lock_seg_flag = true;
-		}
-		else
-		{
-			robot_cmd_.clr_achieve_target = 0;			
-		}
 
-		if(sub_seg_index < micro_seg_num_)
-		{
-			CatSeg2Route(sub_route_vec_[sub_seg_index]);
-		}
+	CatSeg2Route(cur_route_);
 		
-	}
-	else
-	{
-		sub_seg_index = 0;
-		/*
-		if(robot_nav_state_.achieve_flag)
-		{
-			robot_cmd_.clr_achieve_target = 1;
-		}
-		else
-		{
-			robot_cmd_.clr_achieve_target = 0;
-		}
-		*/
-		CatSeg2Route(sub_route_vec_[sub_seg_index]);
-		
-	}
 
-	sub_seg_index_cache_ = sub_seg_index;
 	StdNavPath(route_map_);
 
 

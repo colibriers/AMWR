@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
 
 	st_test tt(1,2);
 
-
 	point2d_map cur_robot = {0.0, 0.0};
 	int cur_seg = 1;
 
@@ -52,16 +51,13 @@ int main(int argc, char *argv[])
 		if(get_coordinator_flag == true)
 		{
 			get_coordinator_flag = false;
-			pathProcObj.ClearFlags4NextTask();
 			pathProcObj.HandleRecvRoute();
 
 			pathProcObj.pub_route_.publish(pathProcObj.plan_path_);
 			cur_seg = pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.sub_route_vec_[pathProcObj.sub_seg_index_cache_], pathProcObj.route_map_);
-			pathProcObj.FillRobotCmd();
 			pathProcObj.FillMarkerPose(pathProcObj.cur_route_);
 		}
 		
-		pathProcObj.pub_robot_cmd_.publish(pathProcObj.robot_cmd_);
 		pathProcObj.pub_marker_.publish(pathProcObj.goalmark_list_);	
 		//cout<<"robot cur_seg: "<<cur_seg<<endl;
 		

@@ -82,9 +82,6 @@ typedef struct st_segment{
 	int seg_id;
 	int start_id;
 	int end_id;
-	int seg_type;
-	int seg_dir;
-	int arc_deg;
 	vector<point2d_pix> points_pix;
 	vector<point2d_map> points_map;
 }segment;
@@ -113,6 +110,10 @@ typedef struct st_seg_prop{
 	int seg_id;
 	int start_id;
 	int end_id;
+	int seg_type;
+	int seg_dir;
+	int arc_deg;
+	float seg_heading;
 	point2d_pix start;
 	point2d_pix end;
 }seg_property;
@@ -139,7 +140,6 @@ class PathProc{
 		ros::Subscriber sub_nav_state_;
 		ros::Publisher pub_route_;
 		ros::Publisher pub_marker_;
-		ros::Publisher pub_robot_cmd_;
 		ros::Publisher pub_task_state_;
 		
 		ros::ServiceServer srv4getpath_;
@@ -198,12 +198,10 @@ class PathProc{
 		bool StdNavPath(vector<point2d_map> &nav_path);
 		bool ExecGetPathSrv(nav_msgs::GetPlan::Request & req, nav_msgs::GetPlan::Response & res);
 		int FillMarkerPose(route_list & route);
-		void FillRobotCmd(void);
 		void HandleRecvRoute(void);
 		int CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path);
 		void Seg2LengthMap(void);
 		//void FillTaskState(void);	
-		void ClearFlags4NextTask(void);
 		bool CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node);
 
 	private:
