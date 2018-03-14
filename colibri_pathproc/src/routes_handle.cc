@@ -26,12 +26,12 @@ int main(int argc, char *argv[])
 
 	Routes ObjRoutes;
 	PathProc pathProcObj;
-	pathProcObj.ptrRoutes = &ObjRoutes;
+	pathProcObj.ptrRoutes_ = &ObjRoutes;
 
 	point2d_map cur_robot = {0.0, 0.0};
 	int cur_seg = 1;
 	
-	pathProcObj.ptrRoutes->SetupMapping();
+	pathProcObj.ptrRoutes_->SetupMapping();
 	pathProcObj.InitMarkers();
 	
 	while(ros::ok())

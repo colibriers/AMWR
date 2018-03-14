@@ -2,7 +2,7 @@
 
 bool get_coordinator_flag = false;
 
-Routes::Routes(){
+Routes::Routes() {
 	LoadRoutes();
 }
 
@@ -97,8 +97,7 @@ void Routes::SetupMapping(void) {
 		cout<<"Null vec_seg_property_"<<endl;
 		return;
 	}
-	for(vector<seg_property>::iterator it = vec_seg_property_.begin(); it != vec_seg_property_.end(); ++it)
-	{
+	for(vector<seg_property>::iterator it = vec_seg_property_.begin(); it != vec_seg_property_.end(); ++it) {
 		seg_postnode_map_.insert(pair<int, int>((*it).seg_id, (*it).end_id));
 		seg_prenode_map_.insert(pair<int, int>((*it).seg_id, (*it).start_id));
 		node_seg_map_.insert(pair<int, int>((*it).end_id, (*it).seg_id));
@@ -108,29 +107,21 @@ void Routes::SetupMapping(void) {
 	Seg2LengthMap();
 }
 
-void Routes::Pix2Map(vector<point2d_pix> &points_pix, vector<point2d_map> &points_map)
-{
+void Routes::Pix2Map(vector<point2d_pix> &points_pix, vector<point2d_map> &points_map) {
 	point2d_map tmp;
-	for (vector<point2d_pix>::iterator it = points_pix.begin(); it!=points_pix.end(); ++it)
-	{
+	for (vector<point2d_pix>::iterator it = points_pix.begin(); it!=points_pix.end(); ++it) {
 		int tmp_x = (*it).x;
 		int tmp_y = map_info_.size[1] - (*it).y;
 		tmp.x = (float) (map_info_.origin[0] + tmp_x * map_info_.resol);
 		tmp.y = (float) (map_info_.origin[1] + tmp_y * map_info_.resol);
 		points_map.push_back(tmp);
-		
 	}
 }
 
 /* Calc the bresham line pix coordinate from all existed segs to fill in segment struct vec_seg_*/
-void Routes::CalcAllPointsInSegs(void) 
-{
+void Routes::CalcAllPointsInSegs(void) {
 	vector<segment> ().swap(vec_seg_);
-	segment tmp;
-	
-	for (vector<seg_property>::iterator it = vec_seg_property_.begin(); it!=vec_seg_property_.end(); ++it)
-	{
-
+	for (vector<seg_property>::iterator it = vec_seg_property_.begin(); it!=vec_seg_property_.end(); ++it) {
 		segment tmp;
 		tmp.seg_id = (*it).seg_id;
 		tmp.start_id = (*it).start_id;
@@ -138,64 +129,48 @@ void Routes::CalcAllPointsInSegs(void)
 		CalcPixesInLine((*it).start, (*it).ending, tmp.points_pix);
 		Pix2Map(tmp.points_pix, tmp.points_map);
 		vec_seg_.push_back(tmp);
-
 	}
-	
 }
 
-void Routes::Seg2LengthMap(void)
-{
+void Routes::Seg2LengthMap(void) {
 	int tmp_length = 0;
 	seg_length_map_.clear();
 	
-	for(vector<segment>::iterator it = vec_seg_.begin(); it != vec_seg_.end(); ++it)
-	{
+	for(vector<segment>::iterator it = vec_seg_.begin(); it != vec_seg_.end(); ++it) {
 		tmp_length = (*it).points_map.size() - 1;
 		seg_length_map_.insert(pair<int, int>((*it).seg_id, tmp_length));
 	}
 }
 
-bool Routes::AddTargetNode2KneeNodes(const int &target_node)
-{
-	updated_knee_nodes_.clear();
+bool Routes::AddTargetNode2KneeNodes(const int &target_node) {
 	vector<int> ().swap(updated_knee_nodes_);
-	
 	vector<int> tmp_knee(knee_nodes_);
 
-	for(vector<int>::iterator it = tmp_knee.begin(); it != tmp_knee.end(); ++it)
-	{
+	for(vector<int>::iterator it = tmp_knee.begin(); it != tmp_knee.end(); ++it) {
 		updated_knee_nodes_.push_back(*it);
 	}
 		
 	vector<int>::iterator iElement = find(knee_nodes_.begin(), knee_nodes_.end(), target_node);	
-	if(iElement == knee_nodes_.end())
-	{
+	if(iElement == knee_nodes_.end()) {
 		updated_knee_nodes_.push_back(target_node);	
 		return true;
-	}
-	else
-	{
+	} else {
 		return false;
 	}
 
 }
 
 /* Calc the sub segs from a known seg_list which is the whole route from hostpc and decompose it into sub_route_vec_*/
-bool Routes::DecomposeRoute(vector<int> &seg_list, vector<int> &check_nodes, int &sub_route_num)
-{
+bool Routes::DecomposeRoute(vector<int> &seg_list, vector<int> &check_nodes, int &sub_route_num) {
 	vector<route_list> ().swap(sub_route_vec_);
-
 	vector<int> remain_segs(seg_list);
 	route_list tmp_sub_route;
 	sub_route_num = 0;
-	for(vector<int>::iterator it = remain_segs.begin(); it != remain_segs.end(); ++it) //get every segs in the whole route
-	{
+	for(vector<int>::iterator it = remain_segs.begin(); it != remain_segs.end(); ++it) {
 		int tmp_node = this->seg_postnode_map_[*it];
 		vector<int>::iterator iElement = find(check_nodes.begin(), check_nodes.end(), tmp_node);// check the node in route is in check_nodes
-		if(iElement != check_nodes.end())	//node in the check_nodes
-		{
-			for(vector<int>::iterator sub_it = remain_segs.begin(); sub_it <= it; ++sub_it)
-			{
+		if(iElement != check_nodes.end())	{
+			for(vector<int>::iterator sub_it = remain_segs.begin(); sub_it <= it; ++sub_it) {
 				tmp_sub_route.seg_list.push_back(*sub_it);
 			}
 			tmp_sub_route.target_id = *iElement;
@@ -207,30 +182,22 @@ bool Routes::DecomposeRoute(vector<int> &seg_list, vector<int> &check_nodes, int
 		vector<int> ().swap(tmp_sub_route.seg_list);		
 	}
 
-
 	int sub_num = sub_route_vec_.size(); 
-	for(int i = 1; i < sub_num; i++)
-	{
-		for(vector<int>::iterator index = sub_route_vec_[sub_num-1-i].seg_list.begin(); index < sub_route_vec_[sub_num-1-i].seg_list.end(); ++index)
-		{
+	for(int i = 1; i < sub_num; i++) {
+		for(vector<int>::iterator index = sub_route_vec_[sub_num-1-i].seg_list.begin(); index < sub_route_vec_[sub_num-1-i].seg_list.end(); ++index) {
 			vector<int>::iterator iElem = find(sub_route_vec_[sub_num-i].seg_list.begin(), sub_route_vec_[sub_num-i].seg_list.end(), (*index));
 			sub_route_vec_[sub_num-i].seg_list.erase(iElem);
 		}
 	}
 
-
 	return true;
 	
 }
 
-
-PathProc::PathProc()
-{
-
+PathProc::PathProc() {
 	cur_route_.target_id = 0;
 	cur_route_.target_heading = 0.0;
 	cur_seg_ = 48;
-	micro_seg_num_ = 1;
 	task_switch_ = false;
 
 	pub_route_ = nh_route_.advertise<nav_msgs::Path>("/nav_path", 1);
@@ -240,13 +207,11 @@ PathProc::PathProc()
 
 }
 
-PathProc::~PathProc()
-{
+PathProc::~PathProc() {
 
 }
 
-void PathProc::InitMarkers(void)
-{
+void PathProc::InitMarkers(void) {
 	goalmark_list_.ns       = "waypoints";
 	goalmark_list_.id       = 0;
 	goalmark_list_.type     = visualization_msgs::Marker::CUBE_LIST;
@@ -264,17 +229,13 @@ void PathProc::InitMarkers(void)
 
 }
 
-int PathProc::FillMarkerPose(route_list & route)
-{
-
+int PathProc::FillMarkerPose(route_list & route) {
 	goalmark_list_.points.clear();
 	geometry_msgs::Pose subgoal_list;
 
-	for(vector<int>::iterator it = route.seg_list.begin(); it != route.seg_list.end(); ++it)
-	{
+	for(vector<int>::iterator it = route.seg_list.begin(); it != route.seg_list.end(); ++it) {
 		vector<segment>::iterator tmp_it = find_if(vec_seg_.begin(), vec_seg_.end(),FindX<int,segment>(*it));
-		if(tmp_it != vec_seg_.end())
-		{
+		if(tmp_it != vec_seg_.end()) {
 			subgoal_list.position.x = (*tmp_it).points_map.back().x;
 			subgoal_list.position.y = (*tmp_it).points_map.back().y;
 			subgoal_list.orientation.w = 1.0;
@@ -284,8 +245,7 @@ int PathProc::FillMarkerPose(route_list & route)
 	return goalmark_list_.points.size();
 }
 
-bool PathProc::CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node)
-{
+bool PathProc::CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node) {
 	vector<float> delta_r2node;
 	float tmp_delta = 0.0;
 	float tmp_node_x = 0.0;
@@ -373,8 +333,8 @@ bool PathProc::MapPose2NavNode(point2d_map & pose, int & rev_node_id)
 	point2d_pix tmp_uv;
 	vector<seg_property> tt(vec_seg_property_);
 
-	tmp_uv.x =  (pose.x - ptrRoutes->map_info_.origin[0]) / ptrRoutes->map_info_.resol;
-	tmp_uv.y =  ptrRoutes->map_info_.size[1] - (pose.y - ptrRoutes->map_info_.origin[1]) / ptrRoutes->map_info_.resol;
+	tmp_uv.x =  (pose.x - ptrRoutes_->map_info_.origin[0]) / ptrRoutes_->map_info_.resol;
+	tmp_uv.y =  ptrRoutes_->map_info_.size[1] - (pose.y - ptrRoutes_->map_info_.origin[1]) / ptrRoutes_->map_info_.resol;
 
 	if(NavPixValid(tmp_uv))
 	{
@@ -407,7 +367,7 @@ bool PathProc::MapPose2NavNode(point2d_map & pose, int & rev_node_id)
 
 bool PathProc::NavPixValid(point2d_pix &pix_uv)
 {
-	if(pix_uv.x >= ptrRoutes->map_info_.size[0] || pix_uv.x <= 0 || pix_uv.y >= ptrRoutes->map_info_.size[1] || pix_uv.y <= 0 )
+	if(pix_uv.x >= ptrRoutes_->map_info_.size[0] || pix_uv.x <= 0 || pix_uv.y >= ptrRoutes_->map_info_.size[1] || pix_uv.y <= 0 )
 	{
 		return false;
 	}
@@ -478,7 +438,7 @@ void PathProc::CalcLengthStairs(vector<int> & path_seg_id, vector<int> &len_stai
 
 	for(vector<int>::iterator it = path_seg_id.begin(); it != path_seg_id.end(); ++it)
 	{
-		tmp_len_vec.push_back(ptrRoutes->seg_length_map_[*it]);	
+		tmp_len_vec.push_back(ptrRoutes_->seg_length_map_[*it]);	
 	}
 
 	for(vector<int>::iterator it_len = tmp_len_vec.begin(); it_len != tmp_len_vec.end(); ++it_len)

@@ -208,7 +208,7 @@ class PathProc {
 
 	public:
 				
-		Routes *ptrRoutes;
+		Routes *ptrRoutes_;
 
 		ros::NodeHandle nh_route_;
 		ros::Subscriber sub_coodinator_;
@@ -218,13 +218,11 @@ class PathProc {
 
 		visualization_msgs::Marker  goalmark_list_;
 		colibri_msgs::RobotCmd robot_cmd_;
-		int  micro_seg_num_;
 		route_list cur_route_;
 		vector<seg_property> vec_seg_property_;
 		vector<segment> vec_seg_;
 		vector<point2d_map> route_map_;
 		vector<point2d_pix> route_pix_;
-
 
 		nav_state robot_nav_state_;
 		int cur_seg_;
