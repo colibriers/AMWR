@@ -239,7 +239,7 @@ class PathProc {
 		bool StdNavPath(vector<point2d_map> &nav_path);
 		int FillMarkerPose(route_list & route);
 		void HandleRecvRoute(void);
-		int CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path);
+		void CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path);
 
 		bool CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node);
 

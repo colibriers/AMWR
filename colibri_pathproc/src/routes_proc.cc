@@ -377,7 +377,7 @@ bool PathProc::NavPixValid(point2d_pix &pix_uv)
 	}
 }
 
-int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path)
+void PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path)
 {
 	int path_total_len = straight_path.size();
 	vector<float> delta_dis;
@@ -389,7 +389,7 @@ int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, v
 	if(cur_route.seg_list.empty())
 	{
 		cur_seg_ = last_cur_seg;
-		return cur_seg_;	
+		return ;	
 	}
 	else
 	{
@@ -425,7 +425,7 @@ int PathProc::CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, v
 	cur_seg_ = cur_seg;
 	last_cur_seg = cur_seg_;
 
-	return cur_seg_;
+	return ;
 }
 
 void PathProc::CalcLengthStairs(vector<int> & path_seg_id, vector<int> &len_stairs)

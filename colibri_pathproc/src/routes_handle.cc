@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 	pathProcObj.ptrRoutes_ = &ObjRoutes;
 
 	point2d_map cur_robot = {0.0, 0.0};
-	int cur_seg = 1;
 	
 	pathProcObj.ptrRoutes_->SetupMapping();
 	pathProcObj.InitMarkers();
@@ -46,12 +45,12 @@ int main(int argc, char *argv[])
 			pathProcObj.HandleRecvRoute();
 
 			pathProcObj.pub_route_.publish(pathProcObj.plan_path_);
-			cur_seg = pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.cur_route_, pathProcObj.route_map_);
+			pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.cur_route_, pathProcObj.route_map_);
 			pathProcObj.FillMarkerPose(pathProcObj.cur_route_);
 		}
 		
 		pathProcObj.pub_marker_.publish(pathProcObj.goalmark_list_);	
-		//cout<<"robot cur_seg: "<<cur_seg<<endl;
+		//cout<<"robot cur_seg: "<<pathProcObj.cur_seg_<<endl;
 		
 		ros::spinOnce();	  
 		loop_rate.sleep();
