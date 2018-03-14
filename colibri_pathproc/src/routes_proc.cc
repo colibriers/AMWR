@@ -327,11 +327,10 @@ bool PathProc::StdNavPath(vector<point2d_map> &nav_path)
 	
 }
 
-bool PathProc::MapPose2NavNode(point2d_map & pose, int & rev_node_id)
+bool PathProc::MapPose2NavNode(const point2d_map & pose, int & rev_node_id)
 {
 
 	point2d_pix tmp_uv;
-	vector<seg_property> tt(vec_seg_property_);
 
 	tmp_uv.x =  (pose.x - ptrRoutes_->map_info_.origin[0]) / ptrRoutes_->map_info_.resol;
 	tmp_uv.y =  ptrRoutes_->map_info_.size[1] - (pose.y - ptrRoutes_->map_info_.origin[1]) / ptrRoutes_->map_info_.resol;
@@ -339,7 +338,7 @@ bool PathProc::MapPose2NavNode(point2d_map & pose, int & rev_node_id)
 	if(NavPixValid(tmp_uv))
 	{
 		
-		for(vector<seg_property>::iterator it = tt.begin(); it != tt.end(); it++)
+		for(vector<seg_property>::iterator it = ptrRoutes_->vec_seg_property_.begin(); it != ptrRoutes_->vec_seg_property_.end(); it++)
 		{
 
 			int delta_u = abs((*it).ending.x - tmp_uv.x);

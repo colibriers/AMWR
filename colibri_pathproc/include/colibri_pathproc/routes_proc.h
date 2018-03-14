@@ -217,9 +217,7 @@ class PathProc {
 		ros::Publisher pub_marker_;
 
 		visualization_msgs::Marker  goalmark_list_;
-		colibri_msgs::RobotCmd robot_cmd_;
 		route_list cur_route_;
-		vector<seg_property> vec_seg_property_;
 		vector<segment> vec_seg_;
 		vector<point2d_map> route_map_;
 		vector<point2d_pix> route_pix_;
@@ -248,7 +246,7 @@ class PathProc {
 		void CoordinatorCallBack(const colibri_msgs::Coordinator::ConstPtr& coordinator);
 		void NavStateCallBack(const colibri_msgs::NavState::ConstPtr& nav_state);
 		bool NavPixValid(const point2d_pix &pix_uv) const;
-		bool MapPose2NavNode(point2d_map & pose, int & rev_node_id);
+		bool MapPose2NavNode(const point2d_map & pose, int & rev_node_id);
 		void CalcLengthStairs(vector<int> & path_seg_id, vector<int> &len_stairs);			
 
 };

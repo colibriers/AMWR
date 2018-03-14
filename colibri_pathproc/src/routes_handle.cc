@@ -12,7 +12,7 @@ string routes_path;
 int main(int argc, char *argv[])
 {
 
-	ros::init(argc, argv, "Path_Handle_Node");
+	ros::init(argc, argv, "Routes_Handle_Node");
 	ros::NodeHandle nh;
 	
 	ros::Rate loop_rate(5);
