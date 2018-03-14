@@ -245,17 +245,17 @@ int PathProc::FillMarkerPose(route_list & route) {
 	return goalmark_list_.points.size();
 }
 
-bool PathProc::CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node) {
+bool PathProc::CalcNearestNode(const point2d_map &cur_robot, int & nearest_node) {
 	vector<float> delta_r2node;
 	float tmp_delta = 0.0;
-	float tmp_node_x = 0.0;
-	float tmp_node_y = 0.0;
+	point2d_map tmp_pose;
+
 	int index = 0;
 	for(vector<segment>::iterator it = vec_seg_.begin(); it != vec_seg_.end(); ++it)
 	{
-		tmp_node_x = it->points_map.back().x;
-		tmp_node_y = it->points_map.back().y;
-		tmp_delta = sqrt(pow(tmp_node_x - robot_x, 2) + pow(tmp_node_y - robot_y, 2));
+		tmp_pose.x = it->points_map.back().x;
+		tmp_pose.y = it->points_map.back().y;
+		tmp_delta = sqrt(pow(tmp_pose.x - cur_robot.x, 2) + pow(tmp_pose.y - cur_robot.y, 2));
 		delta_r2node.push_back(tmp_delta);
 	}
 
@@ -365,7 +365,7 @@ bool PathProc::MapPose2NavNode(point2d_map & pose, int & rev_node_id)
 
 }
 
-bool PathProc::NavPixValid(point2d_pix &pix_uv)
+bool PathProc::NavPixValid(const point2d_pix &pix_uv) const
 {
 	if(pix_uv.x >= ptrRoutes_->map_info_.size[0] || pix_uv.x <= 0 || pix_uv.y >= ptrRoutes_->map_info_.size[1] || pix_uv.y <= 0 )
 	{

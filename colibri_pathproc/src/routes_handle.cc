@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
 		{
 			get_coordinator_flag = false;
 			pathProcObj.HandleRecvRoute();
-
 			pathProcObj.pub_route_.publish(pathProcObj.plan_path_);
 			pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.cur_route_, pathProcObj.route_map_);
 			pathProcObj.FillMarkerPose(pathProcObj.cur_route_);

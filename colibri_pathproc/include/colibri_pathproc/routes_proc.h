@@ -241,13 +241,13 @@ class PathProc {
 		void HandleRecvRoute(void);
 		void CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path);
 
-		bool CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node);
+		bool CalcNearestNode(const point2d_map & cur_pose, int & nearest_node);
 
 	private:
 
 		void CoordinatorCallBack(const colibri_msgs::Coordinator::ConstPtr& coordinator);
 		void NavStateCallBack(const colibri_msgs::NavState::ConstPtr& nav_state);
-		bool NavPixValid(point2d_pix &pix_uv);
+		bool NavPixValid(const point2d_pix &pix_uv) const;
 		bool MapPose2NavNode(point2d_map & pose, int & rev_node_id);
 		void CalcLengthStairs(vector<int> & path_seg_id, vector<int> &len_stairs);			
 
