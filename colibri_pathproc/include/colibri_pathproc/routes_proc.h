@@ -31,18 +31,14 @@
 
 using namespace std;
 extern string routes_path;
-extern string sp_nodes_path;
-extern ofstream  file1; 
 
 extern bool get_coordinator_flag;
-static int last_task_node = 127;
+static int last_task_node = 255;
 
-static int sub_seg_index = 0;
 static bool new_seg_flag = false;
 static bool lock_seg_flag = false;
 
 #define MANUAL_PATH
-//#define REC_PATH
 
 #ifdef HAVE_NEW_YAMLCPP
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
@@ -78,6 +74,32 @@ struct st_pose{
 };
 typedef st_pose<float> pose;
 
+struct st_seg_prop{
+  st_seg_prop(): seg_id(1),
+										 start_id(0),
+										 end_id(255),
+										 seg_type(0),
+										 seg_dir(0),
+										 arc_deg(0),
+										 seg_heading(0.0),
+										 start({0, 0}), 
+										 ending({0, 0}) {
+
+	};
+
+	int seg_id;
+	int start_id;
+	int end_id;
+	int seg_type;
+	int seg_dir;
+	float arc_deg;
+	float seg_heading;
+	point2d_pix start;
+	point2d_pix ending;
+};
+typedef st_seg_prop seg_property;
+
+
 typedef struct st_segment{
 	int seg_id;
 	int start_id;
@@ -86,9 +108,32 @@ typedef struct st_segment{
 	vector<point2d_map> points_map;
 }segment;
 
-typedef struct st_nav_state{
+struct st_nav_state{
+	st_nav_state(int tgt_node = 0,
+									float tgt_head = 0.0,
+									int init_seg = 1,
+									int init_node = 0,
+									bool at_tgt_flag = false,
+									bool achive = false,
+									int succ_flag = 0,
+									int err = 0) : target_node(tgt_node),
+																 target_heading(tgt_head),
+																 cur_seg(init_seg),
+																 cur_node(init_node),
+																 at_target_flag(at_tgt_flag),
+																 achieve_flag(achive),
+																 task_succ_flag(succ_flag),
+																 err_code(err) {
+		target.x = 0.0;
+		target.y = 0.0;
+		target.yaw = 0.0;
+		
+		robot.x = 0.0;
+		robot.y = 0.0;
+		robot.yaw = 0.0;																	
+	}
 	int target_node;
-	int target_heading;
+	float target_heading;
 	int cur_seg;
 	int cur_node;
 	bool at_target_flag;
@@ -97,26 +142,17 @@ typedef struct st_nav_state{
 	pose target;
 	pose robot;
 	int err_code;
-}nav_state;
-
-struct st_test {
-	st_test(int c, int d) :a(c), b (d) {
-	}
-	int a;
-	int b;
 };
+typedef st_nav_state nav_state;
 
-typedef struct st_seg_prop{
-	int seg_id;
-	int start_id;
-	int end_id;
-	int seg_type;
-	int seg_dir;
-	int arc_deg;
-	float seg_heading;
-	point2d_pix start;
-	point2d_pix end;
-}seg_property;
+struct st_map_basic {
+
+	string name;
+	float origin[3];
+	unsigned int size[2];
+	float resol;
+};
+typedef st_map_basic map_basic;
 
 typedef struct st_route_list
 {
@@ -125,87 +161,91 @@ typedef struct st_route_list
 	vector<int> seg_list;
 }route_list;
 
+
 void Int2String(const int & i_val, string &str);
 bool VerticalLine(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &ver_line);
 bool BresenhamBasic(const point2d_pix &start, const point2d_pix &end, vector<point2d_pix> &point_at_line);
 bool CalcPixesInLine(point2d_pix &start, point2d_pix &end, vector<point2d_pix> &point_at_line);
 
+class Routes {
+	public:
 
-class PathProc{
+		Routes(void);
+		~Routes(void);
+
+		map_basic map_info_;
+
+		int segs_num_;
+		vector<seg_property> vec_seg_property_;
+		vector<segment> vec_seg_;
+		
+		map<unsigned int, unsigned int> node_seg_map_;
+		map<unsigned int, unsigned int> seg_prenode_map_;
+		map<unsigned int, unsigned int> seg_postnode_map_;
+		map<unsigned int, unsigned int> seg_length_map_;
+		map<int, float> seg_heading_map_;
+
+		vector<int> knee_nodes_;
+		vector<int> updated_knee_nodes_;
+
+		vector<route_list> sub_route_vec_;
+
+		void InitKneeNodes(const int &array_size, int *node_array);
+		void LoadRoutes(void);
+		void SetupMapping(void);
+		void CalcAllPointsInSegs(void); 
+		bool AddTargetNode2KneeNodes(const int &target_node);
+		bool DecomposeRoute(vector<int> &seg_list, vector<int> &check_nodes, int &sub_route_num);
+
+	private:
+		void Pix2Map(vector<point2d_pix> &points_pix, vector<point2d_map> &points_map);
+		void Seg2LengthMap(void);
+
+
+};
+
+class PathProc {
 
 	public:
+				
+		Routes *ptrRoutes;
 
 		ros::NodeHandle nh_route_;
 		ros::Subscriber sub_coodinator_;
 		ros::Subscriber sub_nav_state_;
 		ros::Publisher pub_route_;
 		ros::Publisher pub_marker_;
-		ros::Publisher pub_task_state_;
-		
-		ros::ServiceServer srv4getpath_;
 
 		visualization_msgs::Marker  goalmark_list_;
 		colibri_msgs::RobotCmd robot_cmd_;
 		int  micro_seg_num_;
-		
-		string map_name_;
-		float map_origin_[3];
-		int map_size_[2];
-		float map_resol_;
-		int segs_num_;
+		route_list cur_route_;
 		vector<seg_property> vec_seg_property_;
 		vector<segment> vec_seg_;
 		vector<point2d_map> route_map_;
 		vector<point2d_pix> route_pix_;
-		route_list cur_route_;
-		vector<route_list> sub_route_vec_;
-		map<int, int> node_seg_map_;
-		map<int, int> seg_prenode_map_;
-		map<int, int> seg_node_map_;
-		map<int, float> node_heading_map_;
-		map<int, int> seg_length_map_;
 
-		vector<int> knee_nodes_;
-		vector<int> updated_knee_nodes_;
-		vector<float> nodes_heading_;
-		vector<float> segs_heading_;
 
 		nav_state robot_nav_state_;
-		colibri_msgs::TaskState task_state_;
 		int cur_seg_;
 		
 		int basic_ctrl_;
 		nav_msgs::Path plan_path_;
-		bool req4path_flag;
 		
 		bool task_switch_;
-
-		int sub_seg_index_cache_;
-
 
 		PathProc();
 		~PathProc();
 		void InitMarkers(void);
-		void ConfigNodesHeading(float *head_array, int &array_size);
-		void InitKneeNodes(int *node_array, int &array_size);
-		void InitKneeNodes(void);
-		bool AddTargetNode2KneeNodes(int &target_node);
-		void CalcAllPointsInSegs(void);
 		void CatSeg2Route(route_list &route);
-		bool DecomposeRoute(vector<int> &seg_list, vector<int> &check_nodes, int &sub_route_num);
-		void MakeNodeSegMap(vector<float> &vec_heading);
-		void MakeNodeSegMap(void);
 		bool StdNavPath(vector<point2d_map> &nav_path);
-		bool ExecGetPathSrv(nav_msgs::GetPlan::Request & req, nav_msgs::GetPlan::Response & res);
 		int FillMarkerPose(route_list & route);
 		void HandleRecvRoute(void);
 		int CalcRobotOnCurSeg(point2d_map & cur_pose, route_list &cur_route, vector<point2d_map> &straight_path);
-		void Seg2LengthMap(void);
-		//void FillTaskState(void);	
+
 		bool CalcNearestNode(float & robot_x, float &robot_y, int & nearest_node);
 
 	private:
-		void Pix2Map(vector<point2d_pix> &points_pix, vector<point2d_map> &points_map);
 
 		void CoordinatorCallBack(const colibri_msgs::Coordinator::ConstPtr& coordinator);
 		void NavStateCallBack(const colibri_msgs::NavState::ConstPtr& nav_state);
@@ -219,17 +259,15 @@ template <class T1, class T2>
 class FindX
 {
 	public:
-         FindX(const T1 ref){ x_ = ref;}
+         FindX(const T1 ref) { x_ = ref;}
          T1 GetX() {return x_;}
 
-         bool operator()(T2 &seg)
-		 {
+         bool operator()(T2 &seg) {
 	         if( abs(seg.seg_id - x_) < 0.0001)
-
-	              return true;
+						 return true;
 	         else
-	              return false;
-          }
+	           return false;
+         }
 
 	private: 
 		 T1 x_;

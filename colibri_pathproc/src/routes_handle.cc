@@ -8,8 +8,6 @@
 
 using namespace std;
 string routes_path;
-string sp_nodes_path;
-ofstream  file1; 
 
 int main(int argc, char *argv[])
 {
@@ -23,23 +21,17 @@ int main(int argc, char *argv[])
 
 #else
 	routes_path.assign(argv[1]);
-	sp_nodes_path.assign(argv[2]);
 	cout<<"Load Routes YAML Name: "<<routes_path<<endl;
-	cout<<"Load Special Nodes YAML Name: "<<sp_nodes_path<<endl;
 #endif
 
+	Routes ObjRoutes;
 	PathProc pathProcObj;
-
-	st_test tt(1,2);
+	pathProcObj.ptrRoutes = &ObjRoutes;
 
 	point2d_map cur_robot = {0.0, 0.0};
 	int cur_seg = 1;
-
-	pathProcObj.InitKneeNodes();
-
-	pathProcObj.MakeNodeSegMap();
-	pathProcObj.CalcAllPointsInSegs();
-	pathProcObj.Seg2LengthMap();
+	
+	pathProcObj.ptrRoutes->SetupMapping();
 	pathProcObj.InitMarkers();
 	
 	while(ros::ok())
@@ -54,7 +46,7 @@ int main(int argc, char *argv[])
 			pathProcObj.HandleRecvRoute();
 
 			pathProcObj.pub_route_.publish(pathProcObj.plan_path_);
-			cur_seg = pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.sub_route_vec_[pathProcObj.sub_seg_index_cache_], pathProcObj.route_map_);
+			cur_seg = pathProcObj.CalcRobotOnCurSeg(cur_robot, pathProcObj.cur_route_, pathProcObj.route_map_);
 			pathProcObj.FillMarkerPose(pathProcObj.cur_route_);
 		}
 		
