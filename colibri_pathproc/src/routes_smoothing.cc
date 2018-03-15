@@ -60,5 +60,34 @@ void CubicBezierSmoothing(const  std::vector< st_2d_point<T> > &pointSeq,
 
 }
 
+template <typename T, int M = 2, int PN = 5>
+void FivePointCubicSmoothing(const std::vector< st_2d_point<T> > &pointSeq,
+																		 std::vector< st_2d_point<T> > &smoothSeq) {
+	std::vector< st_2d_point<T> > ().swap(smoothSeq);
+	static std::vector< st_2d_point<T> > tmp_seq(pointSeq);
+	int length = pointSeq.size();
+	if(length <= PN) {
+		smoothSeq(pointSeq);
+		return;
+	}
 
+	for(int i = 0; i < M; i++) {
+		tmp_seq[0].x = (69.0 * tmp_seq[0].x + 4.0 * (tmp_seq[1].x + tmp_seq[3].x) - 6 * tmp_seq[2].x - tmp_seq[4].x) / 70.;
+		tmp_seq[0].y = (69.0 * tmp_seq[0].y + 4.0 * (tmp_seq[1].y + tmp_seq[3].y) - 6 * tmp_seq[2].y - tmp_seq[4].y) / 70.;
+		tmp_seq[1].x = (2.0 * (tmp_seq[0].x + tmp_seq[4].x) + 27 * tmp_seq[1].x + 12 * tmp_seq[2].x + 12 * tmp_seq[2].x - 8 * tmp_seq[3].x) / 35.;
+		tmp_seq[1].y = (2.0 * (tmp_seq[0].y + tmp_seq[4].y) + 27 * tmp_seq[1].y + 12 * tmp_seq[2].y + 12 * tmp_seq[2].y - 8 * tmp_seq[3].y) / 35.;
+		for(int j = 2; j < (length - 2); j++ ) {
+			tmp_seq[j].x = (-3.* (tmp_seq[j - 2].x + tmp_seq[j + 2].x) + 12. * (tmp_seq[j - 1].x + tmp_seq[j + 1].x) + 17. * tmp_seq[j].x) / 35.;
+			tmp_seq[j].y = (-3.* (tmp_seq[j - 2].y + tmp_seq[j + 2].y) + 12. * (tmp_seq[j - 1].y + tmp_seq[j + 1].y) + 17. * tmp_seq[j].y) / 35.;
+		}
+		tmp_seq[length - 2].x = (2.0 * (tmp_seq[length - 1].x + tmp_seq[length - 5].x) + 27 * tmp_seq[length - 2].x + 12 * tmp_seq[length - 3].x - 8 * smoothSeq[length - 4].x) / 35.; 
+		tmp_seq[length - 2].y = (2.0 * (tmp_seq[length - 1].y + tmp_seq[length - 5].y) + 27 * tmp_seq[length - 2].y + 12 * tmp_seq[length - 3].y - 8 * smoothSeq[length - 4].y) / 35.; 
+		tmp_seq[length - 1].x = (69.0 * tmp_seq[length - 1].x + 4.0 * (tmp_seq[length - 2].x + tmp_seq[length - 4].x) - 6 * tmp_seq[length - 3].x - smoothSeq[length - 5].x) / 70.;
+		tmp_seq[length - 1].y = (69.0 * tmp_seq[length - 1].y + 4.0 * (tmp_seq[length - 2].y + tmp_seq[length - 4].y) - 6 * tmp_seq[length - 3].y - smoothSeq[length - 5].y) / 70.;
+	}
+
+	smoothSeq(tmp_seq);
+	return;
+	
+}
 
