@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="colibri_crabnav" type="aiv_self_kill.sh" 
+    name="kill_aiv_launch" output="screen">
+  </node>
+</launch>

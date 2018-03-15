@@ -1,0 +1,150 @@
+path:
+  image: sz929_mdf_cut.pgm
+  resolution: 0.050000
+  origin: [-50.95, -19.3, 0.000000]
+  map_size: [1266, 617]
+  seg_num: 48
+  seg1_property: [1, 0, 1]
+  seg1_vector: [1019, 231, 1049, 231]
+  seg1_heading: 0.00
+  seg2_property: [2, 1, 2]
+  seg2_vector: [1049, 231, 1079, 231]
+  seg2_heading: 0.00
+  seg3_property: [3, 2, 3]
+  seg3_vector: [1079, 231, 1109, 231]
+  seg3_heading: 0.00
+  seg4_property: [4, 3, 4]
+  seg4_vector: [1109, 231, 1139, 231]
+  seg4_heading: 0.00
+  seg5_property: [5, 4, 45]
+  seg5_vector: [1139, 231, 1178, 231]
+  seg5_heading: 90.00
+  seg6_property: [6, 45, 5]
+  seg6_vector: [1178, 231, 1178, 306]
+  seg6_heading: -90.00
+  seg7_property: [7, 5, 6]
+  seg7_vector: [1178, 306, 1178, 355]
+  seg7_heading: -90.00
+  seg8_property: [8, 6, 7]
+  seg8_vector: [1178, 355, 1178, 397]
+  seg8_heading: 180.00
+  seg9_property: [9, 7, 8]
+  seg9_vector: [1178, 397, 1145, 397]
+  seg9_heading: 90.00
+  seg10_property: [10, 8, 9]
+  seg10_vector: [1145, 397, 1145, 271]
+  seg10_heading: 180.00
+  seg11_property: [11, 9, 10]
+  seg11_vector: [1145, 271, 647, 271]
+  seg11_heading: -153.00
+  seg12_property: [12, 10, 11]
+  seg12_vector: [647, 271, 610, 290]
+  seg12_heading: 180.00
+  seg13_property: [13, 11, 12]
+  seg13_vector: [610, 290, 454, 290]
+  seg13_heading: -90.00
+  seg14_property: [14, 12, 13]
+  seg14_vector: [454, 290, 454, 343]
+  seg14_heading: -90.00
+  seg15_property: [15, 13, 14]
+  seg15_vector: [454, 343, 454, 387]
+  seg15_heading: -90.00
+  seg16_property: [16, 14, 15]
+  seg16_vector: [454, 387, 454, 429]
+  seg16_heading: -90.00
+  seg17_property: [17, 15, 16]
+  seg17_vector: [454, 429, 454, 473]
+  seg17_heading: 180.00
+  seg18_property: [18, 16, 17]
+  seg18_vector: [454, 473, 415, 473]
+  seg18_heading: 90.00
+  seg19_property: [19, 17, 18]
+  seg19_vector: [415, 473, 415, 266]
+  seg19_heading: 0.00
+  seg20_property: [20, 18, 19]
+  seg20_vector: [415, 266, 579, 266]
+  seg20_heading: 50.00
+  seg21_property: [21, 19, 20]
+  seg21_vector: [579, 266, 618, 232]
+  seg21_heading: 0.00
+  seg22_property: [22, 20, 21]
+  seg22_vector: [618, 232, 979, 231]
+  seg22_heading: 0.00
+  seg23_property: [23, 21, 0]
+  seg23_vector: [979, 231, 1019, 231]
+  seg23_heading: 0.00
+  seg24_property: [24, 45, 22]
+  seg24_vector: [1178, 231, 1178, 185]
+  seg24_heading: 180.00
+  seg25_property: [25, 22, 23]
+  seg25_vector: [1178, 185, 1108, 185]
+  seg25_heading: 180.00
+  seg26_property: [26, 23, 24]
+  seg26_vector: [1108, 185, 1014, 185]
+  seg26_heading: 180.00
+  seg27_property: [27, 24, 25]
+  seg27_vector: [1014, 185, 921, 185]
+  seg27_heading: 180.00
+  seg28_property: [28, 25, 26]
+  seg28_vector: [921, 185, 837, 185]
+  seg28_heading: 180.00
+  seg29_property: [29, 26, 27]
+  seg29_vector: [837, 185, 759, 185]
+  seg29_heading: 180.00
+  seg30_property: [30, 27, 28]
+  seg30_vector: [759, 185, 661, 185]
+  seg30_heading: 180.00
+  seg31_property: [31, 28, 29]
+  seg31_vector: [661, 185, 596, 185]
+  seg31_heading: -125.00
+  seg32_property: [32, 29, 30]
+  seg32_vector: [596, 185, 551, 249]
+  seg32_heading: 180.00
+  seg33_property: [33, 30, 31]
+  seg33_vector: [551, 249, 454, 249]
+  seg33_heading: 180.00
+  seg34_property: [34, 31, 32]
+  seg34_vector: [454, 249, 391, 249]
+  seg34_heading: 180.00
+  seg35_property: [35, 32, 33]
+  seg35_vector: [391, 249, 335, 249]
+  seg35_heading: 180.00
+  seg36_property: [36, 33, 34]
+  seg36_vector: [335, 249, 279, 249]
+  seg36_heading: 180.00
+  seg37_property: [37, 34, 35]
+  seg37_vector: [279, 249, 214, 249]
+  seg37_heading: -90.00
+  seg38_property: [38, 35, 36]
+  seg38_vector: [214, 249, 214, 336]
+  seg38_heading: -90.00
+  seg39_property: [39, 36, 37]
+  seg39_vector: [214, 336, 214, 403]
+  seg39_heading: -90.00
+  seg40_property: [40, 37, 38]
+  seg40_vector: [214, 403, 215, 475]
+  seg40_heading: 0.00
+  seg41_property: [41, 38, 39]
+  seg41_vector: [215, 475, 262, 475]
+  seg41_heading: 90.00
+  seg42_property: [42, 39, 40]
+  seg42_vector: [262, 475, 260, 266]
+  seg42_heading: 0.00
+  seg43_property: [43, 40, 18]
+  seg43_vector: [260, 266, 415, 266]
+  seg43_heading: 0.00
+  seg44_property: [44, 11, 41]
+  seg44_vector: [610, 290, 610, 362]
+  seg44_heading: -90.00
+  seg45_property: [45, 41, 42]
+  seg45_vector: [610, 362, 610, 416]
+  seg45_heading: 180.00
+  seg46_property: [46, 42, 43]
+  seg46_vector: [610, 416, 579, 416]
+  seg46_heading: 90.00
+  seg47_property: [47, 43, 44]
+  seg47_vector: [579, 416, 579, 362]
+  seg47_heading: 90.00
+  seg48_property: [48, 44, 19]
+  seg48_vector: [579, 362, 579, 266]
+  seg48_heading: 50.00

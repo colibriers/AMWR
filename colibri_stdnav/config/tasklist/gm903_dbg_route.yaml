@@ -1,0 +1,11 @@
+route:
+  route_num: 3
+  route0_target_property: [17, 17, 180.0]
+  route0_seg_vec: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+  route1_target_property: [33, 16, 180.0]
+  route1_seg_vec: [1, 2, 3, 35, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 18]
+  route2_target_property: [0, 7, 180.0]
+  route2_seg_vec: [23, 30, 31, 32, 33, 34, 36]
+
+# route0_target_property = [target_node, sub_seg_num, heading]
+# route0_seg_vec = [sub_seg1, sub_seg1, sub_seg1, ...]

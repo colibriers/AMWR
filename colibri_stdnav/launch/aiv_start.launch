@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="colibri_crabnav" type="aiv_start.sh" 
+    name="aiv_system_launch" output="screen">
+  </node>
+</launch>

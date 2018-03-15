@@ -1,0 +1,132 @@
+path:
+  image: sz925_mdf_cut.pgm
+  resolution: 0.050000
+  origin: [-50.378691,-19.25000,0.000000]
+  map_size: [1257, 617]
+  seg_num: 42
+  seg42_property: [42, 37, 15]
+  seg42_vector: [309, 280, 462, 280]
+  seg42_heading: 0.00
+  seg40_property: [40, 35, 36]
+  seg40_vector: [262, 487, 310, 487]
+  seg40_heading: 90.00
+  seg41_property: [41, 36, 37]
+  seg41_vector: [310, 487, 309, 280]
+  seg41_heading: 0.00
+  seg38_property: [38, 33, 34]
+  seg38_vector: [262, 355, 262, 420]
+  seg38_heading: 0.00
+  seg39_property: [39, 34, 35]
+  seg39_vector: [262, 420, 262, 487]
+  seg39_heading: 0.00
+  seg37_property: [37, 32, 33]
+  seg37_vector: [262, 262, 262, 355]
+  seg37_heading: -90.00
+  seg36_property: [36, 31, 32]
+  seg36_vector: [336, 262, 262, 262]
+  seg36_heading: -90.00
+  seg35_property: [35, 30, 31]
+  seg35_vector: [402, 262, 336, 262]
+  seg35_heading: 180.00
+  seg33_property: [33, 28, 29]
+  seg33_vector: [593, 262, 474, 262]
+  seg33_heading: 180.00
+  seg34_property: [34, 29, 30]
+  seg34_vector: [474, 262, 402, 262]
+  seg34_heading: 180.00
+  seg32_property: [32, 27, 28]
+  seg32_vector: [641, 211, 593, 262]
+  seg32_heading: 180.00
+  seg31_property: [31, 26, 27]
+  seg31_vector: [686, 211, 641, 211]
+  seg31_heading: -145.00
+  seg30_property: [30, 25, 26]
+  seg30_vector: [738, 211, 686, 211]
+  seg30_heading: 180.00
+  seg29_property: [29, 24, 25]
+  seg29_vector: [808, 211, 738, 211]
+  seg29_heading: 180.00
+  seg28_property: [28, 23, 24]
+  seg28_vector: [879, 211, 808, 211]
+  seg28_heading: 180.00
+  seg27_property: [27, 22, 23]
+  seg27_vector: [954, 211, 879, 211]
+  seg27_heading: 180.00
+  seg26_property: [26, 21, 22]
+  seg26_vector: [1021, 211, 954, 211]
+  seg26_heading: 180.00
+  seg25_property: [25, 20, 21]
+  seg25_vector: [1095, 211, 1021, 211]
+  seg25_heading: 180.00
+  seg24_property: [24, 19, 20]
+  seg24_vector: [1167, 211, 1095, 211]
+  seg24_heading: 180.00
+  seg23_property: [23, 18, 19]
+  seg23_vector: [1230, 211, 1167, 211]
+  seg23_heading: 180.00
+  seg22_property: [22, 4, 18]
+  seg22_vector: [1230, 241, 1230, 211]
+  seg22_heading: 180.00
+  seg21_property: [21, 40, 0]
+  seg21_vector: [1017, 241, 1067, 241]
+  seg21_heading: 0.00
+  seg20_property: [20, 17, 40]
+  seg20_vector: [649, 241, 1017, 241]
+  seg20_heading: 0.00
+  seg19_property: [19, 16, 17]
+  seg19_vector: [610, 280, 649, 241]
+  seg19_heading: 0.00
+  seg18_property: [18, 15, 16]
+  seg18_vector: [462, 280, 610, 280]
+  seg18_heading: 45.00
+  seg17_property: [17, 14, 15]
+  seg17_vector: [462, 480, 462, 280]
+  seg17_heading: 0.00
+  seg16_property: [16, 13, 14]
+  seg16_vector: [497, 480, 462, 480]
+  seg16_heading: 90.00
+  seg15_property: [15, 12, 13]
+  seg15_vector: [497, 441, 497, 480]
+  seg15_heading: 180.00
+  seg14_property: [14, 11, 12]
+  seg14_vector: [497, 370, 497, 441]
+  seg14_heading: -90.00
+  seg13_property: [13, 10, 11]
+  seg13_vector: [497, 296, 497, 370]
+  seg13_heading: -90.00
+  seg12_property: [12, 38, 10]
+  seg12_vector: [636, 296, 497, 296]
+  seg12_heading: -90.00
+  seg11_property: [11, 39, 38]
+  seg11_vector: [657, 274, 636, 296]
+  seg11_heading: 180.00
+  seg9_property: [9, 8, 9]
+  seg9_vector: [1200, 408, 1200, 274]
+  seg9_heading: 180.00
+  seg10_property: [10, 9, 39]
+  seg10_vector: [1200, 274, 657, 274]
+  seg10_heading: -145.00
+  seg8_property: [8, 7, 8]
+  seg8_vector: [1230, 408, 1200, 408]
+  seg8_heading: 90.00
+  seg4_property: [4, 3, 4]
+  seg4_vector: [1181, 241, 1230, 241]
+  seg4_heading: -90.00
+  seg7_property: [7, 6, 7]
+  seg7_vector: [1230, 374, 1230, 408]
+  seg7_heading: 180.00
+  seg6_property: [6, 5, 6]
+  seg6_vector: [1230, 327, 1230, 374]
+  seg6_heading: -90.00
+  seg5_property: [5, 4, 5]
+  seg5_vector: [1230, 241, 1230, 327]
+  seg5_heading: -90.00
+  seg3_property: [3, 2, 3]
+  seg3_vector: [1146, 241, 1181, 241]
+  seg3_heading: 0.00
+  seg2_property: [2, 1, 2]
+  seg2_vector: [1109, 241, 1146, 241]
+  seg2_heading: 0.00
+  seg1_property: [1, 0, 1]
+  seg1_vector: [1067, 241, 1109, 241]
+  seg1_heading: 0.00
