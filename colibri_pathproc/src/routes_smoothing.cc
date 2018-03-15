@@ -1,10 +1,10 @@
-#include "colibri_pathproc/routes_smoothing.h"
+#include "routes_smoothing.h"
 
 template <typename T, int N = 3>
-Matrix<T, 2, 1> CalcCubicBezierValue(st_2d_point<T> *ptrPoint, T t) {
-	Matrix<T, 2, N+1> m_points;
-	Matrix<T, 2, 1> result = MatrixXf::zeros(2, 1);
-	if(ptrPoint == null)
+Eigen::Matrix<T, 2, 1> CalcCubicBezierValue(st_2d_point<T> *ptrPoint, T t) {
+	Eigen::Matrix<T, 2, N+1> m_points;
+	Eigen::Matrix<T, 2, 1> result = Eigen::MatrixXf::Zero(2, 1);
+	if(ptrPoint == 0)
 	{
 		return result;
 	}
@@ -22,34 +22,34 @@ Matrix<T, 2, 1> CalcCubicBezierValue(st_2d_point<T> *ptrPoint, T t) {
 }
 
 template <typename T, int N = 3>
-void CalcCubicBezierValue(const vector< st_2d_point<T> > &pointSeq,
-																vector< st_2d_point<T> > &smoothSeq) {
+void CubicBezierSmoothing(const  std::vector< st_2d_point<T> > &pointSeq,
+																std::vector< st_2d_point<T> > &smoothSeq) {
 	if(pointSeq.size() <= N)
 	{
 		smoothSeq(pointSeq);
 		return;
 	}
-	st_2d_point tmp;
+	st_2d_point<T> tmp;
 
 	for(int j = 0; j < pointSeq.size() - N; j += N) {
 		if( 0 == j) {
-			Matrix<T, 2, 1> dot_1 = CalcCubicBezierValue(pointSeq[j], 0.);
+			Eigen::Matrix<T, 2, 1> dot_1 = CalcCubicBezierValue(pointSeq[j], 0.);
 			tmp.x = dot_1(0, 0);
 			tmp.y = dot_1(1, 0);
 			smoothSeq.push_back(tmp);
 		}
 		
-		Matrix<T, 2, 1> dot_2 = CalcCubicBezierValue(pointSeq[j], 1/3.);
+		Eigen::Matrix<T, 2, 1> dot_2 = CalcCubicBezierValue(pointSeq[j], 1/3.);
 		tmp.x = dot_2(0, 0);
 		tmp.y = dot_2(1, 0);
 		smoothSeq.push_back(tmp);
 		
-		Matrix<T, 2, 1> dot_3 = CalcCubicBezierValue(pointSeq[j], 2/3.);
+		Eigen::Matrix<T, 2, 1> dot_3 = CalcCubicBezierValue(pointSeq[j], 2/3.);
 		tmp.x = dot_3(0, 0);
 		tmp.y = dot_3(1, 0);
 		smoothSeq.push_back(tmp);
 		
-		Matrix<T, 2, 1> dot_4 = CalcCubicBezierValue(pointSeq[j], 1.);
+		Eigen::Matrix<T, 2, 1> dot_4 = CalcCubicBezierValue(pointSeq[j], 1.);
 		tmp.x = dot_4(0, 0);
 		tmp.y = dot_4(1, 0);
 		smoothSeq.push_back(tmp);

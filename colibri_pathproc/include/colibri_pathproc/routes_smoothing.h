@@ -2,8 +2,8 @@
 #define ROUTES_SMOOTHING_H_
 
 #include <cmath>
+#include <eigen3/Eigen/Dense>
 #include <vector>
-#include <Eigen/Dense>
 
 template <typename T>
 struct st_2d_point{
@@ -12,10 +12,10 @@ struct st_2d_point{
 };
 
 template <typename T, int N = 3>
-Matrix<T, 2, 1> CalcCubicBezierValue(st_2d_point<T> *ptrPoint, T t);
+Eigen::Matrix<T, 2, 1> CalcCubicBezierValue(st_2d_point<T> *ptrPoint, T t);
 
 template <typename T, int N = 3>
-void CalcCubicBezierValue(const vector< st_2d_point<T> > &pointSeq,vector< st_2d_point<T> > &smoothSeq);
+void CubicBezierSmoothing(const std::vector< st_2d_point<T> > &pointSeq, std::vector< st_2d_point<T> > &smoothSeq);
 
 
 
