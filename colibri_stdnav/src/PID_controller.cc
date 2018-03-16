@@ -64,7 +64,7 @@ void PID_controller::SetControllerParam(const double & kp, const double & ki, co
 
 }
 
-void PID_controller::Regulator(const double & u_r, const double & u_fb, double * u_out) {  
+void PID_controller::Regulator(const double & u_r, const double & u_fb) {  
 	double error = 0.0;
 
 	ctrl_param_.u_ref = u_r;
@@ -80,6 +80,5 @@ void PID_controller::Regulator(const double & u_r, const double & u_fb, double *
 	//ctrl_param_.u_out += ctrl_param_.u_delta;  	//positon mode
 	ctrl_param_.u_out = ctrl_param_.u_delta;  		//delta mode 
 
-	*u_out = ctrl_param_.u_out;  
 }
 

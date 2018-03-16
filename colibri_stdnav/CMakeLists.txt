@@ -57,9 +57,12 @@ target_link_libraries(std_safe_node ${catkin_LIBRARIES})
 #add_executable(crab_nav_node src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp) 
 #target_link_libraries(crab_nav_node yaml-cpp  ${catkin_LIBRARIES})
 
-add_executable(std_nav src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp) 
-target_link_libraries(std_nav yaml-cpp ${catkin_LIBRARIES})
+#add_executable(std_nav src/crab_nav.cpp src/task_mgr.cpp src/global_planner.cpp src/colibri_action.cpp src/colibri_local_nav.cpp src/colibri_ca.cpp src/PID_controller.cpp src/nav_node_proc.cpp) 
+#target_link_libraries(std_nav yaml-cpp ${catkin_LIBRARIES})
 
-add_executable(std_aux_node src/crab_aux.cpp)
-target_link_libraries(std_aux_node yaml-cpp ${catkin_LIBRARIES})
+#add_executable(std_aux_node src/crab_aux.cpp)
+#target_link_libraries(std_aux_node yaml-cpp ${catkin_LIBRARIES})
+
+add_executable(pid_test_node src/PID_test.cc src/PID_controller.cc)
+target_link_libraries(pid_test_node ${catkin_LIBRARIES})
 

@@ -58,7 +58,7 @@ class PID_controller
 		
 		void SetControllerParam(const double & kp, const double & ki, const double & kd);
 
-		void Regulator(const double & u_r, const double & u_fb, double* u_out);
+		void Regulator(const double & u_r, const double & u_fb);
 	
 };
 
