@@ -1,11 +1,11 @@
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <ctime>
-
 #ifndef _PID_CONTROLLER_H_
 #define _PID_CONTROLLER_H_
+
+#include <cmath>
+#include <ctime>
+#include <iostream>
+#include <string>
+#include <vector>
 
 /*
 * delta form PI controller: u_delta(k) = Kp ( e(k)-e(k-1)  + Ts /Ti *e(k) + Td/Ts *(e(k) - 2e(k-1) + e(k-2)) )  ~=~ Kp*(e(k)-e(k-1))  + Ki*e(k) + Kd*(e(k) - 2e(k-1) + e(k-2))
@@ -14,38 +14,51 @@
 *							~ (Kp+Ki+Kd)*e(k) -(Kp+2Kd)*e(k-1) + Kd*e(k-2);
 * ctrl output : u(k) = u(k-1)+u_delta(k)
 */
-
-typedef struct st_PID_param
-{
-	float u_ref;
-	float Kp;
-	float Ki;
-	float Kd;
-	float a;
-	float b;
-	float c;
-	float bound4delta;
-	float error_1;
-	float error_2;
-	float u_delta;
-	float u_out;
-}PID_param_struct;
+		
+bool Saturation(const double & bound, double * input);
 
 class PID_controller
 {
 	public:
-		
-		PID_param_struct PID_param;
+		struct st_PID_param
+		{
+			st_PID_param(double init_kp = 1., double init_ki = 0., double init_kd = 0.) : Kp(init_kp), Ki(init_ki), Kd(init_kd) {
+				u_ref = 0.;
+				a = 0.;
+				b = 0.;
+				c = 0.;
+				bound4delta = 0.;
+				error_1 = 0.;
+				error_2 = 0.;
+				u_delta = 0.;
+				u_out = 0.; 	
+			};
+			
+			double u_ref;
+			double Kp;
+			double Ki;
+			double Kd;
+			double a;
+			double b;
+			double c;
+			double bound4delta;
+			double error_1;
+			double error_2;
+			double u_delta;
+			double u_out;
+		}PID_param_struct;
+		typedef st_PID_param PID_param_st;
+
+		PID_param_st ctrl_param_;
 
 		PID_controller();
+		PID_controller(const double & kp, const double & ki, const double & kd, const double & bound);
+
 		~PID_controller();
 		
-		void InitRegulatorParam(float kp, float ki, float kd, float bound);
-		void Regulator(float u_r, float u_fb, float* u_out);
+		void SetControllerParam(const double & kp, const double & ki, const double & kd);
 
-	private:
-		
-		void DeltaOutBound(float *input, float bound);
+		void Regulator(const double & u_r, const double & u_fb, double* u_out);
 	
 };
 
