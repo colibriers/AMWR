@@ -14,8 +14,29 @@
 *							~ (Kp+Ki+Kd)*e(k) -(Kp+2Kd)*e(k-1) + Kd*e(k-2);
 * ctrl output : u(k) = u(k-1)+u_delta(k)
 */
+
+template <typename T> 	
+bool Saturation( const T & bound, T * in_out) {
+
+	if(0 == in_out)
+	{
+		std::cout << " in_out param in exception" <<std::endl;
+		return false;
+	}
 		
-bool Saturation(const double & bound, double * input);
+	if(*in_out > bound) {
+		*in_out = bound;
+		
+	} else if(*in_out < (-1.0 * bound)) {
+		*in_out = -bound;
+		
+	} else {
+	
+		return false;
+	}
+
+	return true;
+}
 
 class PID_controller
 {
@@ -52,7 +73,7 @@ class PID_controller
 		PID_param_st ctrl_param_;
 
 		PID_controller();
-		PID_controller(const double & kp, const double & ki, const double & kd, const double & bound);
+		PID_controller(const double & kp, const double & ki, const double & kd, const double & bound = 4.);
 
 		~PID_controller();
 		
@@ -61,6 +82,5 @@ class PID_controller
 		void Regulator(const double & u_r, const double & u_fb);
 	
 };
-
 
 #endif

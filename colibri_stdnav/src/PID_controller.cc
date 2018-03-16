@@ -1,21 +1,5 @@
 #include "PID_controller.h"
 
-bool Saturation(const double & bound, double * input) {
-
-  if(*input > bound) {
-		*input = bound;
-		
-	} else if(*input < (-1.0 * bound)) {
-		*input = -bound;
-		
-	} else {
-	
-		return false;
-	}
-
-	return true;
-}
-
 PID_controller::PID_controller() {  
 	ctrl_param_.u_ref = 0.0;
 
@@ -75,7 +59,7 @@ void PID_controller::Regulator(const double & u_r, const double & u_fb) {
 	ctrl_param_.error_2 = ctrl_param_.error_1;
 	ctrl_param_.error_1 = error;
 
-	Saturation(ctrl_param_.bound4delta , &(ctrl_param_.u_delta));
+	Saturation<double>(ctrl_param_.bound4delta , &(ctrl_param_.u_delta));
 
 	//ctrl_param_.u_out += ctrl_param_.u_delta;  	//positon mode
 	ctrl_param_.u_out = ctrl_param_.u_delta;  		//delta mode 
