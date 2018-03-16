@@ -1,6 +1,6 @@
-#include "colibri_ca.h"
+#include "APF_avoiding.h"
 
-scan_ca::scan_ca()
+APF::scan_ca()
 {
 	goal_dir = 60;	//goal direction
 	memset(scan4ca, 0.2, NUM_RAY4CA);
@@ -10,7 +10,6 @@ scan_ca::scan_ca()
 	memset(add_obs4ca, 20.0, NUM_RAY4CA);
 	memset(abstract_pf, 20.0, NUM_RAY4CA);
 	
-	memset(ultra_dis, 20.0, ULTRA4CA_NUM);
 
 	
 	memset(delta_phi_vec, 0, NUM_RAY4CA);
@@ -46,19 +45,18 @@ scan_ca::scan_ca()
 	wander = 0;
 	
 	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &scan_ca::ScanCallBack, this);
-	ultra_sub4ca = nh_ca.subscribe<colibri_msgs::Ultrasonic>("/ultra_front", 1, &scan_ca::UltraSonicCallBack,this);
 	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &scan_ca::EnvSecurityCallBack,this);
 	//apf_pub4mntr = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/apf", 5);
 	//rf_pub4mntr = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/rf", 5);
 	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
 }
 
-scan_ca::~scan_ca()
+APF::~scan_ca()
 {
 	
 }
 
-void scan_ca::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca)
+void APF::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca)
 {
 	int j = 61;
 	for(int i = 0; i < NUM_RAY4CA; i++)
@@ -80,299 +78,7 @@ void scan_ca::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca)
 	}
 	
 }
-
-float scan_ca::CalcMinUltraRange(void)
-{
-	float min_ultra_dis = 3.0;
-	for(int i = 0; i < ULTRA4CA_NUM; i++)
-	{
-		if(min_ultra_dis > ultra_dis[i])
-		{
-			min_ultra_dis = ultra_dis[i];
-			if(min_ultra_dis < 0.05)		// if the min ultra dis less 5 cm means sth wrong		
-			{
-				cout << "min ultra dis is exception, check topic /ultrasonic: "<< ultra_dis[i] << endl;
-				min_ultra_dis = 3.0;	// for divide
-			}
-		}
-	}
-	min_ultra = min_ultra_dis;
-
-	return min_ultra_dis;
-}
-
-int scan_ca::CalcUltraObsCoder(float & min_dis)
-{
-	int obs_coder = 0;
-	float tmp_unit_sqr[ULTRA4CA_NUM] = {1.0, 1.0, 1.0, 1.0};
-	if(min_dis < ULTRA4CA_FILL_DIS)
-	{
-		for(int j = 0; j < ULTRA4CA_NUM; j++)
-		{
-			tmp_unit_sqr[j] = (ultra_dis[j]/min_dis) * (ultra_dis[j]/min_dis);
-			if(tmp_unit_sqr[j] < ULTRA_CLS_THD)
-			{
-				obs_coder += pow(2, j);
-			}
-		}
-
-	}
-	else
-	{
-		obs_coder = 0;
-	}
-	ultra_coder = obs_coder;
-
-	return obs_coder;
-
-} 
-
-int scan_ca::UltraCollisionFreeDeal(int & obs_coder)
-{
-	int strategy = 0;
-	switch(obs_coder)
-	{
-		case 0:
-			strategy = 0; // omni_move  for no obs
-			break;
-		case 1:
-			strategy = 1; // micro turn left 
-			break;
-		case 2:
-		case 3:
-			strategy = 2; // turn left  midestly
-			break;
-		case 4:
-		case 12:
-			strategy = -2;	// turn right  midestly
-			break;
-		case 6:				// not try to escape, for no contineous space
-		case 11:
-		case 13:	
-			strategy = 10;
-			break;
-		case 5:
-		case 7:
-			strategy = 3; //turn left greatly 
-			break;
-		case 8:
-			strategy = -1; // micro turn right
-			break;
-		case 9:
-			strategy = 0; //straight go ignore the side obs
-			break;
-		case 10:
-		case 14:
-			strategy = -3; //turn right greatly 
-			break;
-		case 15:
-			strategy = 100; //stop for no ways
-			break;
-
-		default:
-			strategy = 0; //stop for no ways
-			break;		
-			
-	}
-
-	return strategy;
-	
-}
-
-void scan_ca::TrimUltraRange4CA(int & strategy, float & min_dis)
-{
-	if(min_dis < 0.35)
-	{
-		return;
-	}
-	
-	switch(strategy)
-	{
-		case 0:
-
-			break;
-		case 1:
-			for(int j = STGY1_RIGHT_BND; j < STGY1_LEFT_BND; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 2:
-			for(int j = STGY2_RIGHT_BND; j < STGY2_LEFT_BND; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 3:
-			for(int j = STGY3_RIGHT_BND; j < STGY3_LEFT_BND; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case -1:
-			for(int j = 180-STGY1_LEFT_BND; j < (180-STGY1_RIGHT_BND); j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case -2:
-			for(int j = 180-STGY2_LEFT_BND; j < (180-STGY2_RIGHT_BND); j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case -3:
-			for(int j = 180-STGY3_LEFT_BND; j < (180-STGY3_RIGHT_BND); j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 10:
-			for(int j = STGY1_LEFT_BND; j < (180-STGY1_LEFT_BND); j++)
-			{
-				ultra4ca[j] = min_dis;
-			}
-			break;
-		case 100:
-			for(int j = STGY3_RIGHT_BND; j < (180-STGY3_RIGHT_BND); j++)
-			{
-				ultra4ca[j] = min_dis;
-			}
-			break;
-
-		
-		default:
-			break;
-
-	}
-	
-}
-
-void scan_ca::TrimUltraRange4CACoder(int & obs_coder, float & min_dis)
-{
-	if(min_dis < 0.35)
-	{
-		return;
-	}
-
-	switch(obs_coder)
-	{
-		case 0:
-
-			break;
-		case 1:
-			for(int j = 45; j < 70; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 2:
-			for(int j = 65; j < 85; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 3:
-			for(int j = 45; j < 85; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 4:
-			for(int j = 95; j < 115; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 5:
-			for(int j = 45; j < 70; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			for(int j = 95; j < 115; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-			
-		case 6:
-			for(int j = 70; j < 110; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 7:
-			for(int j = 45; j < 115; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 8:
-			for(int j = 110; j < 135; j++)
-			{
-				ultra4ca[j] = min_dis;
-			}
-			break;
-		case 9:
-			for(int j = 45; j < 70; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			for(int j = 110; j < 135; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 10:
-			for(int j = 65; j < 85; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			for(int j = 110; j < 135; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-
-			break;
-		case 11:
-		case 13:
-		case 15:
-			for(int j = 45; j < 135; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 12:
-			for(int j = 95; j < 135; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		case 14:
-			for(int j = 65; j < 135; j++)
-			{
-				ultra4ca[j] = ULTRA4CA_FACTOR * min_dis;
-			}
-			break;
-		
-		default:
-			break;
-
-	}
-	
-}
-
-
-void scan_ca::TrimLaserRange4CA(float & compensate)
+void APF::TrimLaserRange4CA(float & compensate)
 {
 	int half_width = 0;
 
@@ -400,37 +106,7 @@ void scan_ca::TrimLaserRange4CA(float & compensate)
 
 }
 
-
-void scan_ca::UltraSonicCallBack(const colibri_aiv::Ultrasonic::ConstPtr& ultra_ca)
-{
-		float tmp_min = 6.5;
-		ultra_dis[0] = (ultra_ca->ultrasonic1) / 100.0; //for front ultra unit cm to m
-		ultra_dis[1] = (ultra_ca->ultrasonic2) / 100.0;
-		ultra_dis[2] = (ultra_ca->ultrasonic3) / 100.0;
-		ultra_dis[3] = (ultra_ca->ultrasonic4) / 100.0;
-
-		for(int i = 0; i < NUM_RAY4CA; i++)
-		{		
-			ultra4ca[i] = 20.0;
-		}
-
-}
-
-void scan_ca::UltraSonicCallBack(const colibri_msgs::Ultrasonic::ConstPtr& ultra_ca)
-{
-		ultra_dis[0] = ultra_ca->ultra_1; //for front ultra unit cm to m
-		ultra_dis[1] = ultra_ca->ultra_2;
-		ultra_dis[2] = ultra_ca->ultra_3;
-		ultra_dis[3] = ultra_ca->ultra_4;
-
-		for(int i = 0; i < NUM_RAY4CA; i++)
-		{		
-			ultra4ca[i] = 20.0;
-		}
-
-}
-
-void scan_ca::EnvSecurityCallBack(const colibri_msgs::EnvSecurity::ConstPtr& env)
+void APF::EnvSecurityCallBack(const colibri_msgs::EnvSecurity::ConstPtr& env)
 {
 	min_laser = env->laser_min_dis;
 	min_laser_dir = env->laser_min_angle;
@@ -438,7 +114,7 @@ void scan_ca::EnvSecurityCallBack(const colibri_msgs::EnvSecurity::ConstPtr& env
 }
 
 
-void scan_ca::CalcKrfTheta(float* ptrKp_phi_vector, int* ptrPhi_range_start, int* ptrPhi_range_end)
+void APF::CalcKrfTheta(float* ptrKp_phi_vector, int* ptrPhi_range_start, int* ptrPhi_range_end)
 {
 
 	for(int theta_index = 0; theta_index < NUM_RAY4CA; theta_index++)
@@ -460,7 +136,7 @@ void scan_ca::CalcKrfTheta(float* ptrKp_phi_vector, int* ptrPhi_range_start, int
 	
 }
 
-void scan_ca::CalcPhiRange(int i, int range_num, int* ptrPhi_start, int* ptrPhi_end)
+void APF::CalcPhiRange(int i, int range_num, int* ptrPhi_start, int* ptrPhi_end)
 {
 	int index_start = 0;
 	int index_end = 0;
@@ -484,7 +160,7 @@ void scan_ca::CalcPhiRange(int i, int range_num, int* ptrPhi_start, int* ptrPhi_
 
 }
 
-void scan_ca::CalcPassFcnAndFwdBnd(unsigned int flag, float* max_passfcn_val, float* ptrK_pg)
+void APF::CalcPassFcnAndFwdBnd(unsigned int flag, float* max_passfcn_val, float* ptrK_pg)
 {
 	float tmp_passfcn_value = 0.0;
 	int tmp_bound_forward = 0;
@@ -515,7 +191,7 @@ void scan_ca::CalcPassFcnAndFwdBnd(unsigned int flag, float* max_passfcn_val, fl
 
 }
 
-void scan_ca::CalcPassFcnWithoutRPF(float* max_passfcn_val, float* ptrK_pg, float* heading)
+void APF::CalcPassFcnWithoutRPF(float* max_passfcn_val, float* ptrK_pg, float* heading)
 {	
 	vector<float> tmp_apf;
 	
@@ -532,7 +208,7 @@ void scan_ca::CalcPassFcnWithoutRPF(float* max_passfcn_val, float* ptrK_pg, floa
 	*max_passfcn_val = D_M * (*biggest);
 }
 
-void scan_ca::CalcPassFcnAndBwdBnd(unsigned int flag, float* max_passfcn_val, float* ptrK_pg)
+void APF::CalcPassFcnAndBwdBnd(unsigned int flag, float* max_passfcn_val, float* ptrK_pg)
 {
 	float tmp_passfcn_value = 0.0;
 	int tmp_bound_backward = 0;
@@ -559,7 +235,7 @@ void scan_ca::CalcPassFcnAndBwdBnd(unsigned int flag, float* max_passfcn_val, fl
 
 }
 
-void scan_ca::CalcAlarmInAPF(void)
+void APF::CalcAlarmInAPF(void)
 {
 	if(max_passfcn_val <= PASSFCN_THD_RATIO * D_M)
 	{
@@ -571,7 +247,7 @@ void scan_ca::CalcAlarmInAPF(void)
 	}	
 }
 
-float scan_ca::CalcAdjDir(float* ptrPassfcn_vector, float max_passfcn_val, int* fwd_bound, int* bwd_bound)
+float APF::CalcAdjDir(float* ptrPassfcn_vector, float max_passfcn_val, int* fwd_bound, int* bwd_bound)
 {
 	int mid_num = 90;
 	float adj_dir = 0.0;
@@ -612,7 +288,7 @@ float scan_ca::CalcAdjDir(float* ptrPassfcn_vector, float max_passfcn_val, int* 
 
 }
 		
-float scan_ca::CalcDsrVc(float vel_center)
+float APF::CalcDsrVc(float vel_center)
 {
 	float d_sr_v = 0.0;
 	
@@ -621,7 +297,7 @@ float scan_ca::CalcDsrVc(float vel_center)
 	return d_sr_v;
 }
 
-float scan_ca::CalcKpPhi(float vel_center, float d_phi)
+float APF::CalcKpPhi(float vel_center, float d_phi)
 {
 	float tmpDsr = 0.0;
 	float kp_phi = 0.0;
@@ -649,7 +325,7 @@ float scan_ca::CalcKpPhi(float vel_center, float d_phi)
 	return kp_phi;
 }
 
-void scan_ca::ResetMaxPassValCnt(void)
+void APF::ResetMaxPassValCnt(void)
 {
 	fwd_maxpass_cnt = 0;
 	bwd_maxpass_cnt = 0;
@@ -671,7 +347,7 @@ void scan_ca::LimitAngle(float & delta_ang)
 	}
 }
 
-void scan_ca::CalcCorrectedKrf(void)
+void APF::CalcCorrectedKrf(void)
 {
 	float corrector;
 	
@@ -682,7 +358,7 @@ void scan_ca::CalcCorrectedKrf(void)
 	}	
 }
 
-float scan_ca::CalcKrfCorrectFactor(int index)
+float APF::CalcKrfCorrectFactor(int index)
 {
 	//to make the scan front circle krf_vec factor as : y = 1+k * pow(x,2)
 	float factor = 1.0;
@@ -693,7 +369,7 @@ float scan_ca::CalcKrfCorrectFactor(int index)
 	return factor;
 }
 
-void scan_ca::PubPfInfo4Dbg(void)
+void APF::PubPfInfo4Dbg(void)
 {
 	pf_dbg.header.stamp = ros::Time::now();
 	pf_dbg.header.frame_id = "apf";
@@ -706,7 +382,7 @@ void scan_ca::PubPfInfo4Dbg(void)
 			
 
 }
-void scan_ca::CalcPhiParam(float vel_center, float& dir_goal_inlaser)
+void APF::CalcPhiParam(float vel_center, float& dir_goal_inlaser)
 {
 
 	int range_num = 0;
@@ -718,10 +394,6 @@ void scan_ca::CalcPhiParam(float vel_center, float& dir_goal_inlaser)
 	int ultra_obs_coder = 0;
 	int ultra_strategy = 0;
 
-	min_ultra_dis = CalcMinUltraRange(); 
-	ultra_obs_coder = CalcUltraObsCoder(min_ultra_dis);
-	ultra_strategy = UltraCollisionFreeDeal(ultra_obs_coder);
-	TrimUltraRange4CACoder(ultra_obs_coder, min_ultra_dis);
 	
 #endif
 

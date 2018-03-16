@@ -1,55 +1,45 @@
-#include <iostream>
+#ifndef APF_AVOIDING_H_
+#define APF_AVOIDING_H_
+
+#include <algorithm>
+#include <ctime>
 #include <cmath>
-#include <string>
-#include <vector>
 #include <fstream>
 #include <iomanip>
-#include <ctime>
-#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
-#include <tf/transform_broadcaster.h>
 #include <sensor_msgs/LaserScan.h>
-#include "colibri_msgs/AngPotnEngy.h"
-#include "colibri_aiv/Ultrasonic.h"
-#include "colibri_msgs/EnvSecurity.h"
-#include "colibri_msgs/Ultrasonic.h"
+#include <tf/transform_broadcaster.h>
 
-#ifndef _COLIBRI_CA_H_
-#define _COLIBRI_CA_H_
+#include "colibri_msgs/AngPotnEngy.h"
+#include "colibri_msgs/EnvSecurity.h"
 
 using namespace std;
 
-//#define ULTRA_RF
-//#define EXT_LASER_RF
-//#define ORI_ULTRA_FUSION
-//#define ORI_EXTLASER_FUSION
-//#define ORI_EXT_ULTRA_FUSION
-#define NO_FUSION
+#define RAD2DEG 	57.2958
+#define DEG2RAD 	0.01745
+#define PI 			3.1415926
+
+#define	DEG2RAD_PARAM(deg)	PI * deg / 180.0
+#define	RAD2DEG_PARAM(rad)	180.0 * rad / PI
+
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 
 #define NUM_RAY4CA 				181		//every degree for front semi-cirle
 #define ANGLE4CA_START 			0
 #define ANGLE4CA_START_INDEX 	61		// 61=(0-(-30))/0.5+1
 #define ANGLE4CA_END 			180
 #define ANGLE4CA_END_INDEX 		421		// 421=(180-(-30))/0.5+1
-#define LASER_EDGE_MIN 			0.06
+#define LASER_BLIND 			0.06
 #define RAY_RESOL4CA			1.0		//laser ray resolution for colision avoidence
 
-#define STGY1_RIGHT_BND	55
-#define STGY1_LEFT_BND  75
-#define STGY2_RIGHT_BND	55
-#define STGY2_LEFT_BND  95
-#define STGY3_RIGHT_BND	55
-#define STGY3_LEFT_BND  115
-
-#define ULTRA4CA_NUM 	4
-#define ULTRA4CA_FILL_DIS 1.2
-#define ULTRA_CLS_THD 5.0
-
 #define LASER4CA_FILL_DIS 2.0
-
-#define ULTRA4CA_FACTOR 0.9
 
 #define K_SF 	1.25		//adj factor for latitude dir in polar frame
 #define WIDTH 	0.56
@@ -70,26 +60,13 @@ using namespace std;
 #define MAX_PASSFCN_SCOPE	0.1
 #define PASSVAL_TOLLERENCE  0.1
 
-#define RAD2DEG 	57.2958
-#define DEG2RAD 	0.01745
-#define PI 			3.1415926
-
-#define	DEG2RAD_PARAM(deg)	PI * deg / 180.0
-#define	RAD2DEG_PARAM(rad)	180.0 * rad / PI
-
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
-#define DELAY_CNT_MAX 	10
-
-class scan_ca
+class APF
 {
 	public:
 		
 		float *ptrScan4ca;
 		float scan4ca[NUM_RAY4CA];
 		float ultra4ca[NUM_RAY4CA];
-		float ultra_dis[ULTRA4CA_NUM];
 
 		float abstract_pf[NUM_RAY4CA];
 		
@@ -128,7 +105,6 @@ class scan_ca
 		
 		ros::NodeHandle nh_ca;
 		ros::Subscriber scan_sub4ca;
-		ros::Subscriber ultra_sub4ca;
 		ros::Subscriber env_sub4safe;
 		ros::Publisher apf_pub4mntr;
 		ros::Publisher rf_pub4mntr;
@@ -152,12 +128,6 @@ class scan_ca
 		void CalcPhiParam(float vel_center, float& dir_goal_inlaser);
 		void ResetMaxPassValCnt(void);
 		void LimitAngle(float& delta_ang);
-		int UltraCollisionFreeDeal(int & obs_coder);
-		int CalcUltraObsCoder(float & min_dis);
-		float CalcMinUltraRange(void);
-		void TrimUltraRange4CA(int & strategy, float & min_dis);
-		void TrimUltraRange4CACoder(int & obs_coder, float & min_dis);
-
 		void TrimLaserRange4CA(float & compensate);
 		void PubPfInfo4Dbg(void);
 
@@ -165,8 +135,6 @@ class scan_ca
 	private:
 
 		void ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca);
-		void UltraSonicCallBack(const colibri_msgs::Ultrasonic::ConstPtr& ultra_ca);
-		void UltraSonicCallBack(const colibri_aiv::Ultrasonic::ConstPtr& ultra_ca);
 		void EnvSecurityCallBack(const colibri_msgs::EnvSecurity::ConstPtr& env);
 
 		float CalcDsrVc(float vel_center);
@@ -175,5 +143,5 @@ class scan_ca
 };
 
 
-#endif
+#endif //	APF_AVOIDING_H_
 
