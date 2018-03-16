@@ -20,16 +20,14 @@
 
 using namespace std;
 
-#define RAD2DEG 	57.2958
-#define DEG2RAD 	0.01745
-#define PI 			3.1415926
+#define RAD2DEG 	180.0/M_PI
+#define DEG2RAD 	M_PI/180.
 
-#define	DEG2RAD_PARAM(deg)	PI * deg / 180.0
-#define	RAD2DEG_PARAM(rad)	180.0 * rad / PI
+#define	DEG2RAD_PARAM(deg)	DEG2RAD * (deg)
+#define	RAD2DEG_PARAM(rad)	RAD2DEG * (rad)
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
 
 #define NUM_RAY4CA 				181		//every degree for front semi-cirle
 #define ANGLE4CA_START 			0
@@ -69,9 +67,7 @@ class APF
 		float ultra4ca[NUM_RAY4CA];
 
 		float abstract_pf[NUM_RAY4CA];
-		
-		float min_ultra;
-		int ultra_coder;
+
 		float min_laser;
 		int min_laser_dir;
 
@@ -106,15 +102,13 @@ class APF
 		ros::NodeHandle nh_ca;
 		ros::Subscriber scan_sub4ca;
 		ros::Subscriber env_sub4safe;
-		ros::Publisher apf_pub4mntr;
-		ros::Publisher rf_pub4mntr;
 		ros::Publisher pf_Pub4dbg;
 
 		colibri_msgs::AngPotnEngy pf_dbg;
 
 		
-		scan_ca();
-		~scan_ca();
+		APF();
+		~APF();
 		
 		float CalcKpPhi(float vel_center, float d_phi);
 		void CalcKrfTheta(float* ptrKp_phi_vector, int* ptrPhi_range_start, int* ptrPhi_range_end);	

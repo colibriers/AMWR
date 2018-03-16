@@ -1,6 +1,6 @@
 #include "APF_avoiding.h"
 
-APF::scan_ca()
+APF::APF()
 {
 	goal_dir = 60;	//goal direction
 	memset(scan4ca, 0.2, NUM_RAY4CA);
@@ -24,8 +24,6 @@ APF::scan_ca()
 	memset(passfcn_vec, 0, NUM_RAY4CA);
 	max_passfcn_val = 0.0;
 
-	min_ultra = 3.0;
-	ultra_coder = 0;
 	min_laser = 20.0;
 	min_laser_dir = 90;
 
@@ -51,7 +49,7 @@ APF::scan_ca()
 	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
 }
 
-APF::~scan_ca()
+APF::~APF()
 {
 	
 }
