@@ -1,6 +1,6 @@
 #include "PID_controller.h"
 
-PID_controller::PID_controller() {  
+PID_Controller::PID_Controller() {  
 	ctrl_param_.u_ref = 0.0;
 
 	ctrl_param_.Kp = 0.2;  
@@ -20,7 +20,7 @@ PID_controller::PID_controller() {
 	ctrl_param_.u_out = 0.0;
 }  
 
-PID_controller::PID_controller(const double & kp, const double & ki, const double & kd, const double & bound) {  
+PID_Controller::PID_Controller(const double & kp, const double & ki, const double & kd, const double & bound) {  
 	ctrl_param_.Kp = kp;  
 	ctrl_param_.Ki = ki;
 	ctrl_param_.Kd = kd;
@@ -33,11 +33,11 @@ PID_controller::PID_controller(const double & kp, const double & ki, const doubl
 
 }  
 
-PID_controller::~PID_controller() {  
+PID_Controller::~PID_Controller() {  
 
 }
 
-void PID_controller::SetControllerParam(const double & kp, const double & ki, const double & kd) {
+void PID_Controller::SetControllerParam(const double & kp, const double & ki, const double & kd) {
 	ctrl_param_.Kp = kp;  
 	ctrl_param_.Ki = ki;
 	ctrl_param_.Kd = kd;
@@ -48,7 +48,7 @@ void PID_controller::SetControllerParam(const double & kp, const double & ki, co
 
 }
 
-void PID_controller::Regulator(const double & u_r, const double & u_fb) {  
+void PID_Controller::Regulator(const double & u_r, const double & u_fb) {  
 	double error = 0.0;
 
 	ctrl_param_.u_ref = u_r;

@@ -38,7 +38,7 @@ bool Saturation( const T & bound, T * in_out) {
 	return true;
 }
 
-class PID_controller
+class PID_Controller
 {
 	public:
 		struct st_PID_param
@@ -67,15 +67,15 @@ class PID_controller
 			double error_2;
 			double u_delta;
 			double u_out;
-		}PID_param_struct;
+		};
 		typedef st_PID_param PID_param_st;
 
 		PID_param_st ctrl_param_;
 
-		PID_controller();
-		PID_controller(const double & kp, const double & ki, const double & kd, const double & bound = 4.);
+		PID_Controller();
+		PID_Controller(const double & kp, const double & ki, const double & kd, const double & bound = 4.);
 
-		~PID_controller();
+		~PID_Controller();
 		
 		void SetControllerParam(const double & kp, const double & ki, const double & kd);
 

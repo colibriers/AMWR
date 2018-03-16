@@ -1,9 +1,9 @@
 #include "PID_controller.h"
 
 int main(void) {
-	PID_controller reg1Obj;
-	PID_controller reg2Obj(5., 6., 7.);
-	PID_controller reg3Obj(1., 2., 3., 10.);
+	PID_Controller reg1Obj;
+	PID_Controller reg2Obj(5., 6., 7.);
+	PID_Controller reg3Obj(1., 2., 3., 10.);
 		
 	reg1Obj.SetControllerParam(1.0, 2.0, 3.0);
 	reg1Obj.Regulator(1.0, 0.8);
