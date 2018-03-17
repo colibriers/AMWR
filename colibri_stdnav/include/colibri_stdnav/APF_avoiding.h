@@ -56,7 +56,7 @@
 #define THETA_V_MAX DEG2RAD_PARAM(150)
 
 #define PASSFCN_THD_RATIO 	0.2
-#define MAX_PASSFCN_SCOPE	0.1
+#define MAX_PASSFCN_SCOPE		0.1
 #define PASSVAL_TOLLERENCE  0.1
 
 class APF {
@@ -64,7 +64,6 @@ class APF {
 		typedef Eigen::Array<float, 1, NUM_RAY4CA> Array_CA;
 		
 		Array_CA scan4ca_;
-		Array_CA add_obs4ca_;
 
 		float abstract_pf[NUM_RAY4CA];
 
@@ -126,7 +125,6 @@ class APF {
 		void CalcAlarmInAPF(void);
 		void ResetMaxPassValCnt(void);
 
-		void TrimLaserRange4CA(float & compensate);
 		void PubPfInfo4Dbg(void);
 		void CalcCtrlCmd(const float & v_ref, const float & rot_coeff);
 

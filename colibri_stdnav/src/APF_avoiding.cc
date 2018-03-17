@@ -227,32 +227,6 @@ void APF::ResetMaxPassValCnt(void) {
 	bwd_maxpass_cnt_ = 0;
 }
 
-void APF::TrimLaserRange4CA(float & compensate)
-{
-	int half_width = 0;
-
-	if(min_laser < LASER4CA_FILL_DIS)
-	{
-		if(min_laser < 0.25)
-		{
-			return;
-		}
-		half_width = (int) (LASER4CA_FILL_DIS / min_laser * compensate / 2.0);
-		for(int i = min_laser_dir - half_width; i <= (min_laser_dir + half_width); i++)
-		{
-			if((i > 0) && (i < NUM_RAY4CA))
-			{
-				add_obs4ca_[i] = min_laser;
-			}
-			else
-			{
-
-			}
-				
-		}
-	}
-}
-
 void APF::PubPfInfo4Dbg(void) {
 	pf_dbg.header.stamp = ros::Time::now();
 	pf_dbg.header.frame_id = "apf";
