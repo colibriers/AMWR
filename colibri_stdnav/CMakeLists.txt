@@ -66,6 +66,9 @@ target_link_libraries(std_safe_node ${catkin_LIBRARIES})
 add_executable(pid_test_node src/PID_test.cc src/PID_controller.cc)
 target_link_libraries(pid_test_node ${catkin_LIBRARIES})
 
+add_executable(Eigen_test_node src/Eigen_test.cc)
+target_link_libraries(Eigen_test_node ${catkin_LIBRARIES})
+
 add_executable(APF_test_node src/APF_test.cc src/APF_avoiding.cc)
 target_link_libraries(APF_test_node ${catkin_LIBRARIES})
 

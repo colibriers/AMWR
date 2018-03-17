@@ -1,61 +1,16 @@
 #include "APF_avoiding.h"
 
-APF::APF(){
+APF::APF(float init_goal_dir): goal_dir_(init_goal_dir),
+																 max_passfcn_val_(0.), min_laser_(20.),
+																 min_laser_dir_(90.), fwd_maxpass_cnt_(0),
+																 bwd_maxpass_cnt_(0), ctrl_v_(0.), ctrl_vth_(0.),
+																 angle_adj_(0.), apf_alarm_(0), refresh_flag_(false){
 				  
-	memset(abstract_pf, 20.0, NUM_RAY4CA);
+	std::fill(abstract_pf_, abstract_pf_ + NUM_RAY4CA, 20.);
 	
-	goal_dir_ = 90.0;
-	
-	max_passfcn_val_ = 0.0;
-
-	min_laser = 20.0;
-	min_laser_dir = 90;
-
-	fwd_maxpass_cnt_ = 0;
-	bwd_maxpass_cnt_ = 0;
-
-	maxfcn_fwdbnd_ = 90;
-	maxfcn_bwdbnd_ = 90;
-
-	ctrl_v_ = 0.0;
-	ctrl_vth_ = 0.0;
-	
-	angle_adj_ = 0.0;
-	vel_adj = 0.0;
-	apf_alarm_ = 0;
-	
-	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &APF::ScanCallBack, this);
-	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &APF::EnvSecurityCallBack,this);
-	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
-}
-
-APF::APF(float init_goal_dir){
-				  
-	memset(abstract_pf, 20.0, NUM_RAY4CA);
-	
-	goal_dir_ = init_goal_dir;
-	
-	max_passfcn_val_ = 0.0;
-
-	min_laser = 20.0;
-	min_laser_dir = 90;
-
-	fwd_maxpass_cnt_ = 0;
-	bwd_maxpass_cnt_ = 0;
-
-	maxfcn_fwdbnd_ = 90;
-	maxfcn_bwdbnd_ = 90;
-
-	ctrl_v_ = 0.0;
-	ctrl_vth_ = 0.0;
-	
-	angle_adj_ = 0.0;
-	vel_adj = 0.0;
-	apf_alarm_ = 0;
-	
-	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &APF::ScanCallBack, this);
-	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &APF::EnvSecurityCallBack,this);
-	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
+	scan_sub4ca_ = nh_ca_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &APF::ScanCallBack, this);
+	env_sub4safe_ = nh_ca_.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &APF::EnvSecurityCallBack,this);
+	pf_Pub4dbg_ = nh_ca_.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
 }
 
 APF::~APF()
@@ -106,12 +61,12 @@ void APF::CalcPhiParam(const float & velocity) {
 	krf_vec_ = kp_phi_vec_;
 }
 
-void APF::CalcKafTheta(const float& dir_goal_inlaser) {
+void APF::CalcKafTheta(const float& goal_inlaser) {
 
 	Eigen::Array<float, 1, NUM_RAY4CA> index_angle, tmp_delta;
 	index_angle.setLinSpaced(NUM_RAY4CA, 0., 180.);
 
-	tmp_delta = index_angle - dir_goal_inlaser; 		// unit in degree
+	tmp_delta = index_angle - goal_inlaser; 		// unit in degree
 	LimitAngle(tmp_delta);
 	kaf_vec_ = (tmp_delta * DEG2RAD).cos();	//dir_goal_in_laser is 0~180 degree from right side
 }
@@ -141,7 +96,7 @@ void APF::CalcPassFcn(const int  & seq_flag, const bool & concern_apf) {
 	int col = 90;
 	Array_CA tmp_vec;
 	if(concern_apf) {
-		passfcn_vec_ = kaf_vec_ / kaf_vec_;
+		passfcn_vec_ = kaf_vec_ / krf_vec_;
 		
 	} else {
 		passfcn_vec_ = 1. / kaf_vec_;
@@ -228,14 +183,14 @@ void APF::ResetMaxPassValCnt(void) {
 }
 
 void APF::PubPfInfo4Dbg(void) {
-	pf_dbg.header.stamp = ros::Time::now();
-	pf_dbg.header.frame_id = "apf";
-	pf_dbg.angle_min = 0.0;
-	pf_dbg.angle_max = 180.0;
-	pf_dbg.angle_increment = 1.0;
+	pf_dbg_.header.stamp = ros::Time::now();
+	pf_dbg_.header.frame_id = "apf";
+	pf_dbg_.angle_min = 0.0;
+	pf_dbg_.angle_max = 180.0;
+	pf_dbg_.angle_increment = 1.0;
 
-	memcpy(&pf_dbg.potential_value[0], &abstract_pf[0], sizeof(abstract_pf));
-	pf_Pub4dbg.publish(pf_dbg);	
+	memcpy(&pf_dbg_.potential_value[0], &abstract_pf_[0], sizeof(abstract_pf_));
+	pf_Pub4dbg_.publish(pf_dbg_);	
 }
 
 void APF::CalcCtrlCmd(const float & v_ref, const float & rot_coeff) {
@@ -260,15 +215,12 @@ void APF::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca) {
 		}
 		j = j + 2; 
 	}
-	
-	Eigen::Array<float, 1, NUM_RAY4CA> tmp;
-	add_obs4ca_ = LASER_RANGE* tmp.setOnes();
-	
+	refresh_flag_ = true;
 }
 
 void APF::EnvSecurityCallBack(const colibri_msgs::EnvSecurity::ConstPtr& env) {
-	min_laser = env->laser_min_dis;
-	min_laser_dir = env->laser_min_angle;
+	min_laser_ = env->laser_min_dis;
+	min_laser_dir_ = env->laser_min_angle;
 }
 
 void APF::CalcDsrVc(const float & vel) {

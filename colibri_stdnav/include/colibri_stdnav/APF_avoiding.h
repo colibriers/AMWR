@@ -59,13 +59,15 @@
 #define MAX_PASSFCN_SCOPE		0.1
 #define PASSVAL_TOLLERENCE  0.1
 
+#define DELAY_CNT_MAX 	10
+
 class APF {
 	public:
 		typedef Eigen::Array<float, 1, NUM_RAY4CA> Array_CA;
 		
 		Array_CA scan4ca_;
 
-		float abstract_pf[NUM_RAY4CA];
+		float abstract_pf_[NUM_RAY4CA];
 
 		Array_CA delta_phi_vec_;
 		Array_CA kp_phi_vec_;
@@ -77,8 +79,8 @@ class APF {
 		Eigen::Array<int, 1, NUM_RAY4CA> phi_start_vec_;
 		Eigen::Array<int, 1, NUM_RAY4CA> phi_end_vec_;
 
-		float min_laser;
-		int min_laser_dir;
+		float min_laser_;
+		int min_laser_dir_;
 
 		float dsr_v_;
 		
@@ -93,17 +95,16 @@ class APF {
 		float ctrl_vth_;
 		
 		float angle_adj_;
-		float vel_adj;
 		unsigned int apf_alarm_;
 		
-		ros::NodeHandle nh_ca;
-		ros::Subscriber scan_sub4ca;
-		ros::Subscriber env_sub4safe;
-		ros::Publisher pf_Pub4dbg;
+		ros::NodeHandle nh_ca_;
+		ros::Subscriber scan_sub4ca_;
+		ros::Subscriber env_sub4safe_;
+		ros::Publisher pf_Pub4dbg_;
 
-		colibri_msgs::AngPotnEngy pf_dbg;
+		colibri_msgs::AngPotnEngy pf_dbg_;
+		bool refresh_flag_;
 
-		APF();
 		APF(float init_goal_dir = 90.0);
 		~APF();
 		
@@ -111,13 +112,11 @@ class APF {
 		void CalcKpPhi(const float & vel);
 		void CalcPhiParam(const float & velocity);
 		
-		void CalcKafTheta(const float& dir_goal_inlaser);		
+		void CalcKafTheta(const float& goal_inlaser);		
 		void CalcKrfTheta(void);
-		void CalcCorrectedKrf(const float & krf_corrector);
+		void CalcCorrectedKrf(const float & krf_corrector = 0.1);
 
-
-
-		void CalcPassFcn(const int  & seq_flag, const bool & concern_apf);
+		void CalcPassFcn(const int  & seq_flag = 0, const bool & concern_apf = true);
 		void CalcPassFcnWithoutRPF(void);
 
 		void CalcAdjDir(void); 
