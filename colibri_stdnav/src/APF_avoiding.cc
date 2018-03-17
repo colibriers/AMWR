@@ -1,6 +1,35 @@
 #include "APF_avoiding.h"
 
-APF::APF(float init_scan_dis = 0.2, float init_goal_dir = 90.0){
+APF::APF(){
+				  
+	memset(abstract_pf, 20.0, NUM_RAY4CA);
+	
+	goal_dir_ = 90.0;
+	
+	max_passfcn_val_ = 0.0;
+
+	min_laser = 20.0;
+	min_laser_dir = 90;
+
+	fwd_maxpass_cnt_ = 0;
+	bwd_maxpass_cnt_ = 0;
+
+	maxfcn_fwdbnd_ = 90;
+	maxfcn_bwdbnd_ = 90;
+
+	ctrl_v_ = 0.0;
+	ctrl_vth_ = 0.0;
+	
+	angle_adj_ = 0.0;
+	vel_adj = 0.0;
+	apf_alarm_ = 0;
+	
+	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &APF::ScanCallBack, this);
+	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &APF::EnvSecurityCallBack,this);
+	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
+}
+
+APF::APF(float init_goal_dir){
 				  
 	memset(abstract_pf, 20.0, NUM_RAY4CA);
 	
@@ -24,8 +53,8 @@ APF::APF(float init_scan_dis = 0.2, float init_goal_dir = 90.0){
 	vel_adj = 0.0;
 	apf_alarm_ = 0;
 	
-	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &scan_ca::ScanCallBack, this);
-	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &scan_ca::EnvSecurityCallBack,this);
+	scan_sub4ca = nh_ca.subscribe<sensor_msgs::LaserScan>("/scan", 1, &APF::ScanCallBack, this);
+	env_sub4safe = nh_ca.subscribe<colibri_msgs::EnvSecurity>("/env_secure", 1, &APF::EnvSecurityCallBack,this);
 	pf_Pub4dbg = nh_ca.advertise<colibri_msgs::AngPotnEngy>("/pf_dbg", 5); 
 }
 
@@ -69,7 +98,7 @@ void APF::CalcPhiParam(const float & velocity) {
   Eigen::Array<int, 1, NUM_RAY4CA> range_num;
 	
 	delta_phi_vec_ = RAD2DEG * (D_SF * scan4ca_.inverse()).asin();
-	range_num = (delta_phi_vec_ / RAY_RESOL4CA).cast<int>;
+	range_num = (delta_phi_vec_ / RAY_RESOL4CA).cast<int>();
 	CalcPhiRange(range_num);	
 
 	CalcKpPhi(velocity);
@@ -235,6 +264,18 @@ void APF::PubPfInfo4Dbg(void) {
 	pf_Pub4dbg.publish(pf_dbg);	
 }
 
+void APF::CalcCtrlCmd(const float & v_ref, const float & rot_coeff) {
+	float tmp_rot_angle = 0.0;
+	
+	ctrl_v_= (v_ref - V_MIN) * (max_passfcn_val_ / D_M) + V_MIN;
+		
+	if(abs(angle_adj_) > 2.) {
+		tmp_rot_angle = angle_adj_; //clear the quake
+	}
+	
+	ctrl_vth_ = rot_coeff * tmp_rot_angle / 180.0;
+}
+
 void APF::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca) {
 	int j = ANGLE4CA_START_INDEX;
 	for(int i = 0; i < NUM_RAY4CA; i++) {
@@ -247,7 +288,7 @@ void APF::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan_ca) {
 	}
 	
 	Eigen::Array<float, 1, NUM_RAY4CA> tmp;
-	add_obs4ca_.swap(LASER_RANGE* tmp.setOnes());
+	add_obs4ca_ = LASER_RANGE* tmp.setOnes();
 	
 }
 

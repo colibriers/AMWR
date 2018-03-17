@@ -1,6 +1,8 @@
 #include <eigen3/Eigen/Core>
 #include <iostream>
 
+#include "APF_avoiding.h"
+
 #define NUM_RAY4CA 181
 int main(void) {
 	Eigen::Array<float, 1 , 5> test_var;

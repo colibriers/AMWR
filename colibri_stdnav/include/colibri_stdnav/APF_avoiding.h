@@ -59,8 +59,7 @@
 #define MAX_PASSFCN_SCOPE	0.1
 #define PASSVAL_TOLLERENCE  0.1
 
-class APF
-{
+class APF {
 	public:
 		typedef Eigen::Array<float, 1, NUM_RAY4CA> Array_CA;
 		
@@ -106,6 +105,7 @@ class APF
 		colibri_msgs::AngPotnEngy pf_dbg;
 
 		APF();
+		APF(float init_goal_dir = 90.0);
 		~APF();
 		
 		void CalcPhiRange(const Eigen::Array<int, 1, NUM_RAY4CA> &range_num);
@@ -114,19 +114,22 @@ class APF
 		
 		void CalcKafTheta(const float& dir_goal_inlaser);		
 		void CalcKrfTheta(void);
-		void CalcCorrectedKrf(void);
+		void CalcCorrectedKrf(const float & krf_corrector);
+
 
 
 		void CalcPassFcn(const int  & seq_flag, const bool & concern_apf);
 		void CalcPassFcnWithoutRPF(void);
 
-		float CalcAdjDir(void);
+		void CalcAdjDir(void); 
 
 		void CalcAlarmInAPF(void);
 		void ResetMaxPassValCnt(void);
 
 		void TrimLaserRange4CA(float & compensate);
 		void PubPfInfo4Dbg(void);
+		void CalcCtrlCmd(const float & v_ref, const float & rot_coeff);
+
 			
 	private:
 
