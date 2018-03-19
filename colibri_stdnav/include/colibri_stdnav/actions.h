@@ -44,12 +44,13 @@ class Actions {
 		PID_Controller ctrl4yawObj;
 
 		const float angle_tolerance_;
+		float robot2gravaton_dis_;
 
 		nav_action();
 		~nav_action();
 
-		float* WaitingAction(float waiting_time, unsigned int* finish_flag);
-		float* StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time);
+		bool & WaitingAction(const float & waiting_time) ;
+		void MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time);
 
 		bool & StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff = 1.2);
 		bool & StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular); 
@@ -63,14 +64,13 @@ class Actions {
 		float* ApproachingGoalAction(float* cur_pos, float* goal_pos, float * cur_yaw, float & cur_vx, unsigned int* finish_flag);
 		float* ApproachingGravatonAction(float* cur_pos, float* cur_vel, float* gravaton_pos,float* cur_laser2gravation_angle, unsigned int finish_flag);
 
-		bool ReachGravatonOK(float *cur_pos, float *cur_gravaton,float &delta_dis);
+		bool ReachGravatonOK(const float *cur_pos, const float *cur_gravaton);
 		int CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle);
 
 
 	private:
 
 		float delta_yaw_;
-
 		ros::Time time_stamp;
 		ros::Time time_stamp_start;
 		void CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw);	

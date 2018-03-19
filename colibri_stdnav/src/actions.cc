@@ -104,8 +104,7 @@ bool & Actions::WaitingAction(const float & waiting_time) {
 	return wait_finish_flag;
 }
 
-float* Actions::StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time)
-{
+void Actions::MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time) {
 	float waiting_delta_time = 0.0;
 	static float vx_delta = 0.0;
 	static float vx_start = 0.0;
@@ -113,44 +112,33 @@ float* Actions::StraightMovingAction(float* cur_vx, float* ref_vx, float proc_ti
 	float tmp_delta_out = 0.0;
 	static int time_record_flag = 0;
 
-	if(time_record_flag == 0)
-	{
-		
+	if(time_record_flag == 0) {
 		time_stamp = ros::Time::now();
 		time_stamp_start = time_stamp;
 		time_record_flag = 1;
-		vx_delta = *ref_vx - *cur_vx;
-		vx_start = *cur_vx; 
-	}
-	else
-	{
+		vx_delta = ref_vx - cur_vx;
+		vx_start = cur_vx; 
+	} else {
 		time_stamp = ros::Time::now();
 	}
 
 	waiting_delta_time = (time_stamp - time_stamp_start).toSec();
 
-	if(waiting_delta_time <= proc_time)
-	{
+	if(waiting_delta_time <= proc_time) {
 		dynamic_time_interval = waiting_delta_time / proc_time;
 		tmp_delta_out = dynamic_time_interval * vx_delta;
 
-		action4cmd_vel[0] = vx_start + tmp_delta_out;
-		action4cmd_vel[1] = 0.0;
-
-	}
-	else
-	{
-		action4cmd_vel[0] = *ref_vx;
-		action4cmd_vel[1] = 0.0;
+		ctrl_.linear = vx_start + tmp_delta_out;
+		ctrl_.angular = 0.0;
+	} else {
+		ctrl_.linear = ref_vx;
+		ctrl_.angular = 0.0;
 		vx_delta = 0.0;
 		vx_start = 0.0;
 		time_record_flag = 0;
 		time_stamp = ros::Time::now();
 		time_stamp_start = time_stamp;	
 	}
-
-	return action4cmd_vel;
-
 }
 
 bool & Actions::StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff) {
@@ -237,7 +225,6 @@ bool & Actions::StillRotatingActionClosedLoop(const float & ref_yaw, const float
 	return rot_finish_flag;
 }
 
-
 void Actions::CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw) {
 	float yaw_delta = 0.0;
 	int rot_dir = 1;
@@ -259,9 +246,6 @@ void Actions::CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw) {
 	delta_yaw_ = yaw_delta * rot_dir;
 	
 }
-
-
-
 
 float* Actions::AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, float* robot2goal, unsigned int* finish_flag)
 {
@@ -561,32 +545,20 @@ int Actions::CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle)
 	
 }
 
-
-bool Actions::ReachGravatonOK(float *cur_pos, float *cur_gravaton, float &delta_dis)
-{
+bool Actions::ReachGravatonOK(const float *cur_pos, const float *cur_gravaton) {
 	float tmp_delta_x = 0.0;
 	float tmp_delta_y = 0.0;
 	
 	tmp_delta_x = *cur_pos - *cur_gravaton;
 	tmp_delta_y = *(cur_pos + 1) - *(cur_gravaton + 1);
 	
-	delta_dis = sqrt(pow(tmp_delta_x, 2) + pow(tmp_delta_y, 2));
+	robot2gravaton_dis_ = sqrt(pow(tmp_delta_x, 2) + pow(tmp_delta_y, 2));
 
-	if(delta_dis <= GRAVATON_NGHBORHD)
-	{
+	if(robot2gravaton_dis_ <= GRAVATON_NGHBORHD) {
 		return true;
-	}
-	else
-	{
+	} else {
 		return false;
 	}
 
 }
-
-
-
-
-
-
-
 
