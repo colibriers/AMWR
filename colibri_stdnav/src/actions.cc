@@ -73,44 +73,36 @@ Actions::~Actions()
 
 }
 
-float* Actions::WaitingAction(float waiting_time, unsigned int* finish_flag)
-{
-	float waiting_delta_time = 0.0;
-	static int time_record_flag = 0;
+const Actions::float angle_tolerance_ = 4.0;
 
-	if(time_record_flag == 0)
-	{
-		
+bool & Actions::WaitingAction(const float & waiting_time) {
+	float waiting_delta_time = 0.0;
+	static bool time_record_flag = false;
+	bool wait_finish_flag = false;
+
+	if(time_record_flag == false) {
 		time_stamp = ros::Time::now();
 		time_stamp_start = time_stamp;
 		time_record_flag = 1;
-	}
-	else
-	{
+	} else {
 		time_stamp = ros::Time::now(); 
 	}
 
 	waiting_delta_time = (time_stamp - time_stamp_start).toSec();
 
-	if(waiting_delta_time <= waiting_time)
-	{
-		action4cmd_vel[0] = 0.0;
-		action4cmd_vel[1] = 0.0;
-		*finish_flag = 0;
-	}
-	else
-	{
-		cout<<"WaitAction -- waiting_delta_time: "<<waiting_delta_time<<endl;
+	if(waiting_delta_time <= waiting_time) {
+		ctrl_.linear = 0.0;
+		ctrl_.angular = 0.0;
+		wait_finish_flag = false;
+	} else {
 		time_record_flag = 0;
 		time_stamp = ros::Time::now();
 		time_stamp_start = time_stamp;
-		*finish_flag = 1;
+		wait_finish_flag = true;
 	}
 
-	return action4cmd_vel;
+	return wait_finish_flag;
 }
-
-const Actions::float angle_tolerance_ = 4.0;
 
 float* Actions::StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time)
 {
