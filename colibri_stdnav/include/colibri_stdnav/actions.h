@@ -50,7 +50,7 @@ class Actions {
 		~nav_action();
 
 		bool & WaitingAction(const float & waiting_time) ;
-		void MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time);
+		bool & MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time);
 
 		bool & StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff = 1.2);
 		bool & StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular); 

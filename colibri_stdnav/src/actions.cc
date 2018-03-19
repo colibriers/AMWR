@@ -104,13 +104,14 @@ bool & Actions::WaitingAction(const float & waiting_time) {
 	return wait_finish_flag;
 }
 
-void Actions::MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time) {
+bool & Actions::MoveForwardAction(const float & ref_vx, const float & cur_vx, const float & proc_time) {
 	float waiting_delta_time = 0.0;
 	static float vx_delta = 0.0;
 	static float vx_start = 0.0;
 	float dynamic_time_interval = 0.0;
 	float tmp_delta_out = 0.0;
 	static int time_record_flag = 0;
+	bool moveforward_finish_flag = false;
 
 	if(time_record_flag == 0) {
 		time_stamp = ros::Time::now();
@@ -130,6 +131,8 @@ void Actions::MoveForwardAction(const float & ref_vx, const float & cur_vx, cons
 
 		ctrl_.linear = vx_start + tmp_delta_out;
 		ctrl_.angular = 0.0;
+		moveforward_finish_flag = false;
+
 	} else {
 		ctrl_.linear = ref_vx;
 		ctrl_.angular = 0.0;
@@ -137,8 +140,10 @@ void Actions::MoveForwardAction(const float & ref_vx, const float & cur_vx, cons
 		vx_start = 0.0;
 		time_record_flag = 0;
 		time_stamp = ros::Time::now();
-		time_stamp_start = time_stamp;	
+		time_stamp_start = time_stamp;
+		moveforward_finish_flag = true;
 	}
+	return 	moveforward_finish_flag;
 }
 
 bool & Actions::StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff) {
