@@ -39,12 +39,26 @@ float SigmoidFunction(const int & fcn_dir, const float & input)
 	return output;
 }
 
+float UpdownBellFunction(const float & input, const float & eps) {
+	float output = 0.0;
+	float tmp = 0.0;
+	float corrector = 0.6899;	//to make output between 0~1; 
 
-Actions::Actions()
+	if(abs(input) <= eps)	 {
+		output = 0.0; 	// 0.0278*180 = 5 degree
+	} else if(abs(input) <= 1.0) {
+		tmp = 1 / (sqrt(2 * PI) * BELL_SIGMA);
+		output = tmp - tmp * exp(-1.0 * pow(*input, 2) / (2.0 * pow(BELL_SIGMA, 2)));
+		output = output / corrector;
+	} else {
+		output = 1.0;
+	}
+	return output;
+}
+
+
+Actions::Actions():ctrl4yawObj(0.1, 0.2, 0.0, 0.2)
 {
-
-	waiting_type = 0;
-
 	waiting_interval = 0.0;
 	
 	time_stamp = ros::Time::now();
@@ -52,8 +66,6 @@ Actions::Actions()
 
 	action4cmd_vel[0] = 0.0;
 	action4cmd_vel[1] = 0.0;
-
-	ctrl4yawObj.InitRegulatorParam(0.1, 0.2, 0.0, 0.2);
 }
 
 Actions::~Actions()
@@ -61,7 +73,7 @@ Actions::~Actions()
 
 }
 
-float* nav_action::WaitingAction(float waiting_time, unsigned int* finish_flag)
+float* Actions::WaitingAction(float waiting_time, unsigned int* finish_flag)
 {
 	float waiting_delta_time = 0.0;
 	static int time_record_flag = 0;
@@ -173,7 +185,7 @@ bool & Actions::StillRotatingAction(const float * ref_yaw, const float * cur_yaw
 	return rot_finish_flag;
 }
 
-bool & Actions::StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular) {
+bool & Actions::StillRotatingAction(const float & ref_yaw, const float & cur_yaw, const float & init_angular) {
 	float delta_puv = 1;
 	bool rot_finish_flag = false;
 	
@@ -204,6 +216,36 @@ bool & Actions::StillRotatingAction(const float & cur_yaw, const float & ref_yaw
 }
 
 
+bool & Actions::StillRotatingActionClosedLoop(const float & ref_yaw, const float & cur_yaw) {
+	float yaw_delta = 0.0;
+	float yaw_delta_puv = 0.0;
+	float ctrl_u_delta = 0.0;
+	bool rot_finish_flag = false;
+	
+	yaw_delta = (ref_yaw - cur_yaw);
+	yaw_delta_puv = yaw_delta / 180.0;
+	
+	ctrl_.linear = 0.0;
+	if(abs(yaw_delta) <= 30) {
+		ctrl4yawObj.Regulator(ref_yaw, cur_yaw);
+		ctrl_u_delta = ctrl4yawObj.ctrl_param_.u_out;
+	} else {
+		ctrl_u_delta = 0.0;
+	}
+	
+	ctrl_.angular = yaw_delta_puv + ctrl_u_delta;
+
+	if(abs(yaw_delta) <= angle_tolerance_) {
+		rot_finish_flag = true;
+		ctrl_.angular = 0.0;	
+	} else {
+		rot_finish_flag = false;
+	}
+
+	return rot_finish_flag;
+}
+
+
 void Actions::CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw) {
 	float yaw_delta = 0.0;
 	int rot_dir = 1;
@@ -228,40 +270,6 @@ void Actions::CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw) {
 
 
 
-float* Actions::CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag)
-{
-
-	float yaw_delta = 0.0;
-	float yaw_delta_puv = 0.0;
-	float ctrl_u_delta = 0.0;
-	
-	yaw_delta = (*ref_yaw - *cur_yaw);
-	yaw_delta_puv = (*ref_yaw - *cur_yaw)/180.0;
-	
-	action4cmd_vel[0] = 0.0;
-	if(abs(yaw_delta) <= 30)
-	{
-		ctrl4yawObj.Regulator(*ref_yaw, *cur_yaw, &ctrl_u_delta);
-	}
-	else
-	{
-		ctrl_u_delta = 0.0;
-	}
-	
-	action4cmd_vel[1] = yaw_delta_puv + ctrl_u_delta;
-
-	if(abs(yaw_delta) <= ROTATION_TOLERANCE4CL)
-	{
-		*finish_flag = 1;
-		action4cmd_vel[1] = 0.0;	
-	}
-	else
-	{
-		*finish_flag = 0;
-	}
-
-	return action4cmd_vel;
-}
 
 float* Actions::AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, float* robot2goal, unsigned int* finish_flag)
 {
@@ -587,32 +595,6 @@ bool Actions::ReachGravatonOK(float *cur_pos, float *cur_gravaton, float &delta_
 
 
 
-float Actions::UpdownBellFunction(float* input)
-{
-	float output = 0.0;
-	float tmp = 0.0;
-	float corrector = 0.6899;	//to make output between 0~1; 
-
-	if(abs(*input) <= 0.02)		// 0.0278*180 = 5 degree
-	{
-		output = 0.0;
-
-	}
-	else if(abs(*input) <= 1.0)
-	{
-		tmp = 1 / (sqrt(2 * PI) * BELL_SIGMA);
-		output = tmp - tmp * exp(-1.0 * pow(*input, 2) / (2.0 * pow(BELL_SIGMA, 2)));
-		output = output / corrector;
-	}
-	else
-	{
-		output = 1.0;
-
-	}
-
-	return output;
-	
-}
 
 
 

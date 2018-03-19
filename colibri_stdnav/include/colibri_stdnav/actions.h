@@ -21,7 +21,7 @@ using namespace std;
 
 int SgnOfData(const float & data);
 float SigmoidFunction(const int &fcn_dir, const float & input); 
-
+float UpdownBellFunction(const float & input, const float & eps = 0.02);
 
 class Actions {
 	public:
@@ -53,8 +53,8 @@ class Actions {
 
 		bool & StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff = 1.2);
 		bool & StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular); 
+		bool & StillRotatingActionClosedLoop(const float & ref_yaw, const float & cur_yaw);  
 
-		float* CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag);
 		
 		float* AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, float* robot2goal, unsigned int* finish_flag);
 
@@ -64,9 +64,6 @@ class Actions {
 		float* ApproachingGravatonAction(float* cur_pos, float* cur_vel, float* gravaton_pos,float* cur_laser2gravation_angle, unsigned int finish_flag);
 
 		bool ReachGravatonOK(float *cur_pos, float *cur_gravaton,float &delta_dis);
-
-
-		float UpdownBellFunction(float* input);
 		int CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle);
 
 
