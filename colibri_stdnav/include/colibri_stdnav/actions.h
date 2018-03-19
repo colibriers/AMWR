@@ -2,7 +2,6 @@
 #define  ACTIONS_H_
 
 #include "colibri_ca.h"
-#include "colibri_local_nav.h"
 #include "PID_controller.h"
 
 #define STRAIGHT_MOVING_MAX 0.8
@@ -20,16 +19,31 @@
 
 using namespace std;
 
-class nav_action
-{
+int SgnOfData(const float & data);
+float SigmoidFunction(const int &fcn_dir, const float & input); 
+
+
+class Actions {
 	public:
 
-		unsigned int waiting_type;
+		struct st_ctrl_cmd {
+			st_ctrl_cmd():linear(0.), angular(0.) {
+
+			}; 
+			float linear;
+			float angular;
+		};
+		typedef st_ctrl_cmd action_cmd;
+
+		action_cmd ctrl_;
+		
 		float waiting_interval;
 		
 		float action4cmd_vel[VEL_DIM];
 
-		PID_controller ctrl4yawObj;
+		PID_Controller ctrl4yawObj;
+
+		const float angle_tolerance_;
 
 		nav_action();
 		~nav_action();
@@ -37,10 +51,8 @@ class nav_action
 		float* WaitingAction(float waiting_time, unsigned int* finish_flag);
 		float* StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time);
 
-		float* StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag);	
-		float* StillRotatingAction(float* cur_yaw, float* ref_yaw, float & angle_bound, unsigned int* finish_flag);
-		float* StillRotatingAction(float* cur_yaw, float* ref_yaw, float & angle_vel, float & tolerance, unsigned int* finish_flag);
-
+		bool & StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff = 1.2);
+		bool & StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular); 
 
 		float* CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag);
 		
@@ -49,22 +61,22 @@ class nav_action
 		//float* ApproachingGoalAction(float* cur_pos, float* goal_pos,float* cur_laser2goal_angle, unsigned int* finish_flag);
 		//float* ApproachingGoalAction(float* cur_pos, float* goal_pos, unsigned int* finish_flag);
 		float* ApproachingGoalAction(float* cur_pos, float* goal_pos, float * cur_yaw, float & cur_vx, unsigned int* finish_flag);
-
-
 		float* ApproachingGravatonAction(float* cur_pos, float* cur_vel, float* gravaton_pos,float* cur_laser2gravation_angle, unsigned int finish_flag);
 
 		bool ReachGravatonOK(float *cur_pos, float *cur_gravaton,float &delta_dis);
 
-		float SigmoidFunction(int fcn_dir, float* input);	
+
 		float UpdownBellFunction(float* input);
-		int	SgnOfData(float* input);
 		int CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle);
+
 
 	private:
 
+		float delta_yaw_;
+
 		ros::Time time_stamp;
 		ros::Time time_stamp_start;
-		
+		void CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw);	
 };
 
 

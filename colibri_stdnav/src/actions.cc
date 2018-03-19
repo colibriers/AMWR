@@ -1,7 +1,46 @@
-#include "colibri_action.h"
+#include "actions.h"
+
+int SgnOfData(const float & data) {
+	float epsilon = 0.000001;
+	if(data > epsilon) {
+		return 1;
+		
+	} else if(data < -epsilon) {
+		return -1;
+		
+	} else {
+		return 0;
+		
+	}		
+}
+
+float SigmoidFunction(const int & fcn_dir, const float & input)	
+{
+	float output;
+	/*
+	*  logistic function: y = k / (1+exp(a*(x-b))) 
+	*/
+
+	if(fcn_dir == 1)		// up direction : S shape
+	{
+		output = SIGMOID_AMP / (1 + exp(SIGMOID_SLOPE_INC * (input - SIGMOID_OFFSET_X)));
+	}
+	else if(fcn_dir == -1)	//down direction: mirror S shape
+	{
+		output = SIGMOID_AMP / (1 + exp(SIGMOID_SLOPE_DEC * (input - SIGMOID_OFFSET_X)));
+
+	}
+	else
+	{
+		cout<<"sigmoid function direction exception"<<endl;
+		output = 0.0;
+	}
+
+	return output;
+}
 
 
-nav_action::nav_action()
+Actions::Actions()
 {
 
 	waiting_type = 0;
@@ -17,7 +56,7 @@ nav_action::nav_action()
 	ctrl4yawObj.InitRegulatorParam(0.1, 0.2, 0.0, 0.2);
 }
 
-nav_action::~nav_action()
+Actions::~Actions()
 {
 
 }
@@ -59,7 +98,9 @@ float* nav_action::WaitingAction(float waiting_time, unsigned int* finish_flag)
 	return action4cmd_vel;
 }
 
-float* nav_action::StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time)
+const Actions::float angle_tolerance_ = 4.0;
+
+float* Actions::StraightMovingAction(float* cur_vx, float* ref_vx, float proc_time)
 {
 	float waiting_delta_time = 0.0;
 	static float vx_delta = 0.0;
@@ -108,161 +149,86 @@ float* nav_action::StraightMovingAction(float* cur_vx, float* ref_vx, float proc
 
 }
 
-float* nav_action::StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag)
-{
+bool & Actions::StillRotatingAction(const float * ref_yaw, const float * cur_yaw, const float & rot_coeff) {
 
 	float yaw_delta = 0.0;
 	float yaw_delta_puv = 0.0;
+	bool rot_finish_flag = false;
 
 	yaw_delta = (*ref_yaw - *cur_yaw);
 	yaw_delta_puv = (*ref_yaw - *cur_yaw)/180.0;
-	action4cmd_vel[0] = 0.0;
-	action4cmd_vel[1] = 1.2 * yaw_delta_puv;	
+	ctrl_.linear = 0.0;
+	ctrl_.angular = rot_coeff * yaw_delta_puv;	
 
-	if(abs(yaw_delta) <= ROTATION_TOLERANCE)
+	if(abs(yaw_delta) <= angle_tolerance_)
 	{
-		*finish_flag = 1;
-		action4cmd_vel[1] = 0.0;	
+		rot_finish_flag = true;
+		ctrl_.angular = 0.0;	
 	}
 	else
 	{
-		*finish_flag = 0;
+		rot_finish_flag = false;
 	}
 
-	return action4cmd_vel;
+	return rot_finish_flag;
 }
 
-float* nav_action::StillRotatingAction(float* cur_yaw, float* ref_yaw, float & angle_vel, unsigned int* finish_flag)
-{
-
-	float yaw_delta = 0.0;
+bool & Actions::StillRotatingAction(const float & cur_yaw, const float & ref_yaw, const float & init_angular) {
 	float delta_puv = 1;
-	int rot_dir = 1;
-
-	float tmp_diff = *ref_yaw - *cur_yaw;
+	bool rot_finish_flag = false;
 	
-	if(tmp_diff > 180)
-	{
-		yaw_delta = 360 - tmp_diff;
-		rot_dir = -1;
-	}
-	else if(tmp_diff < -180)
-	{
-		yaw_delta = 360 + tmp_diff;
-		rot_dir = 1;
-	}
-	else
-	{
-		yaw_delta = tmp_diff;
-		rot_dir = 1;
-	}
+	ctrl_.linear = 0.;
 
-	yaw_delta = yaw_delta * rot_dir;
+	CalcCtrlDeltaYaw(ref_yaw, cur_yaw);
 
-	action4cmd_vel[0] = 0.0;
-
-	if(abs(yaw_delta) > SLOW_ROT_ANGLE)
-	{
-
-		action4cmd_vel[1] = angle_vel * SgnOfData(&yaw_delta);			
-	}
-	else
-	{
-		delta_puv = abs(yaw_delta/SLOW_ROT_ANGLE);
-
-		action4cmd_vel[1] = angle_vel * SgnOfData(&yaw_delta) * SigmoidFunction(1, &delta_puv);	
-
-	}
-
-	if(abs(yaw_delta) <= ROTATION_TOLERANCE)
-	{
-		*finish_flag = 1;
-		action4cmd_vel[1] = 0.0;	
-	}
-	else
-	{
-		*finish_flag = 0;
-	}
-
-	return action4cmd_vel;
-}
-
-float* nav_action::StillRotatingAction(float* cur_yaw, float* ref_yaw, float & angle_vel, float & tolerance, unsigned int* finish_flag)
-{
-
-	float yaw_delta = 0.0;
-	float delta_puv = 1;
-	int rot_dir = 1;
-
-	float tmp_diff = *ref_yaw - *cur_yaw;
-	
-	if(tmp_diff > 180)
-	{
-		yaw_delta = 360 - tmp_diff;
-		rot_dir = -1;
-	}
-	else if(tmp_diff < -180)
-	{
-		yaw_delta = 360 + tmp_diff;
-		rot_dir = 1;
-	}
-	else
-	{
-		yaw_delta = tmp_diff;
-		rot_dir = 1;
-	}
-
-	yaw_delta = yaw_delta * rot_dir;
-
-	action4cmd_vel[0] = 0.0;
-
-	if(abs(yaw_delta) > SLOW_ROT_ANGLE)
-	{
-
-		action4cmd_vel[1] = angle_vel * SgnOfData(&yaw_delta);			
-	}
-	else
-	{
-		delta_puv = abs(yaw_delta/SLOW_ROT_ANGLE);
-
-		action4cmd_vel[1] = angle_vel * SgnOfData(&yaw_delta) * SigmoidFunction(1, &delta_puv);	
-
-	}
-
-	if(abs(yaw_delta) <= tolerance)
-	{
-		*finish_flag = 1;
-		action4cmd_vel[1] = 0.0;	
-	}
-	else
-	{
-		*finish_flag = 0;
-	}
-
-	return action4cmd_vel;
-}
-
-
-int nav_action::SgnOfData(float* input)
-{
-	if( *input > 0.0001)
-	{
-		return 1;
-	}
-	else if(*input < -0.0001)
-	{
-		return -1;
-	}
-	else
-	{
-		return 0;
-	}
+	if(abs(delta_yaw_) > SLOW_ROT_ANGLE) {
+		ctrl_.angular = init_angular * SgnOfData(delta_yaw_);
 		
+	} else {
+		delta_puv = abs(delta_yaw_/SLOW_ROT_ANGLE);
+		ctrl_.angular = init_angular * SgnOfData(delta_yaw_) * SigmoidFunction(1, &delta_puv);	
+	}
+
+	if(abs(delta_yaw_) <= angle_tolerance_)
+	{
+		rot_finish_flag = true;
+		ctrl_.angular = 0.;
+	}
+	else
+	{
+		rot_finish_flag = false;
+
+	}
+
+	return rot_finish_flag;
+}
+
+
+void Actions::CalcCtrlDeltaYaw(const float &ref_yaw, const float cur_yaw) {
+	float yaw_delta = 0.0;
+	int rot_dir = 1;
+
+	float tmp_diff = ref_yaw - cur_yaw;
+	
+	if(tmp_diff > 180.) {
+		yaw_delta = 360. - tmp_diff;
+		rot_dir = -1;
+		
+	} else if(tmp_diff < -180.) {
+		yaw_delta = 360. + tmp_diff;
+		rot_dir = 1;
+		
+	} else {
+		yaw_delta = tmp_diff;
+		rot_dir = 1;
+	}
+	delta_yaw_ = yaw_delta * rot_dir;
+	
 }
 
 
 
-float* nav_action::CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag)
+float* Actions::CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsigned int* finish_flag)
 {
 
 	float yaw_delta = 0.0;
@@ -297,7 +263,7 @@ float* nav_action::CL4StillRotatingAction(float* cur_yaw, float* ref_yaw, unsign
 	return action4cmd_vel;
 }
 
-float* nav_action::AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, float* robot2goal, unsigned int* finish_flag)
+float* Actions::AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, float* robot2goal, unsigned int* finish_flag)
 {
 
 	float* tmp_action_cmd = NULL;
@@ -358,7 +324,7 @@ float* nav_action::AdjustMovingDirAction(float* cur_yaw, float* goal_in_laser, f
 }
 
 /*
-float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos,float* cur_laser2goal_angle, unsigned int* finish_flag)
+float* Actions::ApproachingGoalAction(float* cur_pos, float* goal_pos,float* cur_laser2goal_angle, unsigned int* finish_flag)
 { 
 	float delta_dis_puv = 1.0;		//distance per unit value
 	float delta_yaw_puv = 0.0;
@@ -387,7 +353,7 @@ float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos,float* 
 }
 
 
-float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos, unsigned int* finish_flag)
+float* Actions::ApproachingGoalAction(float* cur_pos, float* goal_pos, unsigned int* finish_flag)
 { 
 	float delta_dis_puv = 1.0;		//distance per unit value
 	float delta_yaw_puv = 0.0;
@@ -436,7 +402,7 @@ float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos, unsign
 
 */
 
-float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos, float * cur_yaw, float & cur_vx, unsigned int* finish_flag)
+float* Actions::ApproachingGoalAction(float* cur_pos, float* goal_pos, float * cur_yaw, float & cur_vx, unsigned int* finish_flag)
 { 
 	float delta_dis_puv = 1.0;		//distance per unit value
 	float delta_yaw = 0.0;
@@ -563,12 +529,12 @@ float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos, float 
 
 
 
-float* nav_action::ApproachingGravatonAction(float* current_pos, float* current_vel, float* gravaton_pos, float* current_laser2gravaton_angle, unsigned int complete_flag)
+float* Actions::ApproachingGravatonAction(float* current_pos, float* current_vel, float* gravaton_pos, float* current_laser2gravaton_angle, unsigned int complete_flag)
 {
 
 }
 
-int nav_action::CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle)
+int Actions::CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle)
 {
 	int diff_angle_property = 0;
 	float tmp_diff = r2g - heading;
@@ -596,7 +562,7 @@ int nav_action::CalcMicroRotAngle(float & r2g, float & heading, float & diff_ang
 }
 
 
-bool nav_action::ReachGravatonOK(float *cur_pos, float *cur_gravaton, float &delta_dis)
+bool Actions::ReachGravatonOK(float *cur_pos, float *cur_gravaton, float &delta_dis)
 {
 	float tmp_delta_x = 0.0;
 	float tmp_delta_y = 0.0;
@@ -619,32 +585,9 @@ bool nav_action::ReachGravatonOK(float *cur_pos, float *cur_gravaton, float &del
 
 
 
-float nav_action::SigmoidFunction(int fcn_dir, float* input)	
-{
-	float output;
-	/*
-	*  logistic function: y = k / (1+exp(a*(x-b))) 
-	*/
 
-	if(fcn_dir == 1)		// up direction : S shape
-	{
-		output = SIGMOID_AMP / (1 + exp(SIGMOID_SLOPE_INC * (*input - SIGMOID_OFFSET_X)));
-	}
-	else if(fcn_dir == -1)	//down direction: mirror S shape
-	{
-		output = SIGMOID_AMP / (1 + exp(SIGMOID_SLOPE_DEC * (*input - SIGMOID_OFFSET_X)));
 
-	}
-	else
-	{
-		cout<<"sigmoid function direction exception"<<endl;
-		output = 0.0;
-	}
-
-	return output;
-}
-
-float nav_action::UpdownBellFunction(float* input)
+float Actions::UpdownBellFunction(float* input)
 {
 	float output = 0.0;
 	float tmp = 0.0;
