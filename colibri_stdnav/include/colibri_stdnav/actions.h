@@ -1,9 +1,9 @@
+#ifndef	 ACTIONS_H_
+#define  ACTIONS_H_
+
 #include "colibri_ca.h"
 #include "colibri_local_nav.h"
 #include "PID_controller.h"
-
-#ifndef	 _COLIBRI_ACTION_H_
-#define  _COLIBRI_ACTION_H_
 
 #define STRAIGHT_MOVING_MAX 0.8
 
