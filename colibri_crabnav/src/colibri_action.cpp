@@ -476,7 +476,6 @@ float* nav_action::ApproachingGoalAction(float* cur_pos, float* goal_pos, float 
 
 	rot_proterty = CalcMicroRotAngle(tmp_r2g, *cur_yaw, angle_diff);
 
-
 	if(delta_dis_puv > delta_gap)
 	{
 		action4cmd_vel[0] = aiv_vx;

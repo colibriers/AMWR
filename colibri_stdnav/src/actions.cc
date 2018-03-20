@@ -516,38 +516,21 @@ float* Actions::ApproachingGoalAction(float* cur_pos, float* goal_pos, float * c
 
 }
 
-
-
-float* Actions::ApproachingGravatonAction(float* current_pos, float* current_vel, float* gravaton_pos, float* current_laser2gravaton_angle, unsigned int complete_flag)
-{
-
-}
-
-int Actions::CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle)
-{
+int Actions::CalcMicroRotAngle(const float & r2g, const float & heading, float & diff_angle) {
 	int diff_angle_property = 0;
 	float tmp_diff = r2g - heading;
 	diff_angle = 0.0;
-	if(tmp_diff > 180)
-	{
+	if(tmp_diff > 180.) {
 		diff_angle = 360 - tmp_diff;
 		diff_angle_property = -1;
-
-	}
-	else if(tmp_diff < -180)
-	{
+	} else if(tmp_diff < -180.) {
 		diff_angle = 360 + tmp_diff;
 		diff_angle_property = 1;
-
-	}
-	else
-	{
+	} else {
 		diff_angle = tmp_diff;
 		diff_angle_property = 0;
 	}
-
 	return diff_angle_property;
-	
 }
 
 bool Actions::ReachGravatonOK(const float *cur_pos, const float *cur_gravaton) {

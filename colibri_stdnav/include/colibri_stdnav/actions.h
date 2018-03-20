@@ -62,10 +62,10 @@ class Actions {
 		//float* ApproachingGoalAction(float* cur_pos, float* goal_pos,float* cur_laser2goal_angle, unsigned int* finish_flag);
 		//float* ApproachingGoalAction(float* cur_pos, float* goal_pos, unsigned int* finish_flag);
 		float* ApproachingGoalAction(float* cur_pos, float* goal_pos, float * cur_yaw, float & cur_vx, unsigned int* finish_flag);
-		float* ApproachingGravatonAction(float* cur_pos, float* cur_vel, float* gravaton_pos,float* cur_laser2gravation_angle, unsigned int finish_flag);
 
 		bool ReachGravatonOK(const float *cur_pos, const float *cur_gravaton);
-		int CalcMicroRotAngle(float & r2g, float & heading, float & diff_angle);
+		int CalcMicroRotAngle(const float & r2g, const float & heading, float & diff_angle);
+
 
 
 	private:
