@@ -4,7 +4,9 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <eigen3/Eigen/Dense>
+
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
@@ -15,22 +17,18 @@
 #include "cartodom/Cartodom.h"
 
 using namespace std; 
-
 using namespace Eigen;
-
 
 const float RAD2DEG = 57.2958;
 const float DEG2RAD = 0.01745;
 const float PI = 3.1415926;
 const int DELAY_CNT_MAX = 10;
 
-
 struct path_point
 {
 	float x;
 	float y;
 	float yaw;	// unit in degree
-	
 };
 
 struct circle_params
@@ -38,25 +36,19 @@ struct circle_params
 	float circle_x;
 	float circle_y;
 	float radius;	// unit in degree
-	
 };
-
 
 struct path_velocity
 {
 	float linear_vel;
 	float angular_vel;
-	
 };
-
 
 struct path_gen
 {
 	vector<path_point> path_array;
-        vector<path_velocity> path_vel_array;
-	
+        vector<path_velocity> path_vel_array;	
 };
-
 
 struct vehicle_params
 {
@@ -73,15 +65,13 @@ struct motion_params
 	float ts;
 };
 
-
 struct path_params
 {
 	path_point start_point;
 	path_point end_point;
 	string rot_direction;
 	float rot_radius;
-	path_type path_typeT;
-	
+	path_type path_typeT;	
 };
 
 struct curvetimeT
@@ -110,8 +100,6 @@ struct CLF_coefficient
 	bool flag;
 };
 
-
-
 class Trajectory_tracker
 {
 	public:		
@@ -138,8 +126,7 @@ class Trajectory_tracker
 		ros::Subscriber cartodom_sub;
 		ros::Subscriber odom_sub;
 		ros::Publisher cmd_vel_pub;
-		
-		
+				
 		//Constructor
 		Trajectory_tracker();
 		//Destructor
@@ -154,6 +141,8 @@ class Trajectory_tracker
 		void CalCircleCenter(path_params& path_param , circle_params& circle_param);
 		void TCurveVelocityPlaning(motion_params& motion_param , path_params& path_param , float& distance, velocity_params& velocity_param);
 		void LyapunovContorller(CLF_coefficient&  CLF_coeff , path_gen& path_in, path_point& curent_point, int& count , path_velocity& CLF_vel_get);
+
+		void Output(path_gen& path_get);
 
 	private:		
 		ros::Time last_time;

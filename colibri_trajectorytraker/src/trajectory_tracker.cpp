@@ -14,8 +14,8 @@ Trajectory_tracker::Trajectory_tracker()
 	CLF_coeff.k3 = 5.0;
 	CLF_coeff.flag = false;
 	
-	last_time = ros::Time::now();
-	current_time = ros::Time::now();
+	//last_time = ros::Time::now();
+	//current_time = ros::Time::now();
 
 }
 
@@ -105,9 +105,11 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 
 	float SE[2] = {point_E.x-point_S.x , point_E.y-point_S.y};
 
-	float theta_CS = atan2(point_S.y - circle_param_gen.circle_y,point_S.x - circle_param_gen.circle_x)*RAD2DEG;
-	float theta_CE = atan2(point_E.y - circle_param_gen.circle_y,point_E.x - circle_param_gen.circle_x)*RAD2DEG;
-	float theta_SE = atan2(SE[1],SE[0])*RAD2DEG;
+	double theta_CS = atan2(point_S.y - circle_param_gen.circle_y,point_S.x - circle_param_gen.circle_x)*RAD2DEG;
+	double theta_CE = atan2(point_E.y - circle_param_gen.circle_y,point_E.x - circle_param_gen.circle_x)*RAD2DEG;
+	double theta_SE = atan2(SE[1],SE[0])*RAD2DEG;
+
+	double EPS = 1E-04;
 
 	if ((theta_SE > 0)&&(theta_SE < 90) )
 	{
@@ -155,7 +157,7 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 		} 
 	}
     
-	else if (theta_SE == 0) 
+	else if (abs(theta_SE -0) < EPS) 
 	{
 		if(rotation_direction =="counterclockwise")
 		{
@@ -166,7 +168,7 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 		}
 	}
     
-	else if (theta_SE == 90)
+	else if (abs(theta_SE -90) < EPS)
 	{
 		if(rotation_direction == "clockwise")
 		{
@@ -174,7 +176,7 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 		}
 	}
     
-	else if (theta_SE == 180)
+	else if (abs(theta_SE -180) < EPS)
 	{
 		if(rotation_direction == "clockwise")
 		{
@@ -185,7 +187,7 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 		}	
 	}
   
-	else if (theta_SE == -90)
+	else if (abs(theta_SE -(-90)) < EPS)
 	{
 		if(rotation_direction == "counterclockwise")
 		{
@@ -228,17 +230,17 @@ void Trajectory_tracker::ArcPathGeneration(path_params& path_param , motion_para
 		if ((time[k] >= 0) && (time[k] <= timeT.t1))
 		{
                         
-			theta_arc[k] = 1/2*time[k]*omega_p[k] + theta_arc[0];
+			theta_arc[k] = (1.0/2.0)*time[k]*omega_p[k] + theta_arc[0];
 		}
 		       
 		else if ((time[k] > timeT.t1) && (time[k]  < timeT.t2))
 		{
-			theta_arc[k] = 1/2*(2*time[k] - timeT.t1)*omega_p[k] + theta_arc[0];
+			theta_arc[k] = (1.0/2.0)*(2*time[k] - timeT.t1)*omega_p[k] + theta_arc[0];
 		}
 		       
 		else if ((time[k] >= timeT.t2) && (time[k] <= timeT.t3))
 		{
-			 theta_arc[k] = (timeT.t3 + timeT.t2 - timeT.t1)*omega_max/2-omega_p[k]*(timeT.t3 - (time[k]))/2 + theta_arc[0];
+			 theta_arc[k] = (timeT.t3 + timeT.t2 - timeT.t1)*omega_max/2.0-omega_p[k]*(timeT.t3 - (time[k]))/2 + theta_arc[0];
 		}
 		      
 
@@ -274,9 +276,9 @@ void Trajectory_tracker::CalCircleCenter(path_params& path_param , circle_params
 	{
 	 	if (point_S.x == point_E.x)
 	 	{
-	 		circle_center1.y=(point_S.y+point_E.y)/2;
-        		circle_center2.y=(point_S.y+point_E.y)/2;
-        		float dis=sqrt(pow(R,2.0)-pow((abs((point_S.y-point_E.y)/2)),2.0));
+	 		circle_center1.y=(point_S.y+point_E.y)/2.0;
+        		circle_center2.y=(point_S.y+point_E.y)/2.0;
+        		float dis=sqrt(pow(R,2.0)-pow((abs((point_S.y-point_E.y)/2.0)),2.0));
         		circle_center1.x=point_S.x-dis;
         		circle_center2.x=point_S.x+dis;
 	 	}
@@ -309,7 +311,7 @@ void Trajectory_tracker::CalCircleCenter(path_params& path_param , circle_params
 	}
         else
 	{
-	 	cout << "Cann't Calculate Circle Center!Radius should larger than distance/2!";
+	 	cout << "Cann't Calculate Circle Center!Radius should larger than distance/2!\r\n";
 	}
 
 	float SE[2] = {point_E.x-point_S.x , point_E.y-point_S.y};
@@ -525,10 +527,7 @@ void Trajectory_tracker::LyapunovContorller(CLF_coefficient&  CLF_coeff , path_g
 
 		v_CLF = v_center*cos(thetaError_CLF)+k2*xError_CLF;
     		omega_CLF  = w_center+k1*v_center*yError_CLF+k3*sin(thetaError_CLF);
-		
-
-		
-									 
+											 
 	}
 
 
@@ -536,6 +535,27 @@ void Trajectory_tracker::LyapunovContorller(CLF_coefficient&  CLF_coeff , path_g
 }
 
 
+void Trajectory_tracker::Output(path_gen& path_get)
+{
+	ofstream path_out_x;
+	ofstream path_out_y;
+	int k_sim = path_get.path_array.size();
+	path_out_x.open("/home/rosindigo/Documents/MATLAB/Circle_Center_Solve/path_x.txt");
+	path_out_y.open("/home/rosindigo/Documents/MATLAB/Circle_Center_Solve/path_y.txt");
+	for (int k = 0 ; k < k_sim; k++)
+	{
+		
+		path_point temp_point = path_get.path_array.at(k);
+
+		path_out_x<<temp_point.x<<endl;
+		path_out_y<<temp_point.y<<endl;   		
+
+	}
+	
+	path_out_x.close();
+	path_out_y.close();
+	
+}
 
 
 
