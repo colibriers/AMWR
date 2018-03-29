@@ -1,11 +1,68 @@
 #include "docking.h"
 
-ScanHandle::ScanHandle() {
+template <class T>  
+T stringToNum(const string& str)  
+{  
+    istringstream iss(str);  
+    T num;  
+    iss >> num;  
+    return num;      
+}  
+
+void SplitString(const string& s, vector<string>& v, const string& c)
+{
+    string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while(string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2-pos1));
+         
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if(pos1 != s.length())
+        v.push_back(s.substr(pos1));
+}
+
+ScanHandle::ScanHandle(): dock_seg_index_(0), max_verdis_(0.),
+															max_verdis_index_(0), match_corner_index_(0) {
+	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
+	refresh_flag_ = false;
 
 }
 ScanHandle::~ScanHandle() {
 
 }
+
+void ScanHandle::LoadData(void) {
+
+	std::string path_name;
+	char user_name[10];
+	getlogin_r(user_name, 10);
+	std::string str_username = user_name;
+	path_name.assign("/home/" + str_username + "/colibri_ws/src/colibri_docking/data/new.txt");
+
+	std::ifstream scan_in(path_name.c_str());
+	if(scan_in.fail()) { 
+		std::cout  << "Error opening file";
+		exit (1);
+	} 
+
+	string strdata;
+	getline(scan_in,strdata);
+	vector<string> scanfile_data_vec;
+	std::vector<float> ().swap(scan_vec_);
+	SplitString(strdata, scanfile_data_vec,",");
+	for(vector<string>::const_iterator it = scanfile_data_vec.cbegin(); it != scanfile_data_vec.cend(); it++) {
+		float tmp_scan = stringToNum<float>(*it);
+		scan_vec_.push_back(tmp_scan);
+	}
+	
+	scan_in.close();
+
+}
+
 
 void ScanHandle::MedFilter(void) {
 	int filter_num = static_cast<int>((proc_domain_.upper - proc_domain_.lower) / resol_) + 1;
@@ -18,11 +75,16 @@ void ScanHandle::MedFilter(void) {
 	}
 	rho_filter_ = Eigen::Map<Array_scan>(tmp_scan_vec_.data(), tmp_scan_vec_.size());
 }
+
 void ScanHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data) {
 	Eigen::Array<float, 1, SCAN_RAY_NUM> index_angle, tmp_delta;
 	index_angle.setLinSpaced(SCAN_RAY_NUM, scan_lower_, scan_upper_);
-	cartesian_data.topRows(1) = ((DEG2RAD * index_angle).cos()) * polar_data;
-	cartesian_data.bottomRows(1) = ((DEG2RAD * index_angle).sin()) * polar_data;
+	Eigen::Array<float, 1, SCAN_RAY_NUM> tmp = ((DEG2RAD * index_angle).cos()) * polar_data;
+	float * ptr_axis_data = tmp.data();
+	cartesian_data.topRows(1) = Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
+	tmp = ((DEG2RAD * index_angle).sin()) * polar_data;
+	ptr_axis_data = tmp.data();
+	cartesian_data.bottomRows(1) =  Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
 }
 void ScanHandle::CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data) {
 	k_breaker_.setZero();
@@ -47,14 +109,14 @@ void ScanHandle::CalcAdaptBreakerDis(const Array_scan & polar_data) {
 }
 
 void ScanHandle::CalcContiSegs(void) {
-	int ni = 0;
 	int ne = 1;
+	int ni = ne;
 	scope tmp_scope_element;
 	std::vector<scope> ().swap(segs_vec_);
 	while(ne < SCAN_RAY_NUM - 1) {
 		ni = ne;
 		ne = ni + 1;
-		while(0 == k_breaker_(ne)) {
+		while(0 == k_breaker_(ne - 1)) {
 			ne++;
 			if(SCAN_RAY_NUM == ne) {
 				break;
@@ -124,7 +186,7 @@ void ScanHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	std::vector<float> ().swap(scan_vec_);
 	scan_vec_ = scan->ranges;
 	rho_origin_ = Eigen::Map<Array_scan>(scan_vec_.data(), scan_vec_.size());
-	refresh_flag_ = true;
+	//refresh_flag_ = true;
 }
 
 

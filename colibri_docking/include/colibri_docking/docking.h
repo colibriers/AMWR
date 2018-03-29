@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -22,6 +23,16 @@
 typedef Eigen::Array<float, 1, SCAN_RAY_NUM> Array_scan;
 typedef Eigen::Matrix<float, 2, SCAN_RAY_NUM> Matrix_scan;
 
+using namespace std;
+#include <iostream>
+#include <string>
+#include <vector>
+
+template <class T>  
+T stringToNum(const string& str);  
+
+void SplitString(const string& s, vector<string>& v, const string& c);
+
 class ScanHandle {
 	public:
 		struct st_scope {
@@ -31,7 +42,6 @@ class ScanHandle {
 		
 		typedef st_scope scope;
 
-		
 		const int num_ = 481;
 		const float resol_ = 0.5;
 		const int N_min_ = 10;
@@ -55,11 +65,14 @@ class ScanHandle {
 		float max_verdis_;
 		int max_verdis_index_;
 		int match_corner_index_;
+		ros::NodeHandle nh_docking_;
+		ros::Subscriber scan_sub4dock_;
 
 		ScanHandle();
-		~ScanHandle();		
+		~ScanHandle();
+		void LoadData();
 		void MedFilter(void);
-		void Polar2Cartesian(const Array_scan & polar_data,  Matrix_scan & cartesian_data);
+		void Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data);
 		void CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data);
 		void CalcAdaptBreakerDis(const Array_scan & polar_data);
 		void CalcContiSegs(void);
