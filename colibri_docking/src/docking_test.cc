@@ -1,5 +1,6 @@
 #include "docking.h"
 
+using namespace Eigen;
 int main(int argc, char *argv[]) {
 	ros::init(argc, argv, "Docking_test_node");
 	ScanHandle scanHandObj;
@@ -20,13 +21,12 @@ int main(int argc, char *argv[]) {
 			if(scanHandObj.refresh_flag_ == false) {
 				scanHandObj.refresh_flag_ = false;
 				scanHandObj.MedFilter();
-				//scanHandObj.Polar2Cartesian(); 
-				scanHandObj.Polar2Cartesian(scanHandObj.rho_origin_, scanHandObj.scan_orgin_);
-				scanHandObj.CalcBreakerMarker(scanHandObj.rho_origin_, scanHandObj.scan_orgin_);
+				scanHandObj.Polar2Cartesian();
+				scanHandObj.CalcBreakerMarker(scanHandObj.rho_filter_, scanHandObj.scan_filter_);
 				scanHandObj.CalcContiSegs();
-				//scanHandObj.CalcMaxDis2Segs(const Eigen::Matrix<float, 2, Eigen::Dynamic> & scan_xy); 
-				//scanHandObj.CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy);
-				//scanHandObj.CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width);
+				scanHandObj.dock_seg_index_ = 8;
+				scanHandObj.CalcMaxDis2Segs(scanHandObj.scan_filter_, scanHandObj.dock_seg_index_); 
+				scanHandObj.CalcMatchCornerIndex(scanHandObj.scan_filter_);
 
 				
 			}

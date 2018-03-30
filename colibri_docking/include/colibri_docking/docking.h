@@ -14,7 +14,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 
-#define DEG2RAD	0.017477
+#define DEG2RAD	0.0174533
 #define SCAN_RAY_NUM	481
 
 #define WIN_NUM	5
@@ -29,9 +29,55 @@ using namespace std;
 #include <vector>
 
 template <class T>  
-T stringToNum(const string& str);  
+T stringToNum(const string& str);
+
+
+void	ExportData(const vector<float>& data);
 
 void SplitString(const string& s, vector<string>& v, const string& c);
+
+struct Pose 
+{
+  float x;
+  float y;
+	 
+  Pose& operator=(Pose& value) {
+    x = value.x;
+    y = value.y;
+    return *this;
+  }
+  Pose operator+(Pose& value) {
+		Pose result;
+    result.x = x + value.x;
+    result.y = y + value.y;
+    return result;
+  }
+  Pose operator-(Pose& value) {
+		Pose result;
+    result.x = x - value.x;
+    result.y = y - value.y;
+    return result;
+  }
+  Pose operator*(Pose& value) {
+    x *= value.x;
+    y *= value.y;
+    return *this;
+  }
+
+	Pose operator*(float & value) {
+		Pose result;
+    result.x = x * value;
+    result.y = y * value;
+    return result;
+  }
+
+	float Norm(void) {
+		float norm = sqrt(pow(x, 2) + pow(y, 2));
+		return norm;
+	}
+
+};
+
 
 class ScanHandle {
 	public:
@@ -46,9 +92,10 @@ class ScanHandle {
 		const float resol_ = 0.5;
 		const int N_min_ = 10;
 		const int N_max_ = 100;
-		const scope proc_domain_ = {180, 0};
+		const scope proc_domain_ = {180, -30};
 		const float scan_lower_ = -30.;
 		const float scan_upper_ = 210.;
+		const float sin_reflect_angle = 0.707;
 
 		std::vector<float> scan_vec_;
 		Array_scan rho_origin_;
@@ -73,10 +120,12 @@ class ScanHandle {
 		void LoadData();
 		void MedFilter(void);
 		void Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data);
+		void Polar2Cartesian();
 		void CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data);
 		void CalcAdaptBreakerDis(const Array_scan & polar_data);
 		void CalcContiSegs(void);
-		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, Eigen::Dynamic> & scan_xy); 
+		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const scope & index);
+		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id); 
 		void CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy);
 		void CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width);
 
@@ -85,8 +134,8 @@ class ScanHandle {
 		const float sigma_ = 0.01;
 		float corner_val_;
 		std::vector<float> corner_vec_;
-		Eigen::Array<float, 1, Eigen::Dynamic> array_corner_;
 		void ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan);
+		float CalcPoint2LineDis(Pose & a, Pose & b, Pose &c);
 		
 };
 

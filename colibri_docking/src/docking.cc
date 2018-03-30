@@ -27,12 +27,29 @@ void SplitString(const string& s, vector<string>& v, const string& c)
 
 ScanHandle::ScanHandle(): dock_seg_index_(0), max_verdis_(0.),
 															max_verdis_index_(0), match_corner_index_(0) {
-	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
+	//scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
 	refresh_flag_ = false;
 
 }
 ScanHandle::~ScanHandle() {
 
+}
+
+void	ExportData(const vector<float>& data) {
+
+	std::string path_name;
+	char user_name[10];
+	getlogin_r(user_name, 10);
+	std::string str_username = user_name;
+	path_name.assign("/home/" + str_username + "/colibri_ws/src/colibri_docking/data/new_calc.txt");
+
+	ofstream scan_out(path_name);
+	
+	for(vector<float>::const_iterator it = data.cbegin(); it != data.cend(); it++) {
+		scan_out << *it << " ";	
+	}
+	
+	scan_out.close();
 }
 
 void ScanHandle::LoadData(void) {
@@ -68,12 +85,17 @@ void ScanHandle::MedFilter(void) {
 	int filter_num = static_cast<int>((proc_domain_.upper - proc_domain_.lower) / resol_) + 1;
 	int start_index = static_cast<int>((proc_domain_.lower - (scan_lower_)) / resol_);
 	int half_win = static_cast<int>((WIN_NUM - 1) / 2);
-	std::vector<float> tmp_scan_vec_(scan_vec_);
+	std::vector<float> win_scan_vec_(WIN_NUM);
+	std::vector<float> filter_vec_(scan_vec_);
 
-	for(int i = 0; i < filter_num - WIN_NUM; i++) {
-		std::sort(tmp_scan_vec_.begin() + start_index + i, tmp_scan_vec_.begin()+ start_index + WIN_NUM + i);
+	for(int i = 0; i < filter_num - WIN_NUM ; i++) {
+		win_scan_vec_.assign(scan_vec_.begin() + start_index + i , scan_vec_.begin() + start_index + i + WIN_NUM);
+		std::sort(win_scan_vec_.begin(), win_scan_vec_.end());
+		filter_vec_[start_index + i + half_win ] = win_scan_vec_[half_win];
+		std::vector<float> ().swap(win_scan_vec_);
 	}
-	rho_filter_ = Eigen::Map<Array_scan>(tmp_scan_vec_.data(), tmp_scan_vec_.size());
+	rho_filter_ = Eigen::Map<Array_scan>(filter_vec_.data(), filter_vec_.size());
+	ExportData(filter_vec_);
 }
 
 void ScanHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data) {
@@ -86,6 +108,18 @@ void ScanHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & ca
 	ptr_axis_data = tmp.data();
 	cartesian_data.bottomRows(1) =  Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
 }
+
+void ScanHandle::Polar2Cartesian() {
+	Eigen::Array<float, 1, SCAN_RAY_NUM> index_angle, tmp_delta;
+	index_angle.setLinSpaced(SCAN_RAY_NUM, scan_lower_, scan_upper_);
+	Eigen::Array<float, 1, SCAN_RAY_NUM> tmp = ((DEG2RAD * index_angle).cos()) * rho_filter_;
+	float * ptr_axis_data = tmp.data();
+	scan_filter_.topRows(1) = Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
+	tmp = ((DEG2RAD * index_angle).sin()) * rho_filter_;
+	ptr_axis_data = tmp.data();
+	scan_filter_.bottomRows(1) =  Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
+}
+
 void ScanHandle::CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data) {
 	k_breaker_.setZero();
 	std::vector<float> tmp_norm_vec;
@@ -124,21 +158,35 @@ void ScanHandle::CalcContiSegs(void) {
 		}
 
 		if((ne - ni + 1 > N_min_) && (ne - ni + 1 < N_max_)) {
-			tmp_scope_element.upper = ne - 1;
-			tmp_scope_element.lower = ni + 1;
-			segs_vec_.push_back(tmp_scope_element);
+			tmp_scope_element.upper = (ne - 1) - 1;// this  -1 solve the index from 0 to keep same with matlab sim
+			tmp_scope_element.lower = (ni + 1) - 1;
+			segs_vec_.push_back(tmp_scope_element);	
 		}
 	}
+
+
+	
 }
 
-void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, Eigen::Dynamic> & scan_xy) {
-	const int cols_num = scan_xy.cols();
+void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const scope & index) {
+	const int cols_num = index.upper - index.lower + 1;
+	Eigen::MatrixXf corner_scan_xy;
+	std::vector<float> tmp_vec;
+	for(int i = 0; i < cols_num; i++) {
+		tmp_vec.push_back(scan_xy(0,index.lower + i));
+		tmp_vec.push_back(scan_xy(1,index.lower + i));
+	}
+	//Eigen::MatrixXf corner_scan_xy = Eigen::Map<Eigen::Matrix<float, 2, Eigen::Dynamic >> (tmp_vec.data()); 
+
+	//corner_scan_xy = scan_xy.block(0, index.lower, 2, cols_num);
+	corner_scan_xy = scan_xy.middleCols(index.lower, cols_num);
+	
 	float tmp_vertical_dis = 0.;
 	std::vector<float> ().swap(ver_dis_);
-	Eigen::Matrix<float, 2, 1> matrix_ab = scan_xy.rightCols(1) - scan_xy.leftCols(1);
+	Eigen::Matrix<float, 2, 1> matrix_ab = corner_scan_xy.rightCols(1) - corner_scan_xy.leftCols(1);
 	Eigen::Matrix<float, 1, Eigen::Dynamic> matrix_box;
 	matrix_box.setOnes();
-	Eigen::Matrix<float, 2, Eigen::Dynamic> matrix_ac = scan_xy - scan_xy.leftCols(1) * matrix_box;
+	Eigen::Matrix<float, 2, Eigen::Dynamic> matrix_ac = corner_scan_xy - corner_scan_xy.leftCols(1) * matrix_box;
 	Eigen::Matrix<float, 2, Eigen::Dynamic> matrix_ac_proj = matrix_ab / matrix_ab.norm() * (matrix_ab.transpose() * matrix_ac / matrix_ab.norm());
 	Eigen::Matrix<float, 2, Eigen::Dynamic> matrix_verline = matrix_ac - matrix_ac_proj;
 	for(int i = 0; i < cols_num; i++) {
@@ -150,30 +198,77 @@ void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, Eigen::Dynamic> &
 	max_verdis_index_ = std::distance(ver_dis_.begin(), biggest);
 }
 
+float ScanHandle::CalcPoint2LineDis(Pose & a, Pose & b, Pose &c) {
+	Pose vec_ab = b - a;
+	Pose vec_ac = c - a;
+	float norm_ab = vec_ab.Norm();
+	float tmp = (vec_ab.x * vec_ac.x + vec_ab.y * vec_ac.y) / norm_ab /norm_ab;
+	Pose vec_ac_proj = vec_ab * tmp;
+	Pose vec_verline = vec_ac - vec_ac_proj;
+	float vert_dis = vec_verline.Norm();
+	return vert_dis;
+}
+
+void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
+	int start = segs_vec_[seg_id].lower; 
+	int terminal = segs_vec_[seg_id].upper;
+	std::vector<float> ().swap(ver_dis_);
+	Pose a , b, c;
+	a.x = scan_xy(0, start);
+	a.y = scan_xy(1, start);
+	b.x = scan_xy(0, terminal);
+	b.y = scan_xy(1, terminal);
+	float tmp_verdis = 0.0;
+	for(int i = start + 1; i <= terminal -1; i++) {
+		c.x = scan_xy(0, i);
+		c.y = scan_xy(1, i);		
+		tmp_verdis = CalcPoint2LineDis(a, b, c);
+	  ver_dis_.push_back(tmp_verdis);
+	}
+	std::vector<float>::iterator biggest = std::max_element(ver_dis_.begin(), ver_dis_.end());
+	max_verdis_ = *biggest;
+	max_verdis_index_ = std::distance(ver_dis_.begin(), biggest) + start;
+
+}
+
 void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy) {
 	scope dock;
 	std::vector<float> ().swap(corner_vec_);
+	std::vector<float> tt;
 	dock.upper = segs_vec_.at(dock_seg_index_).upper;
 	dock.lower = segs_vec_.at(dock_seg_index_).lower;
   int width = floor((dock.upper - dock.lower) / 4.);
 	int center_index = floor((dock.upper + dock.lower) / 2.);
+	float tmp_diff = 0.0;
 	for(int k = center_index - width; k <=  center_index + width; k++ ) {
 		CalcCornerFunc(scan_xy, k, width);
-		array_corner_ << corner_val_;
+		tt.push_back(corner_val_);
+		tmp_diff = abs(corner_val_ - sin_reflect_angle);
+		corner_vec_.push_back(tmp_diff);
 	}
-	
-	array_corner_ = (array_corner_ - 0.707).abs();
-	int i = 0;
-  array_corner_.minCoeff(&i, &match_corner_index_);
-	
+	std::vector<float>::iterator smallest = std::min_element(corner_vec_.begin(), corner_vec_.end());
+	match_corner_index_ = center_index - width + std::distance(corner_vec_.begin(), smallest);
 }
 
-void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width) {
-	Eigen::Matrix<float, 2, Eigen::Dynamic> tmp_matrix = scan_xy.middleCols(index - width, width + 1);
-	Eigen::Matrix<float, 2, 1> abstract_left_point =tmp_matrix.rowwise().sum() / (width + 1);
-	tmp_matrix = scan_xy.middleCols(index, width + 1);
-	Eigen::Matrix<float, 2, 1> abstract_right_point = tmp_matrix.rowwise().sum() / (width + 1);
+void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width) {	
+	float x = 0.;
+	float y = 0.;
+	for (int i = index - width; i <= index; i++) {
+		x += scan_xy(0, i);
+		y += scan_xy(1, i);
+	}
+	Eigen::Matrix<float, 2, 1> abstract_left_point;
+	abstract_left_point << x/(width + 1),y/(width + 1);
 
+	x = 0.;
+	y = 0.;
+	for (int i = index; i <= index + width; i++) {
+		x += scan_xy(0, i);
+		y += scan_xy(1, i);
+	}
+	Eigen::Matrix<float, 2, 1> abstract_right_point;
+	abstract_right_point << x/(width + 1),y/(width + 1);
+	
 	float l_a = (scan_xy.col(index) - abstract_left_point).norm();
 	float l_b = (scan_xy.col(index) - abstract_right_point).norm();
 	float l_c = (abstract_left_point - abstract_right_point).norm();
