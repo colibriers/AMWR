@@ -39,6 +39,20 @@ T CalcVecVariance(const vector<T> & vec) {
 	return variance;
 }
 
+int Sgn(const float & data) {
+	float eps = 0.000001;
+	if(data > eps) {
+		return 1;
+	}
+	else if(data < -1 * eps) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+
+
 void	ExportData(const vector<float>& data) {
 
 	std::string path_name;
@@ -350,5 +364,49 @@ void DockHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	rho_origin_ = Eigen::Map<Array_scan>(scan_vec_.data(), scan_vec_.size());
 	refresh_flag_ = true;
 }
+
+DockCtrl::DockCtrl(): linear_vel_(0.0), angular_vel_(0.0) {
+
+}
+
+DockCtrl::~DockCtrl() {
+
+}
+
+float DockCtrl::VelSatuarting(const float & x) {
+	float result = (y_scope_.high +  y_scope_.low) / 2.0;
+	if(x > x_scope_.high) {
+		result = y_scope_.high;
+	}
+	else if(x < x_scope_.low) {
+		result = y_scope_.low;
+	}
+	else {
+		result = y_scope_.low + (y_scope_.high - y_scope_.low) * (x - x_scope_.low) / ((x_scope_.high - x_scope_.low)); 
+	}
+
+	return result;
+}
+
+float DockCtrl::HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff) {
+	float angular = 0.0;
+	float corner_puv = Standard(angle_basic_, head2corner_diff);
+	float delta_dis = (dock2laser.a - dock2laser.c);
+	float distance_puv = Standard(distance_basic_, delta_dis);
+	angular = (corner_puv * weigh_a_+  distance_puv * weigh_b_) * angular_basic_;
+	return angular;
+}
+
+float DockCtrl::Standard(const float & basic, const float & input) {
+	 float puv = 1.0;
+	 puv = input / basic;
+	 if(abs(puv) >= 1) {
+		 puv = Sgn(puv) * puv;
+	 }
+
+	 return puv;
+}
+
+
 
 

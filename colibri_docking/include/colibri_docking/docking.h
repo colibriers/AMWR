@@ -36,6 +36,8 @@ void SplitString(const string& s, vector<string>& v, const string& c);
 template <class T> 
 T CalcVecVariance(const vector<T> & vec);
 
+int Sgn(const float & data); 
+
 void	ExportData(const vector<float>& data);
 
 struct Pose 
@@ -152,6 +154,41 @@ class DockHandle {
 		std::vector<float> corner_vec_;
 		void ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan);
 		float CalcPoint2LineDis(Pose & a, Pose & b, Pose &c);
+		
+};
+
+class DockCtrl{
+	public:
+		struct st_axis_limit {
+			float low;
+			float high;
+		};
+		typedef st_axis_limit limit;
+
+		struct st_cell_data {
+			float a;
+			float b;
+			float c;
+		};
+		typedef st_cell_data dock_dis;
+
+		DockCtrl();
+		~DockCtrl();
+		
+		float linear_vel_;
+		float angular_vel_;
+
+		const float angular_basic_ = 0.6;
+		const limit x_scope_ = {0.8, 1.5};
+		const limit y_scope_ = {0.1, 0.3};
+		const float weigh_a_ = 0.5;
+		const float weigh_b_ = 0.5;
+		const float angle_basic_ = 30.0;
+		const float distance_basic_ = 0.15;
+
+		float VelSatuarting(const float & x);
+		float HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff);
+		float Standard(const float & basic, const float & input);
 		
 };
 
