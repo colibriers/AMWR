@@ -80,7 +80,7 @@ struct Pose
 
 };
 
-class ScanHandle {
+class DockHandle {
 	public:
 		struct st_scope {
 			int upper;
@@ -126,9 +126,10 @@ class ScanHandle {
 		float corner_dir_angle_;
 		ros::NodeHandle nh_docking_;
 		ros::Subscriber scan_sub4dock_;
+		ros::Publisher pub_twist_;
 
-		ScanHandle();
-		~ScanHandle();
+		DockHandle();
+		~DockHandle();
 		void LoadData();
 		void MedFilter(void);
 		void Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data);

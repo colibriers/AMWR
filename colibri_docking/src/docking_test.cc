@@ -2,13 +2,13 @@
 
 using namespace Eigen;
 int main(int argc, char *argv[]) {
-	ros::init(argc, argv, "Docking_test_node");
-	ScanHandle scanHandObj;
+	ros::init(argc, argv, "Corner_recgnize_node");
+	DockHandle dockObj;
 	int delay_cnt = 0;
 	sleep(1);
 	ros::Rate loop_rate(10);
 
-	scanHandObj.LoadData();
+	//dockObj.LoadData();
 	while(ros::ok()) {
 		if(delay_cnt < DELAY_CNT_MAX){
 			delay_cnt++;
@@ -18,20 +18,20 @@ int main(int argc, char *argv[]) {
 		
 		if(delay_cnt >= DELAY_CNT_MAX){
 			delay_cnt = DELAY_CNT_MAX;
-			if(scanHandObj.refresh_flag_ == true) {
-				scanHandObj.refresh_flag_ = false;
-				scanHandObj.MedFilter();
-				scanHandObj.Polar2Cartesian();
-				scanHandObj.CalcBreakerMarker(scanHandObj.rho_filter_, scanHandObj.scan_filter_);
-				scanHandObj.CalcContiSegs();
-				scanHandObj.CalcDockSegIndex();
-				if(scanHandObj.dock_seg_index_ != 255) {
-					scanHandObj.CalcMaxDis2Segs(scanHandObj.scan_filter_, scanHandObj.dock_seg_index_);
-					scanHandObj.CalcMatchCornerIndex(scanHandObj.scan_filter_, scanHandObj.dock_seg_index_);
-					scanHandObj.CalcAvgCornerDir();
+			if(dockObj.refresh_flag_ == true) {
+				dockObj.refresh_flag_ = false;
+				dockObj.MedFilter();
+				dockObj.Polar2Cartesian();
+				dockObj.CalcBreakerMarker(dockObj.rho_filter_, dockObj.scan_filter_);
+				dockObj.CalcContiSegs();
+				dockObj.CalcDockSegIndex();
+				if(dockObj.dock_seg_index_ != 255) {
+					dockObj.CalcMaxDis2Segs(dockObj.scan_filter_, dockObj.dock_seg_index_);
+					dockObj.CalcMatchCornerIndex(dockObj.scan_filter_, dockObj.dock_seg_index_);
+					dockObj.CalcAvgCornerDir();
 				}
 
-				cout<<"Corner dir: "<<scanHandObj.corner_dir_angle_<<endl;
+				cout<<"Corner dir: "<<dockObj.corner_dir_angle_<<endl;
 			}
 			ros::spinOnce();
 			loop_rate.sleep();

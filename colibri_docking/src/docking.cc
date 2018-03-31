@@ -56,18 +56,18 @@ void	ExportData(const vector<float>& data) {
 	scan_out.close();
 }
 
-ScanHandle::ScanHandle(): dock_seg_index_(0), max_verdis_(0.),
+DockHandle::DockHandle(): dock_seg_index_(0), max_verdis_(0.),
 															max_verdis_index_(0), match_corner_index_(0) {
-	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
+	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &DockHandle::ScanCallBack, this);
 	refresh_flag_ = false;
 	corner_dir_angle_ = 90.;
 
 }
-ScanHandle::~ScanHandle() {
+DockHandle::~DockHandle() {
 
 }
 
-void ScanHandle::LoadData(void) {
+void DockHandle::LoadData(void) {
 
 	std::string path_name;
 	char user_name[10];
@@ -95,7 +95,7 @@ void ScanHandle::LoadData(void) {
 
 }
 
-void ScanHandle::MedFilter(void) {
+void DockHandle::MedFilter(void) {
 	int filter_num = static_cast<int>((proc_domain_.upper - proc_domain_.lower) / resol_) + 1;
 	int start_index = static_cast<int>((proc_domain_.lower - (scan_lower_)) / resol_);
 	int half_win = static_cast<int>((WIN_NUM - 1) / 2);
@@ -112,7 +112,7 @@ void ScanHandle::MedFilter(void) {
 	ExportData(filter_vec_);
 }
 
-void ScanHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data) {
+void DockHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & cartesian_data) {
 	Eigen::Array<float, 1, SCAN_RAY_NUM> index_angle, tmp_delta;
 	index_angle.setLinSpaced(SCAN_RAY_NUM, scan_lower_, scan_upper_);
 	Eigen::Array<float, 1, SCAN_RAY_NUM> tmp = ((DEG2RAD * index_angle).cos()) * polar_data;
@@ -123,7 +123,7 @@ void ScanHandle::Polar2Cartesian(const Array_scan & polar_data, Matrix_scan & ca
 	cartesian_data.bottomRows(1) =  Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
 }
 
-void ScanHandle::Polar2Cartesian() {
+void DockHandle::Polar2Cartesian() {
 	Eigen::Array<float, 1, SCAN_RAY_NUM> index_angle, tmp_delta;
 	index_angle.setLinSpaced(SCAN_RAY_NUM, scan_lower_, scan_upper_);
 	Eigen::Array<float, 1, SCAN_RAY_NUM> tmp = ((DEG2RAD * index_angle).cos()) * rho_filter_;
@@ -134,7 +134,7 @@ void ScanHandle::Polar2Cartesian() {
 	scan_filter_.bottomRows(1) =  Eigen::Map<Eigen::Matrix<float, 1, SCAN_RAY_NUM>>(ptr_axis_data);
 }
 
-void ScanHandle::CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data) {
+void DockHandle::CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data) {
 	k_breaker_.setZero();
 	std::vector<float> tmp_norm_vec;
 	float tmp_norm = 0.;
@@ -152,11 +152,11 @@ void ScanHandle::CalcBreakerMarker(const Array_scan & polar_data, const Matrix_s
 	k_breaker_.rightCols(SCAN_RAY_NUM-1) = compare;
 }
 
-void ScanHandle::CalcAdaptBreakerDis(const Array_scan & polar_data) {
+void DockHandle::CalcAdaptBreakerDis(const Array_scan & polar_data) {
 	breaker_dmax_ = sin(resol_ * DEG2RAD) * polar_data / sin((lamda_ - resol_) * DEG2RAD) + 3.0 * sigma_;
 }
 
-void ScanHandle::CalcContiSegs(void) {
+void DockHandle::CalcContiSegs(void) {
 	int ne = 1;
 	int ni = ne;
 	scope tmp_scope_element;
@@ -182,7 +182,7 @@ void ScanHandle::CalcContiSegs(void) {
 	
 }
 
-void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const scope & index) {
+void DockHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const scope & index) {
 	const int cols_num = index.upper - index.lower + 1;
 	Eigen::MatrixXf corner_scan_xy;
 	std::vector<float> tmp_vec;
@@ -212,7 +212,7 @@ void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & s
 	max_verdis_index_ = std::distance(ver_dis_.begin(), biggest);
 }
 
-float ScanHandle::CalcPoint2LineDis(Pose & a, Pose & b, Pose &c) {
+float DockHandle::CalcPoint2LineDis(Pose & a, Pose & b, Pose &c) {
 	Pose vec_ab = b - a;
 	Pose vec_ac = c - a;
 	float norm_ab = vec_ab.Norm();
@@ -223,7 +223,7 @@ float ScanHandle::CalcPoint2LineDis(Pose & a, Pose & b, Pose &c) {
 	return vert_dis;
 }
 
-void ScanHandle::CalcDockSegIndex(void) {
+void DockHandle::CalcDockSegIndex(void) {
 	//using angle scope , point dis, and seg dis and corner concavity, ver_dis and corner angle  to select the potential dock seg index
 	int dock_scope_lower = static_cast<int> ((dock_scope_deg_[0] - scan_lower_) / resol_);
 	int dock_scope_upper = static_cast<int> ((dock_scope_deg_[1] - scan_lower_) / resol_);
@@ -271,7 +271,7 @@ void ScanHandle::CalcDockSegIndex(void) {
 	
 }
 
-void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
+void DockHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
 	int start = segs_vec_[seg_id].lower; 
 	int terminal = segs_vec_[seg_id].upper;
 	std::vector<float> ().swap(ver_dis_);
@@ -293,7 +293,7 @@ void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & s
 
 }
 
-void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
+void DockHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
 	scope dock;
 	std::vector<float> ().swap(corner_vec_);
 	dock.upper = segs_vec_.at(seg_id).upper;
@@ -311,7 +311,7 @@ void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM
 	match_corner_index_ = middle_index_ - width + std::distance(corner_vec_.begin(), smallest);
 }
 
-void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width) {	
+void DockHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width) {	
 	float x = 0.;
 	float y = 0.;
 	for (int i = index - width; i <= index; i++) {
@@ -338,7 +338,7 @@ void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & sc
 	corner_sin_val_ = 2 * sqrt(l_k * (l_k - l_a) * (l_k - l_b) * (l_k - l_c)) / (l_a * l_b);
 }
 
-void ScanHandle::CalcAvgCornerDir(void) {
+void DockHandle::CalcAvgCornerDir(void) {
 	if(dock_seg_index_ != 255) {
 		avg_corner_index_ = round((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
 		corner_dir_angle_ = 180 - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
@@ -348,7 +348,7 @@ void ScanHandle::CalcAvgCornerDir(void) {
 }
 
 
-void ScanHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
+void DockHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	std::vector<float> ().swap(scan_vec_);
 	scan_vec_ = scan->ranges;
 	rho_origin_ = Eigen::Map<Array_scan>(scan_vec_.data(), scan_vec_.size());
