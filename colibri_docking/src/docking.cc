@@ -238,16 +238,16 @@ void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM
 	dock.upper = segs_vec_.at(dock_seg_index_).upper;
 	dock.lower = segs_vec_.at(dock_seg_index_).lower;
   int width = floor((dock.upper - dock.lower) / 4.);
-	int center_index = floor((dock.upper + dock.lower) / 2.);
+	middle_index_ = floor((dock.upper + dock.lower) / 2.);
 	float tmp_diff = 0.0;
-	for(int k = center_index - width; k <=  center_index + width; k++ ) {
+	for(int k = middle_index_ - width; k <=  middle_index_ + width; k++ ) {
 		CalcCornerFunc(scan_xy, k, width);
 		tt.push_back(corner_val_);
 		tmp_diff = abs(corner_val_ - sin_reflect_angle);
 		corner_vec_.push_back(tmp_diff);
 	}
 	std::vector<float>::iterator smallest = std::min_element(corner_vec_.begin(), corner_vec_.end());
-	match_corner_index_ = center_index - width + std::distance(corner_vec_.begin(), smallest);
+	match_corner_index_ = middle_index_ - width + std::distance(corner_vec_.begin(), smallest);
 }
 
 void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width) {	
@@ -275,6 +275,10 @@ void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & sc
 	float l_k = (l_a + l_b + l_c) / 2.;
 
 	corner_val_ = 2 * sqrt(l_k * (l_k - l_a) * (l_k - l_b) * (l_k - l_c)) / (l_a * l_b);
+}
+
+void ScanHandle::CalcAvgCornerIndex(void) {
+	avg_corner_index_ = static_cast<int> ((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
 }
 
 void ScanHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {

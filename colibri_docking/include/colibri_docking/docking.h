@@ -112,6 +112,8 @@ class ScanHandle {
 		float max_verdis_;
 		int max_verdis_index_;
 		int match_corner_index_;
+		int middle_index_;
+		int avg_corner_index_;
 		ros::NodeHandle nh_docking_;
 		ros::Subscriber scan_sub4dock_;
 
@@ -128,6 +130,7 @@ class ScanHandle {
 		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id); 
 		void CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy);
 		void CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width);
+		void CalcAvgCornerIndex(void);
 
 	private:
 		const float lamda_ = 25;
