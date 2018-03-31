@@ -265,7 +265,7 @@ void DockHandle::CalcDockSegIndex(void) {
 	}
 	else {
 		std::cout<<"Cannot find dock seg_index"<<std::endl;
-		dock_seg_index_ = 255;
+		dock_seg_index_ = non_dockseg_;
 		corner_dir_angle_ = 90.;
 	}
 	
@@ -339,12 +339,8 @@ void DockHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & sc
 }
 
 void DockHandle::CalcAvgCornerDir(void) {
-	if(dock_seg_index_ != 255) {
 		avg_corner_index_ = round((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
-		corner_dir_angle_ = 180 - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
-	} else {
-		corner_dir_angle_ = 90.;
-	}
+		corner_dir_angle_ = 180. - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
 }
 
 

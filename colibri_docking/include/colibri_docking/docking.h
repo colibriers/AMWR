@@ -103,6 +103,7 @@ class DockHandle {
 		const float dock_length_constraint_[2] = {0.2, 0.4};
 		const float dock_vertical_constraint_[2] = {0.03, 0.12};
 		const float match_minval_constraint_ = 0.2;
+		const int non_dockseg_ = 255;
 
 		std::vector<float> scan_vec_;
 		Array_scan rho_origin_;

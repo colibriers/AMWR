@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 				dockObj.CalcBreakerMarker(dockObj.rho_filter_, dockObj.scan_filter_);
 				dockObj.CalcContiSegs();
 				dockObj.CalcDockSegIndex();
-				if(dockObj.dock_seg_index_ != 255) {
+				if(dockObj.dock_seg_index_ != dockObj.non_dockseg_) {
 					dockObj.CalcMaxDis2Segs(dockObj.scan_filter_, dockObj.dock_seg_index_);
 					dockObj.CalcMatchCornerIndex(dockObj.scan_filter_, dockObj.dock_seg_index_);
 					dockObj.CalcAvgCornerDir();
