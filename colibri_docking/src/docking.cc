@@ -25,14 +25,18 @@ void SplitString(const string& s, vector<string>& v, const string& c)
         v.push_back(s.substr(pos1));
 }
 
-ScanHandle::ScanHandle(): dock_seg_index_(0), max_verdis_(0.),
-															max_verdis_index_(0), match_corner_index_(0) {
-	//scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
-	refresh_flag_ = false;
-
-}
-ScanHandle::~ScanHandle() {
-
+template <class T> 
+T CalcVecVariance(const vector<T> & vec) {
+	T sum = std::accumulate(std::begin(vec), std::end(vec), 0.0);	
+	T mean =  sum / vec.size(); //\u5747\u503c  
+		
+	T accum	= 0.0;	
+	std::for_each (std::begin(vec), std::end(vec), [&](const double d) {	
+			accum  += (d - mean) * (d - mean);	
+	});  
+		
+	T variance = sqrt(accum / (vec.size() - 1));
+	return variance;
 }
 
 void	ExportData(const vector<float>& data) {
@@ -50,6 +54,17 @@ void	ExportData(const vector<float>& data) {
 	}
 	
 	scan_out.close();
+}
+
+ScanHandle::ScanHandle(): dock_seg_index_(0), max_verdis_(0.),
+															max_verdis_index_(0), match_corner_index_(0) {
+	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &ScanHandle::ScanCallBack, this);
+	refresh_flag_ = false;
+	corner_dir_angle_ = 90.;
+
+}
+ScanHandle::~ScanHandle() {
+
 }
 
 void ScanHandle::LoadData(void) {
@@ -79,7 +94,6 @@ void ScanHandle::LoadData(void) {
 	scan_in.close();
 
 }
-
 
 void ScanHandle::MedFilter(void) {
 	int filter_num = static_cast<int>((proc_domain_.upper - proc_domain_.lower) / resol_) + 1;
@@ -209,6 +223,54 @@ float ScanHandle::CalcPoint2LineDis(Pose & a, Pose & b, Pose &c) {
 	return vert_dis;
 }
 
+void ScanHandle::CalcDockSegIndex(void) {
+	//using angle scope , point dis, and seg dis and corner concavity, ver_dis and corner angle  to select the potential dock seg index
+	int dock_scope_lower = static_cast<int> ((dock_scope_deg_[0] - scan_lower_) / resol_);
+	int dock_scope_upper = static_cast<int> ((dock_scope_deg_[1] - scan_lower_) / resol_);
+  std::vector<int> ().swap(potential_dock_seg_vec_);
+	std::vector<float> ().swap(potential_dock_var_vec_);
+	for(std::vector<scope>::const_iterator it = segs_vec_.cbegin(); it != segs_vec_.cend(); ++it) {
+		if((*it).lower > dock_scope_lower && (*it).upper < dock_scope_upper) {
+			if(rho_filter_(0, (*it).lower) < dis_constraint_ && rho_filter_(0, (*it).upper)< dis_constraint_) {
+				float dock_dis = (scan_filter_.col((*it).lower) - scan_filter_.col((*it).upper)).norm();
+				if(dock_dis < dock_length_constraint_[1] && dock_dis > dock_length_constraint_[0]) {
+					int index = std::distance(segs_vec_.cbegin(), it);
+					CalcMaxDis2Segs(scan_filter_, index);
+					if(max_verdis_ < dock_vertical_constraint_[1] && max_verdis_ > dock_vertical_constraint_[0]) {
+						CalcMatchCornerIndex(scan_filter_, index);
+						if(match_corner_minval_ < match_minval_constraint_) {
+							potential_dock_seg_vec_.push_back(index);
+							std::vector<float> cur_seg_corner;
+							cur_seg_corner.push_back(max_verdis_index_);
+							cur_seg_corner.push_back(middle_index_);
+							cur_seg_corner.push_back(match_corner_index_);
+							float var = CalcVecVariance<float>(cur_seg_corner);
+							potential_dock_var_vec_.push_back(var);
+						}
+					}
+					
+				}
+			}
+		}
+	}
+
+	if(potential_dock_seg_vec_.size() == 1) {
+		dock_seg_index_ = potential_dock_seg_vec_[0];
+	}
+	else if(potential_dock_seg_vec_.size() > 1){
+		std::cout<<"Find multiple dock seg_index"<<std::endl;
+		std::vector<float>::iterator smallest = std::min_element(potential_dock_var_vec_.begin(), potential_dock_var_vec_.end());
+		int delta = std::distance(potential_dock_var_vec_.begin(), smallest);
+		dock_seg_index_ = potential_dock_seg_vec_[delta];
+	}
+	else {
+		std::cout<<"Cannot find dock seg_index"<<std::endl;
+		dock_seg_index_ = 255;
+		corner_dir_angle_ = 90.;
+	}
+	
+}
+
 void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
 	int start = segs_vec_[seg_id].lower; 
 	int terminal = segs_vec_[seg_id].upper;
@@ -231,22 +293,21 @@ void ScanHandle::CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & s
 
 }
 
-void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy) {
+void ScanHandle::CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id) {
 	scope dock;
 	std::vector<float> ().swap(corner_vec_);
-	std::vector<float> tt;
-	dock.upper = segs_vec_.at(dock_seg_index_).upper;
-	dock.lower = segs_vec_.at(dock_seg_index_).lower;
+	dock.upper = segs_vec_.at(seg_id).upper;
+	dock.lower = segs_vec_.at(seg_id).lower;
   int width = floor((dock.upper - dock.lower) / 4.);
-	middle_index_ = floor((dock.upper + dock.lower) / 2.);
+	middle_index_ = round((dock.upper + dock.lower) / 2.);
 	float tmp_diff = 0.0;
 	for(int k = middle_index_ - width; k <=  middle_index_ + width; k++ ) {
 		CalcCornerFunc(scan_xy, k, width);
-		tt.push_back(corner_val_);
-		tmp_diff = abs(corner_val_ - sin_reflect_angle);
+		tmp_diff = abs(corner_sin_val_ - sin_reflect_angle);
 		corner_vec_.push_back(tmp_diff);
 	}
 	std::vector<float>::iterator smallest = std::min_element(corner_vec_.begin(), corner_vec_.end());
+	match_corner_minval_ = *smallest;
 	match_corner_index_ = middle_index_ - width + std::distance(corner_vec_.begin(), smallest);
 }
 
@@ -274,18 +335,24 @@ void ScanHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & sc
 	float l_c = (abstract_left_point - abstract_right_point).norm();
 	float l_k = (l_a + l_b + l_c) / 2.;
 
-	corner_val_ = 2 * sqrt(l_k * (l_k - l_a) * (l_k - l_b) * (l_k - l_c)) / (l_a * l_b);
+	corner_sin_val_ = 2 * sqrt(l_k * (l_k - l_a) * (l_k - l_b) * (l_k - l_c)) / (l_a * l_b);
 }
 
-void ScanHandle::CalcAvgCornerIndex(void) {
-	avg_corner_index_ = static_cast<int> ((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
+void ScanHandle::CalcAvgCornerDir(void) {
+	if(dock_seg_index_ != 255) {
+		avg_corner_index_ = round((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
+		corner_dir_angle_ = 180 - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
+	} else {
+		corner_dir_angle_ = 90.;
+	}
 }
+
 
 void ScanHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	std::vector<float> ().swap(scan_vec_);
 	scan_vec_ = scan->ranges;
 	rho_origin_ = Eigen::Map<Array_scan>(scan_vec_.data(), scan_vec_.size());
-	//refresh_flag_ = true;
+	refresh_flag_ = true;
 }
 
 

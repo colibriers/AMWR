@@ -31,10 +31,12 @@ using namespace std;
 template <class T>  
 T stringToNum(const string& str);
 
+void SplitString(const string& s, vector<string>& v, const string& c);
+
+template <class T> 
+T CalcVecVariance(const vector<T> & vec);
 
 void	ExportData(const vector<float>& data);
-
-void SplitString(const string& s, vector<string>& v, const string& c);
 
 struct Pose 
 {
@@ -78,7 +80,6 @@ struct Pose
 
 };
 
-
 class ScanHandle {
 	public:
 		struct st_scope {
@@ -91,11 +92,17 @@ class ScanHandle {
 		const int num_ = 481;
 		const float resol_ = 0.5;
 		const int N_min_ = 10;
-		const int N_max_ = 100;
+		const int N_max_ = 160;
 		const scope proc_domain_ = {180, -30};
 		const float scan_lower_ = -30.;
 		const float scan_upper_ = 210.;
 		const float sin_reflect_angle = 0.707;
+		
+		const	float dock_scope_deg_[2] = {30, 150};
+		const float dis_constraint_ = 2.5;
+		const float dock_length_constraint_[2] = {0.2, 0.4};
+		const float dock_vertical_constraint_[2] = {0.03, 0.12};
+		const float match_minval_constraint_ = 0.2;
 
 		std::vector<float> scan_vec_;
 		Array_scan rho_origin_;
@@ -108,12 +115,15 @@ class ScanHandle {
 		std::vector<scope> segs_vec_;
 		std::vector<float> ver_dis_;
 		int dock_seg_index_;
-		
+		vector<int> potential_dock_seg_vec_;
+		vector<float> potential_dock_var_vec_;
 		float max_verdis_;
 		int max_verdis_index_;
 		int match_corner_index_;
+		float match_corner_minval_;
 		int middle_index_;
 		int avg_corner_index_;
+		float corner_dir_angle_;
 		ros::NodeHandle nh_docking_;
 		ros::Subscriber scan_sub4dock_;
 
@@ -126,16 +136,17 @@ class ScanHandle {
 		void CalcBreakerMarker(const Array_scan & polar_data, const Matrix_scan & xy_data);
 		void CalcAdaptBreakerDis(const Array_scan & polar_data);
 		void CalcContiSegs(void);
+		void CalcDockSegIndex(void);
 		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const scope & index);
 		void CalcMaxDis2Segs(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id); 
-		void CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy);
+		void CalcMatchCornerIndex(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int & seg_id);
 		void CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & scan_xy, const int &index, const int &width);
-		void CalcAvgCornerIndex(void);
+		void CalcAvgCornerDir(void);
 
 	private:
 		const float lamda_ = 25;
 		const float sigma_ = 0.01;
-		float corner_val_;
+		float corner_sin_val_;
 		std::vector<float> corner_vec_;
 		void ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan);
 		float CalcPoint2LineDis(Pose & a, Pose & b, Pose &c);
