@@ -50,6 +50,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_executable(corner_recgnize_node src/docking_test.cc src/docking.cc) 
+target_link_libraries(corner_recgnize_node ${catkin_LIBRARIES})
 
-add_executable(docking_test_node src/docking_test.cc src/docking.cc) 
+add_executable(docking_test_node src/docking_node.cc src/docking.cc) 
 target_link_libraries(docking_test_node ${catkin_LIBRARIES})

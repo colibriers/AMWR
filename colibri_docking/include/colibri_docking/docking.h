@@ -13,6 +13,8 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/Twist.h>
+
 
 #define DEG2RAD	0.0174533
 #define SCAN_RAY_NUM	481
@@ -130,6 +132,7 @@ class DockHandle {
 		ros::NodeHandle nh_docking_;
 		ros::Subscriber scan_sub4dock_;
 		ros::Publisher pub_twist_;
+		geometry_msgs::Twist dock_cmd_vel_;
 
 		DockHandle();
 		~DockHandle();

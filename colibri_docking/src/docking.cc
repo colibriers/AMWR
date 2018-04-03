@@ -73,6 +73,7 @@ void	ExportData(const vector<float>& data) {
 DockHandle::DockHandle(): dock_seg_index_(0), max_verdis_(0.),
 															max_verdis_index_(0), match_corner_index_(0) {
 	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &DockHandle::ScanCallBack, this);
+	pub_twist_ = nh_docking_.advertise<geometry_msgs::Twist>("/t_cmd_vel", 1);
 	refresh_flag_ = false;
 	corner_dir_angle_ = 90.;
 
