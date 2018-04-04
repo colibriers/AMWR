@@ -24,7 +24,9 @@ if(NEW_YAMLCPP_FOUND)
 add_definitions(-DHAVE_NEW_YAMLCPP) 
 endif(NEW_YAMLCPP_FOUND) 
 
-
+catkin_package(
+	INCLUDE_DIRS include
+)
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
@@ -45,6 +47,12 @@ INCLUDE_DIRECTORIES(/usr/local/include)
 link_directories(/usr/local/lib)
 INCLUDE_DIRECTORIES(include/colibri_crabnav/)
 
+add_library(colibri_action
+   src/colibri_action.cpp
+ )
+add_library(colibri_pid
+   src/PID_controller.cpp
+ )
 
  add_executable(crab_safe_node src/safe_node.cpp src/protect.cpp )
  target_link_libraries(crab_safe_node
