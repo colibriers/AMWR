@@ -19,18 +19,20 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   tf
+  colibri_crabnav
 )
 
 find_package(PkgConfig) 
 pkg_check_modules(NEW_YAMLCPP yaml-cpp>=0.5) 
 if(NEW_YAMLCPP_FOUND) 
-add_definitions(-DHAVE_NEW_YAMLCPP) 
+	add_definitions(-DHAVE_NEW_YAMLCPP) 
 endif(NEW_YAMLCPP_FOUND) 
 
-include_directories( ${catkin_INCLUDE_DIRS} ) 
+include_directories(${catkin_INCLUDE_DIRS}) 
 INCLUDE_DIRECTORIES(/usr/local/include) 
 link_directories(/usr/local/lib) 
 INCLUDE_DIRECTORIES(include/colibri_docking/)
+link_directories(lib ${catkin_LIB_DIRS})
 
 catkin_package(
 #  INCLUDE_DIRS include
@@ -54,4 +56,5 @@ add_executable(corner_recgnize_node src/docking_test.cc src/docking.cc)
 target_link_libraries(corner_recgnize_node ${catkin_LIBRARIES})
 
 add_executable(docking_test_node src/docking_node.cc src/docking.cc) 
-target_link_libraries(docking_test_node ${catkin_LIBRARIES})
+target_link_libraries(docking_test_node ${catkin_LIBRARIES} 
+libcolibri_action.so libcolibri_pid.so)

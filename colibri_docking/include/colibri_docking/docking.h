@@ -15,8 +15,10 @@
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
 
+#include "cartodom/Cartodom.h"
 
-#define DEG2RAD	0.0174533
+#define DEG2RAD 	 0.0174533
+
 #define SCAN_RAY_NUM	481
 
 #define WIN_NUM	5
@@ -40,7 +42,7 @@ T CalcVecVariance(const vector<T> & vec);
 
 int Sgn(const float & data); 
 
-void	ExportData(const vector<float>& data);
+void ExportData(const vector<float>& data);
 
 struct Pose 
 {
@@ -84,6 +86,18 @@ struct Pose
 
 };
 
+struct st_range {
+	float low;
+	float high;
+};
+typedef st_range range;
+float StdSatFcn(const range & x_domain, const range & y_domain, const float & input);
+float FirstOderFilter(const float & alpha, const float & cur_ctrl, const float & last_out); 
+float CalcVertexInTriangle(const float & l_a, const float & l_b, const float & l_c);
+void AngleConstraint(float & input);
+
+
+
 class DockHandle {
 	public:
 		struct st_scope {
@@ -103,11 +117,13 @@ class DockHandle {
 		const float sin_reflect_angle = 0.707;
 		
 		const	float dock_scope_deg_[2] = {30, 150};
-		const float dis_constraint_ = 2.5;
-		const float dock_length_constraint_[2] = {0.2, 0.4};
-		const float dock_vertical_constraint_[2] = {0.03, 0.12};
-		const float match_minval_constraint_ = 0.2;
+		const float dis_constraint_ = 2.6;
+		const float dock_length_constraint_[2] = {0.25, 0.35};
+		const float dock_vertical_constraint_[2] = {0.04, 0.10};
+		const float match_minval_constraint_ = 0.25;
 		const int non_dockseg_ = 255;
+
+		const float dock_length_ = 0.17;
 
 		std::vector<float> scan_vec_;
 		Array_scan rho_origin_;
@@ -121,18 +137,26 @@ class DockHandle {
 		std::vector<float> ver_dis_;
 		int dock_seg_index_;
 		vector<int> potential_dock_seg_vec_;
-		vector<float> potential_dock_var_vec_;
+		std::vector<float> potential_dock_var_vec_;
+		static int single_corner_index_;
+		vector<int> mult_potential_corner_index_;
 		float max_verdis_;
 		int max_verdis_index_;
 		int match_corner_index_;
 		float match_corner_minval_;
 		int middle_index_;
 		int avg_corner_index_;
-		float corner_dir_angle_;
+		static int last_lower_;
+		static int last_upper_;
+		
+		static float corner_dir_angle_;
 		ros::NodeHandle nh_docking_;
 		ros::Subscriber scan_sub4dock_;
+		ros::Subscriber cartoyaw_sub4dock_;
 		ros::Publisher pub_twist_;
 		geometry_msgs::Twist dock_cmd_vel_;
+
+		float cartodom_yaw_;
 
 		DockHandle();
 		~DockHandle();
@@ -156,6 +180,7 @@ class DockHandle {
 		float corner_sin_val_;
 		std::vector<float> corner_vec_;
 		void ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan);
+		void CartodomCallBack(const cartodom::Cartodom::ConstPtr & carto);
 		float CalcPoint2LineDis(Pose & a, Pose & b, Pose &c);
 		
 };
@@ -181,17 +206,26 @@ class DockCtrl{
 		float linear_vel_;
 		float angular_vel_;
 
-		const float angular_basic_ = 0.6;
-		const limit x_scope_ = {0.8, 1.5};
-		const limit y_scope_ = {0.1, 0.3};
-		const float weigh_a_ = 0.5;
-		const float weigh_b_ = 0.5;
-		const float angle_basic_ = 30.0;
-		const float distance_basic_ = 0.15;
+		const float angular_basic_ = 0.5;
+		const limit x_scope_ = {0.7, 2.5};
+		const limit y_scope_ = {0.08, 0.4};
+		float weigh_a_ = 0.5;
+		float weigh_b_ = 0.5;
+		float weigh_c_ = 0.0;
+		const float angle_basic_ = 20.0;
+		const float distance_basic_ = 0.1;
+		const float angle_diff_basic_ = 3.0;
 
-		float VelSatuarting(const float & x);
-		float HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff);
+		float delta_angle_ = 0.0;
+
+		float vertex_diff_angle_ = 0.0;
+
+		void VelSatuarting(const float & x);
+		void HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff, const float & delta_angle);
 		float Standard(const float & basic, const float & input);
+		void AdaptiveWeight(const float & dis, float & w_a, float & w_b);
+		void AdaptiveWeight(const dock_dis & dock2laser,float & w_b);
+	
 		
 };
 

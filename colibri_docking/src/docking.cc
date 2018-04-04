@@ -70,17 +70,68 @@ void	ExportData(const vector<float>& data) {
 	scan_out.close();
 }
 
+float StdSatFcn(const range & x_domain, const range & y_domain, const float & x_input) {
+  float y_out = 0.0;
+  if(x_input >= x_domain.high) {
+		y_out = y_domain.high;
+  }
+  else if(x_input <= x_domain.low) {
+		y_out = y_domain.low;
+  }
+  else
+  {
+		y_out = y_domain.low + (y_domain.high - y_domain.low) * (x_input - x_domain.low) / ((x_domain.high - x_domain.low));
+  }
+  return y_out;
+}
+
+float FirstOderFilter(const float & alpha, const float & cur_ctrl, const float & last_out) {
+	float filter_out = cur_ctrl;
+
+	filter_out = alpha * cur_ctrl + (1.0 - alpha) * last_out;
+
+	return filter_out;
+}
+
+float CalcVertexInTriangle(const float & l_a, const float & l_b, const float & l_c) {
+	float cos_C = (pow(l_a, 2) + pow(l_b, 2) - pow(l_c, 2)) / (2.0 * l_a * l_b);
+	float C_deg = acos(cos_C) * 180. / M_PI;
+	return C_deg;
+	
+}
+
+void AngleConstraint(float & input) {
+	if(abs(input) <= 180.0) {
+			
+	}else
+	{
+		if(input > 180) {
+			input = 360 - input;
+		}
+		else {
+			input = 360 + input;
+		}
+		
+	}
+}
+
+
 DockHandle::DockHandle(): dock_seg_index_(0), max_verdis_(0.),
 															max_verdis_index_(0), match_corner_index_(0) {
 	scan_sub4dock_ = nh_docking_.subscribe<sensor_msgs::LaserScan>("/scan", 1, &DockHandle::ScanCallBack, this);
+	cartoyaw_sub4dock_ =  nh_docking_.subscribe<cartodom::Cartodom>("/cartodom", 1, &DockHandle::CartodomCallBack, this);
 	pub_twist_ = nh_docking_.advertise<geometry_msgs::Twist>("/t_cmd_vel", 1);
 	refresh_flag_ = false;
-	corner_dir_angle_ = 90.;
 
 }
 DockHandle::~DockHandle() {
 
 }
+
+float DockHandle::corner_dir_angle_ = 90.;
+int DockHandle::single_corner_index_ = 90;
+int DockHandle::last_lower_ = 240;
+int DockHandle::last_upper_ = 240;
 
 void DockHandle::LoadData(void) {
 
@@ -242,8 +293,9 @@ void DockHandle::CalcDockSegIndex(void) {
 	//using angle scope , point dis, and seg dis and corner concavity, ver_dis and corner angle  to select the potential dock seg index
 	int dock_scope_lower = static_cast<int> ((dock_scope_deg_[0] - scan_lower_) / resol_);
 	int dock_scope_upper = static_cast<int> ((dock_scope_deg_[1] - scan_lower_) / resol_);
-  std::vector<int> ().swap(potential_dock_seg_vec_);
+   std::vector<int> ().swap(potential_dock_seg_vec_);
 	std::vector<float> ().swap(potential_dock_var_vec_);
+	std::vector<int> ().swap(mult_potential_corner_index_);
 	for(std::vector<scope>::const_iterator it = segs_vec_.cbegin(); it != segs_vec_.cend(); ++it) {
 		if((*it).lower > dock_scope_lower && (*it).upper < dock_scope_upper) {
 			if(rho_filter_(0, (*it).lower) < dis_constraint_ && rho_filter_(0, (*it).upper)< dis_constraint_) {
@@ -261,6 +313,7 @@ void DockHandle::CalcDockSegIndex(void) {
 							cur_seg_corner.push_back(match_corner_index_);
 							float var = CalcVecVariance<float>(cur_seg_corner);
 							potential_dock_var_vec_.push_back(var);
+							mult_potential_corner_index_.push_back(middle_index_);
 						}
 					}
 					
@@ -271,18 +324,34 @@ void DockHandle::CalcDockSegIndex(void) {
 
 	if(potential_dock_seg_vec_.size() == 1) {
 		dock_seg_index_ = potential_dock_seg_vec_[0];
+		single_corner_index_ = mult_potential_corner_index_[0];
+		last_lower_ = segs_vec_[dock_seg_index_].lower;
+		last_upper_ = segs_vec_[dock_seg_index_].upper;
 	}
 	else if(potential_dock_seg_vec_.size() > 1){
-		std::cout<<"Find multiple dock seg_index"<<std::endl;
-		std::vector<float>::iterator smallest = std::min_element(potential_dock_var_vec_.begin(), potential_dock_var_vec_.end());
-		int delta = std::distance(potential_dock_var_vec_.begin(), smallest);
+		std::cout<<"++++++++++++++++ Find multiple dock seg_index"<<std::endl;
+		//std::vector<float>::iterator smallest = std::min_element(potential_dock_var_vec_.begin(), potential_dock_var_vec_.end());
+		//int delta = std::distance(potential_dock_var_vec_.begin(), smallest);
+		//dock_seg_index_ = potential_dock_seg_vec_[delta];
+		std::vector<int> delta_index;
+		for(std::vector<int>::iterator it = mult_potential_corner_index_.begin(); it != mult_potential_corner_index_.end(); ++it) {
+			int tmp_diff = abs(*it - single_corner_index_);
+			delta_index.push_back(tmp_diff);
+		}
+		std::vector<int>::iterator smallest = std::min_element(delta_index.begin(), delta_index.end());
+		int delta = std::distance(delta_index.begin(), smallest);
 		dock_seg_index_ = potential_dock_seg_vec_[delta];
+		single_corner_index_ = mult_potential_corner_index_[delta];
+		last_lower_ = segs_vec_[dock_seg_index_].lower;
+		last_upper_ = segs_vec_[dock_seg_index_].upper;
 	}
 	else {
-		std::cout<<"Cannot find dock seg_index"<<std::endl;
+		std::cout<<"------------ Cannot find dock seg_index--------"<<std::endl;
 		dock_seg_index_ = non_dockseg_;
-		corner_dir_angle_ = 90.;
+		//corner_dir_angle_ = 90.;
 	}
+
+
 	
 }
 
@@ -355,7 +424,8 @@ void DockHandle::CalcCornerFunc(const Eigen::Matrix<float, 2, SCAN_RAY_NUM> & sc
 
 void DockHandle::CalcAvgCornerDir(void) {
 		avg_corner_index_ = round((max_verdis_index_ + middle_index_ + match_corner_index_) / 3.0);
-		corner_dir_angle_ = 180. - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
+		//corner_dir_angle_ = 180. - (avg_corner_index_ * resol_ + scan_lower_); // mirror handle using 180 minus
+		corner_dir_angle_ = (avg_corner_index_ * resol_ + scan_lower_); 
 }
 
 
@@ -366,6 +436,10 @@ void DockHandle::ScanCallBack(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	refresh_flag_ = true;
 }
 
+void DockHandle::CartodomCallBack(const cartodom::Cartodom::ConstPtr & carto) {
+	cartodom_yaw_ = carto->yaw * 180. / M_PI;
+}
+
 DockCtrl::DockCtrl(): linear_vel_(0.0), angular_vel_(0.0) {
 
 }
@@ -374,40 +448,80 @@ DockCtrl::~DockCtrl() {
 
 }
 
-float DockCtrl::VelSatuarting(const float & x) {
-	float result = (y_scope_.high +  y_scope_.low) / 2.0;
+void DockCtrl::VelSatuarting(const float & x) {
 	if(x > x_scope_.high) {
-		result = y_scope_.high;
+		linear_vel_ = y_scope_.high;
 	}
 	else if(x < x_scope_.low) {
-		result = y_scope_.low;
+		linear_vel_ = y_scope_.low;
 	}
 	else {
-		result = y_scope_.low + (y_scope_.high - y_scope_.low) * (x - x_scope_.low) / ((x_scope_.high - x_scope_.low)); 
+		linear_vel_ = y_scope_.low + (y_scope_.high - y_scope_.low) * (x - x_scope_.low) / ((x_scope_.high - x_scope_.low)); 
 	}
 
-	return result;
 }
 
-float DockCtrl::HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff) {
-	float angular = 0.0;
+void DockCtrl::HeadingCtrl(const dock_dis & dock2laser, const float & head2corner_diff, const float & delta_angle) {
+
 	float corner_puv = Standard(angle_basic_, head2corner_diff);
-	float delta_dis = (dock2laser.a - dock2laser.c);
+	float delta_dis = (dock2laser.c - dock2laser.a);
 	float distance_puv = Standard(distance_basic_, delta_dis);
-	angular = (corner_puv * weigh_a_+  distance_puv * weigh_b_) * angular_basic_;
-	return angular;
+	float angle_diff_puv = Standard(angle_diff_basic_, delta_angle);
+	
+	AdaptiveWeight(dock2laser, weigh_b_);
+	if(weigh_b_ > 0.5) {
+		weigh_a_ = 0.4;
+	}else {
+		weigh_a_ = 0.0;
+	}
+	if(dock2laser.b > 0.55 && dock2laser.b < 1.2) {
+		weigh_c_ = 0.7;
+		weigh_a_ = 0.0;
+	}else
+	{
+		weigh_c_ = 0.0;
+	}
+	
+	if(dock2laser.b < 0.55)
+	{
+		weigh_c_ = 0.0;
+		weigh_a_ = 0.9;
+	}
+	angular_vel_ = (corner_puv * weigh_a_+  distance_puv * weigh_b_ + weigh_c_ * angle_diff_puv) * angular_basic_;
+
 }
 
 float DockCtrl::Standard(const float & basic, const float & input) {
 	 float puv = 1.0;
 	 puv = input / basic;
 	 if(abs(puv) >= 1) {
-		 puv = Sgn(puv) * puv;
+		 puv = Sgn(puv);
 	 }
 
 	 return puv;
 }
 
+void DockCtrl::AdaptiveWeight(const float & dis, float & w_a, float & w_b) {
+	const float dis_basic = 2.5;
+	float ratio = dis / dis_basic;
+	range x_d = {0.4, 2.5};
+	range y_d = {0.0, 1};
+	
+	w_b = StdSatFcn(x_d, y_d, dis);
+	w_a = 1 - w_b;
+	
+}
+
+void DockCtrl::AdaptiveWeight(const dock_dis & dock2laser,float & w_b) {
+	if(abs(dock2laser.a - dock2laser.c) > 0.02 && dock2laser.b > 1.2 && dock2laser.b < 2.5) {
+		w_b = 0.9;
+	}
+	else
+	{
+		w_b = 0.0;
+	}
+	
+}
 
 
 
