@@ -4,7 +4,7 @@ routes:
   origin: [-43.75, -19.8, 0.000000]
   map_size: [1244, 607]
   seg_num: 2 								# notes: seg total num
-  seg1_property: [1, 0, 1, 0, 0, 90]  # notes: [#seg_num, #start_node, #end_node, #seg_type, #seg_dir, #arc_rad]
+  seg1_property: [1, 0, 1, 0, 0, 90]  # notes: [#seg_num, #start_node, #end_node, #seg_type, #seg_dir, #arc_deg, #arc_radius， #arc_speed]
   seg1_vector: [876, 211, 929, 211] #notes: [start.pix.x, start.pix.y, end.pix.x, end.pix.y]
   seg1_heading: 0.00  #cur seg heading
   seg2_property: [2, 1, 2, 0, 0, 180]
@@ -18,4 +18,8 @@ routes:
 #seg_type: 线段类型，0：直线， 1：1/4圆弧， 2：1/2圆弧， 3：非标准弧线
 #seg_dir: 弧线取向， 0：无取向(或任意取向)， 1：顺时针取向， 2：逆时针取向
 #seg_heading: 当前线段的末端航向
+#arc_deg: 90.0, 180.0, 其他任意圆弧角度,目前暂时考虑1/4或者1/2圆弧; 直线段： -1.0
+#arc_radius: arc radius (unit: m) 圆弧半径：（0.3, 1.0] default: 0.5 m 直线段： -1.0
+#arc_speed:	air in arc running speed: 圆弧 : (0.0, 0.4] default: 0.3 m/s, 直线段: default: 1.2 m/s
+
 
